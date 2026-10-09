@@ -18,7 +18,9 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
 const here = dirname(fileURLToPath(import.meta.url))
-const OUT = join(here, 'results/session.json')
+// CONTEXT=repo: the first turn also carries ~20k tokens of source, so contexts are long enough for the cache guard to matter (results go to session-long.json).
+const LONG = process.env.CONTEXT === 'repo'
+const OUT = join(here, LONG ? 'results/session-long.json' : 'results/session.json')
 const WORK = '/tmp/jevbench/session', PLUGINS = '/tmp/jevbench/plugins'
 const argv = process.argv.slice(2)
 const DRY = argv.includes('--dry')
@@ -51,6 +53,7 @@ function order(session: number) {
 const SESSION_CAP_USD = 6 // --max-budget-usd now applies to the whole process, i.e. one session
 const COMMON = ['--setting-sources', '', '--strict-mcp-config', '--disable-slash-commands', '--tools', '', '--max-budget-usd', String(SESSION_CAP_USD), '--append-system-prompt', SYSTEM]
 const streamArgs = (s: string) => ['-p', '--input-format', 'stream-json', '--output-format', 'stream-json', '--verbose', ...COMMON, ...STRATS[s]!]
+const CONTEXT = LONG ? ['hooks/register.tsx', 'hooks/register.test.ts', 'README.md'].map(f => `=== ${f} ===\n${readFileSync(join(here, '..', f), 'utf8')}`).join('\n\n').slice(0, 80_000) : ''
 const userLine = (text: string) => JSON.stringify({ type: 'user', message: { role: 'user', content: text } }) + '\n'
 
 const plan = Array.from({ length: SESSIONS }, (_, r) => Object.keys(STRATS).map(s => ({ strategy: s, session: r, tasks: order(r) }))).flat()
@@ -144,7 +147,7 @@ async function session({ strategy, session: r, tasks }: (typeof plan)[number]) {
     for (const [i, t] of tasks.entries()) {
       if (total > BUDGET) { rec.error = `budget $${BUDGET} reached`; break }
       const t0 = Date.now()
-      proc.send(t.text)
+      proc.send(LONG && rec.turns.length === 0 ? `${CONTEXT}\n\nThe code above is the project all of the following tasks are about. First task:\n${t.text}` : t.text)
       const d = await proc.next()
       const cum = d.total_cost_usd ?? prevUsd
       const models = delta(d.modelUsage, prevModels)

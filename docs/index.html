@@ -16,7 +16,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://dominicrico.github.io/jev-router/assets/hero.jpg">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"SoftwareApplication","name":"jev-router","applicationCategory":"DeveloperApplication","operatingSystem":"macOS, Linux, Windows (Claude Code)","description":"A Claude Code plugin that routes each prompt, step and subagent to the right Claude model and reasoning effort using TypeSafe Jev.","softwareVersion":"0.2.0","license":"https://opensource.org/licenses/MIT","url":"https://dominicrico.github.io/jev-router/","downloadUrl":"https://github.com/dominicrico/jev-router","codeRepository":"https://github.com/dominicrico/jev-router","author":{"@type":"Person","name":"Dominic Rico Gómez","url":"https://github.com/dominicrico"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"jev-router","applicationCategory":"DeveloperApplication","operatingSystem":"macOS, Linux, Windows (Claude Code)","description":"A Claude Code plugin that routes each prompt, step and subagent to the right Claude model and reasoning effort using TypeSafe Jev.","softwareVersion":"0.3.0","license":"https://opensource.org/licenses/MIT","url":"https://dominicrico.github.io/jev-router/","downloadUrl":"https://github.com/dominicrico/jev-router","codeRepository":"https://github.com/dominicrico/jev-router","author":{"@type":"Person","name":"Dominic Rico Gómez","url":"https://github.com/dominicrico"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
 </script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
@@ -83,7 +83,9 @@ footer{padding:40px 20px 60px;color:var(--mute);font-size:14px;text-align:center
 <div class="card"><b>Right model per prompt</b>Haiku for renames, Sonnet for features, Opus for hard debugging. Three modes: efficient, balanced, cheap.</div>
 <div class="card"><b>Per step and per subagent</b>Long tasks are re-routed before each step. Each subagent gets its own model, shown in the subagent list.</div>
 <div class="card"><b>Effort cap</b>Limits Jev's effort to <code>high</code> by default, because extra reasoning is what makes hard tasks expensive. <code>!full</code> lifts it for one prompt.</div>
-<div class="card"><b>Prompt cache guard</b>Switching models discards a warm cache. jev-router stays put unless Jev is confident a stronger model is needed.</div>
+<div class="card"><b>Prompt cache guard</b>Switching models discards a warm cache. jev-router stays put unless Jev is confident a stronger model is needed. Measured: 6 switches become 1 in long sessions.</div>
+<div class="card"><b>Model ceiling</b><code>/jev ceiling sonnet</code> keeps tasks off Opus unless Jev is 90% sure. A sonnet ceiling finished 20/20 hard tasks at half the cost of Opus.</div>
+<div class="card"><b>Shows what really runs</b>The band follows the model that ran the last step and flags a mismatch with the pick, for example after a /model switch.</div>
 <div class="card"><b>Per-prompt markers</b><code>!opus</code>, <code>!sonnet</code>, <code>!haiku</code> pin a model with no Jev call; <code>!cheap</code> and <code>!efficient</code> set the mode.</div>
 <div class="card"><b>Escalation</b>After three failed tool calls in a row the task moves up one model.</div>
 <div class="card"><b>Live status band</b>Model, effort, confidence and cache state above the prompt, with a spinner while a task runs.</div>
@@ -102,12 +104,13 @@ footer{padding:40px 20px 60px;color:var(--mute);font-size:14px;text-align:center
 <tr><td><strong>All 30 tasks</strong></td><td><strong>−1%</strong></td><td><strong>−13%</strong></td><td><strong>−64%</strong></td></tr>
 </table>
 <img class="shot" src="assets/agentic.png" alt="Multi-step tasks with tools: jev-router finished 18 of 18 tasks at 47% of the cost of always opus" width="1760" height="1114">
-<img class="shot" src="assets/hard.png" alt="Harder tasks graded by hidden tests: plain sonnet matched opus and was cheapest, jev-router sits between" width="1760" height="1114">
-<p>On the harder, hidden-test-graded tasks plain Sonnet did as well as Opus and cost 61% less, so routing helps most when your tasks vary or your default is Opus. Method, limits and raw results are in the <a href="https://github.com/dominicrico/jev-router/tree/main/benchmarks">benchmarks folder</a>.</p>
+<img class="shot" src="assets/hard.png" alt="Harder tasks graded by hidden tests: always sonnet cheapest, jev-router with a sonnet ceiling 20 of 20 at half the cost of opus" width="1760" height="1114">
+<p>On the harder, hidden-test-graded tasks plain Sonnet did as well as Opus and cost 61% less. A <code>sonnet</code> ceiling finished 20 of 20 for half of Opus's cost. In long warm sessions, routing cost more than staying on one model (the cache guard cut the penalty from +38% to +24% against Opus), so routing helps most when your tasks vary, your context is small or cold, or your default is Opus. Method, limits and raw results are in the <a href="https://github.com/dominicrico/jev-router/tree/main/benchmarks">benchmarks folder</a>.</p>
 
 <h2 id="faq">FAQ</h2>
 <details><summary>How do I switch between Opus, Sonnet and Haiku automatically in Claude Code?</summary><p>Install jev-router. It picks the model per prompt, and you can override one prompt with <code>!opus</code>, <code>!sonnet</code> or <code>!haiku</code>.</p></details>
 <details><summary>How do I reduce Claude Code token cost?</summary><p>Route easy tasks to cheaper models and cap reasoning effort. jev-router does both, and shows an estimated saving in <code>/jev status</code>. The benchmarks above show where it helps and where it does not.</p></details>
+<details><summary>Does the prompt cache guard work?</summary><p>Yes, but it does not make routing free. In real long sessions with a large warm cache it cut model switches from 6.3 to 1.0 and cache re-writes by 60%, yet routing still cost more than staying on Opus (+24% with the guard, +38% without). Use a ceiling or plain Sonnet for long warm sessions.</p></details>
 <details><summary>What is the effort cap?</summary><p>Jev often asks for <code>xhigh</code> effort on hard tasks, which can use several times the tokens. The cap limits it to <code>high</code> by default. Start a prompt with <code>!full</code> to lift it once.</p></details>
 <details><summary>Does it send my code anywhere?</summary><p>It sends the prompt text, optionally recent messages, and subagent task descriptions to api.typesafe.ai. API keys, tokens, private keys and <code>password=</code> style values are redacted first, and <code>sendHistory</code> turns the history off. Pattern redaction is not a guarantee.</p></details>
 <details><summary>Will it slow Claude Code down?</summary><p>Each Jev call adds about 250 ms. After three failed calls in a row it pauses for a minute and keeps the current model.</p></details>

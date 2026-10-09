@@ -6,7 +6,7 @@ const F2 = process.env.FIXTURE === 'fixture2' || /agentic2/.test(process.env.RES
 const IN = process.env.RESULTS ?? (F2 ? 'results/agentic2.json' : 'results/agentic.json')
 const OUTFILE = process.env.OUT ?? (/agentic2/.test(IN) ? 'results/AGENTIC2.md' : 'results/AGENTIC.md')
 const rows: any[] = JSON.parse(readFileSync(new URL(IN, import.meta.url), 'utf8'))
-const S = ['no plugin: always opus', 'no plugin: always sonnet', 'jev-router: per prompt', 'jev-router: every step + subagents', 'jev-router: !full'].filter(s => rows.some(r => r.strategy === s))
+const S = ['no plugin: always opus', 'no plugin: always sonnet', 'jev-router: per prompt', 'jev-router: every step + subagents', 'jev-router: !full', 'jev-router: ceiling sonnet'].filter(s => rows.some(r => r.strategy === s))
 const ORDER = ['rename', 'bugfix', 'feature', 'subagent', 'refactor', 'hard', 'queue', 'intervals', 'inventory', 'flaky']
 const T = ORDER.filter(t => rows.some(r => r.task === t))
 const of = (s: string, t?: string) => rows.filter(r => r.strategy === s && (!t || r.task === t))

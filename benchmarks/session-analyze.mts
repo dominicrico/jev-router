@@ -1,7 +1,7 @@
 // Turns results/session.json into results/SESSION.md. Complete sessions only. No network.
 import { readFileSync, writeFileSync } from 'node:fs'
 import { table, vs, sum, k } from './lib.mts'
-const all: any[] = JSON.parse(readFileSync(new URL('results/session.json', import.meta.url), 'utf8'))
+const all: any[] = JSON.parse(readFileSync(new URL(process.env.CONTEXT === 'repo' ? 'results/session-long.json' : 'results/session.json', import.meta.url), 'utf8'))
 const rows = all.filter(s => s.complete)
 const S = ['no plugin: always opus', 'no plugin: always sonnet', 'jev-router: stickiness auto', 'jev-router: stickiness off'].filter(s => rows.some(r => r.strategy === s))
 const of = (s: string) => rows.filter(r => r.strategy === s)
@@ -18,5 +18,5 @@ const mix = (s: string) => { const m: Record<string, number> = {}; for (const t 
 out.push('\n## Spend by model\n', table(['strategy', 'spend by model'], S.map(s => [s, mix(s)])))
 out.push('\n## Model per turn, first session of each strategy\n', table(['strategy', 'task order', 'model per turn', 'cost per turn'], S.map(s => { const r = of(s).sort((a, b) => a.session - b.session)[0]; return r ? [s, r.order.join(' '), r.turns.map((t: any) => short(t.model)).join(' '), r.turns.map((t: any) => `$${t.usd.toFixed(3)}`).join(' ')] : [s, '', '', ''] })))
 out.push('\n## Per session\n', table(['strategy', 'session', 'total cost', 'switches', 'cache write', 'cache read'], S.flatMap(s => of(s).sort((a, b) => a.session - b.session).map(r => [s, String(r.session), `$${r.totalUsd.toFixed(3)}`, String(r.switches), k(sum(r.turns, (t: any) => t.cacheWrite)), k(sum(r.turns, (t: any) => t.cacheRead))]))))
-writeFileSync(new URL('results/SESSION.md', import.meta.url), out.join('\n') + '\n')
+writeFileSync(new URL(process.env.CONTEXT === 'repo' ? 'results/SESSION-LONG.md' : 'results/SESSION.md', import.meta.url), out.join('\n') + '\n')
 console.log(out.join('\n'))

@@ -9,7 +9,7 @@ import { tmpdir } from 'node:os'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { segments } from '../../hooks/register.tsx'
-import type { Decision, Effort, Mode } from '../../types'
+import type { Decision, Effort, Mode, Ran } from '../../types'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const { chromium } = createRequire(process.env.PW_DIR + '/')('playwright-core')
@@ -21,16 +21,17 @@ const esc = (t: string) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;')
 const span = ({ text, color, bold }: Seg) => `<span style="color:${color};${bold ? 'font-weight:800' : ''}">${esc(text)}</span>`
 
 // o: { mode, last (a Decision, null while idle), cache (label string), spin (frame index, null = static), paused, off }
-type Band = { mode?: Mode; last?: Decision | null; cache?: string | null; spin?: number | null; paused?: boolean; off?: boolean }
+type Band = { mode?: Mode; last?: Decision | null; cache?: string | null; spin?: number | null; paused?: boolean; off?: boolean; ran?: Ran | null }
 const band = (o: Band) =>
   (o.off
     ? [{ text: 'JEV ▏off▕', color: '#64748b' }]
-    : segments(o.mode ?? 'balanced', o.last ?? null, o.spin ?? null, o.cache ?? null, o.paused ?? false)
+    : segments(o.mode ?? 'balanced', o.last ?? null, o.spin ?? null, o.cache ?? null, o.paused ?? false, o.ran ?? null)
   ).map(span).join('')
 
 const IDS = { haiku: 'claude-haiku-5-5', sonnet: 'claude-sonnet-5-5', opus: 'claude-opus-5-5', fable: 'claude-fable-5-1' }
 const dec = (alias: keyof typeof IDS, effort: Effort, confidence: number, extra: Partial<Decision> = {}) =>
   ({ alias, model: IDS[alias], effort, confidence, turnId: 'gif', ...extra }) as Decision
+const ranOn = (alias: keyof typeof IDS): Ran => ({ alias, model: IDS[alias], turnId: 'gif', at: 0 })
 const sonnet = dec('sonnet', 'medium', 0.88)
 const warm = 'cache 🔒 warm 42k'
 // [caption, band options, how many frames, delay in centiseconds per frame]
@@ -41,6 +42,9 @@ const STATES: [string, Band, number?][] = [
   ['Sonnet at medium effort for ordinary work', { last: sonnet, cache: warm }],
   ['Hard task: opus, with the effort capped from xhigh', { last: dec('opus', 'high', 0.81, { capped: 'xhigh' }), cache: warm }],
   ['Prompt starts with !full: the cap is lifted for that prompt only', { last: dec('opus', 'xhigh', 0.81, { unlocked: true }), cache: warm }],
+  ['Opus was picked but the session ran on sonnet (a /model switch or a fallback): the band tells you', { last: dec('opus', 'high', 0.81), ran: ranOn('sonnet'), cache: warm }],
+  ['Jev failed, so there is no pick: the band shows the model that is really running', { ran: ranOn('sonnet'), cache: warm }],
+  ['A ceiling at sonnet stopped an opus pick (Jev was under 90% sure)', { last: dec('sonnet', 'high', 0.7, { clamped: 'opus' }), cache: warm }],
   ['Cache is warm: Jev wanted haiku, the band stays on sonnet', { last: dec('sonnet', 'medium', 0.64, { kept: 'haiku' }), cache: warm }],
   ['Prompt starts with !opus: the model is pinned, no Jev call', { last: dec('opus', 'high', 1, { pinned: true }), cache: warm }],
   ['Three failed tool calls in a row: the task moved up one model', { last: dec('opus', 'medium', 0.88, { escalated: true }), cache: warm }],

@@ -3,6 +3,16 @@
 All notable changes to jev-router are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project uses [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] - 2026-10-09
+
+### Added
+- The band shows the model that really ran the last step. A mismatch reads `sonnet (picked opus)`; after a Jev failure it shows the session model instead of "waiting for the first task"; it flips from warm to cold on its own.
+- Model ceiling and floor (`ceiling`, `floor`, `ceilingBreak`, `/jev ceiling`, `/jev floor`), applied before the cache guard. Off by default. A sonnet ceiling finished 20/20 hard tasks at half the cost of opus.
+- A real long-session benchmark (`benchmarks/session.mts`, one process per session via stream-json) and a debug line with the cache state per Jev call.
+
+### Changed
+- README and charts now use the measured long-session numbers. The earlier simulation's "3x more" is replaced by +38% (guard off) and +24% (guard on) against opus, and the README says plainly that in a long warm session routing cost more than staying on opus.
+
 ## [0.2.0] - 2026-10-09
 
 ### Added
@@ -40,5 +50,6 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Benchmarks: routing fit, cost, stability, overhead and cache stickiness over 30 tasks, plus real token usage and cost per mode against no plugin.
 - Ponytail-style README with logo, hero art and benchmark charts.
 
+[0.3.0]: https://github.com/dominicrico/jev-router/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/dominicrico/jev-router/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/dominicrico/jev-router/releases/tag/v0.1.0
