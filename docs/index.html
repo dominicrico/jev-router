@@ -72,6 +72,18 @@ footer{padding:40px 20px 60px;color:var(--mute);font-size:14px;text-align:center
 <p>Using one model for everything wastes money: an expensive model renames a variable, a cheap one stalls on a hard refactor. <strong>jev-router</strong> is a Claude Code plugin (a "mod") that asks <a href="https://typesafe.ai">TypeSafe Jev</a> which Claude model and effort a task needs, then runs the turn on that choice. It works per prompt, again before each step of a long task, and once for every subagent.</p>
 <img class="shot" src="assets/band.gif" alt="The jev-router band above the Claude Code prompt, stepping through its states: idle, running, haiku, sonnet, capped opus, pinned, escalated, paused" width="880" height="141">
 
+<h2 id="shines">Where jev-router shines</h2>
+<p>If your default is Opus, most prompts pay for more model than they need. Measured with real Claude Code runs, against always using Opus:</p>
+<table>
+<tr><th>Your work</th><th>What it does</th><th>Result</th></tr>
+<tr><td>Small tasks: renames, typos, lookups</td><td>Haiku, low effort</td><td><strong>−97% cost</strong></td></tr>
+<tr><td>Everyday features, tests, refactors</td><td>Sonnet</td><td><strong>−65% cost</strong></td></tr>
+<tr><td>Multi-step agent runs with tools and subagents</td><td>Routes each step and subagent</td><td><strong>18/18 done at 47% of the cost</strong></td></tr>
+<tr><td>Hard tasks with <code>ceiling: sonnet</code></td><td>Sonnet unless Jev is 90% sure</td><td><strong>20/20 done, −50% cost</strong></td></tr>
+<tr><td>30 mixed tasks, default settings</td><td>Effort capped at high</td><td><strong>−1% to −64%</strong>, never above Opus</td></tr>
+</table>
+<p><strong>Best for:</strong> Opus-by-default users, workloads full of small prompts, agent runs with subagents, and anyone who wants to see and steer which model runs. <strong>Not for:</strong> long sessions on one big warm context (routing cost +24% against Opus even with the cache guard), or work where plain Sonnet is already enough.</p>
+
 <h2 id="install">Install</h2>
 <p>You need Claude Code with plugin support and a TypeSafe API key.</p>
 <pre><code>/plugin marketplace add dominicrico/jev-router

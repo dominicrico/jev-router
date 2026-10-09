@@ -31,9 +31,34 @@
 
 **jev-router is a free, open-source Claude Code plugin that routes every prompt, step and subagent to the right Claude model (Haiku, Sonnet, Opus, Fable) and the right reasoning effort.** It asks [TypeSafe Jev](#how-it-works) which model a task needs, caps the effort so hard tasks do not burn tokens, protects your prompt cache from needless model switches, and shows the choice in a live status band above the prompt. Use it to cut Claude Code cost on easy work without giving up Opus when a task needs it.
 
-You know the problem. You rename one variable and your most expensive model thinks about it for a minute. Or you start a gnarly refactor and a bargain model happily shrugs. jev-router puts a switchman in front of your session: before every task he reads it, asks Jev, pulls the lever, and the turn runs on the model and effort that fit.
+## Where jev-router shines
 
-**Contents:** [Status band](#the-status-band) · [Features](#features-model-routing-effort-cap-cache-guard-subagents) · [Does it reduce costs?](#does-it-reduce-claude-code-costs) · [How it works](#how-it-works) · [Install](#install-the-claude-code-plugin) · [Commands](#commands) · [Options](#options) · [Privacy](#privacy) · [FAQ](#faq)
+If your default is Opus, most of your prompts pay for more model than they need. A rename does not need the model that designs your queue. Measured with real Claude Code runs, against **always using Opus**:
+
+| Your work | What jev-router does | Result |
+| --- | --- | --- |
+| Small tasks: renames, typos, lookups, version bumps | Haiku at low effort | **−97% cost** |
+| Everyday features, tests and refactors | Sonnet | **−65% cost** |
+| Multi-step agent runs with tools and subagents | Re-routes each step, picks a model per subagent | **18/18 done at 47% of the cost** |
+| Hard tasks, with `ceiling: sonnet` | Sonnet, Opus only when Jev is 90% sure | **20/20 done at −50% cost** |
+| A mixed bag of 30 tasks, default settings | Effort capped at `high` | **−1% to −64%** by mode, never above Opus |
+
+**Best for:** Opus-by-default users, mixed workloads full of small prompts, agent runs with subagents, and anyone who wants to *see and steer* which model runs (the band, `!opus`, `!full`, `/jev ceiling`).
+
+**Not for:** long sessions on one big warm context. There, routing cost +24% against Opus even with the cache guard, because switching models re-writes the cache; use `ceiling: sonnet` or plain Sonnet. And if plain Sonnet already does all your work, it is cheaper than routing. Every figure above comes from the [benchmarks](#does-it-reduce-claude-code-costs), including the ones that went against it.
+
+### Install in 30 seconds
+
+```
+/plugin marketplace add dominicrico/jev-router
+/plugin install jev-router@jev-router
+```
+
+Then `/jev key <your TypeSafe key>` and `/jev status`. Full setup in [Install](#install-the-claude-code-plugin).
+
+You know the problem: you rename one variable and your most expensive model thinks about it for a minute. jev-router puts a switchman in front of your session. Before every task he reads it, asks Jev, pulls the lever, and the turn runs on the model and effort that fit.
+
+**Contents:** [Where it shines](#where-jev-router-shines) · [Status band](#the-status-band) · [Features](#features-model-routing-effort-cap-cache-guard-subagents) · [Does it reduce costs?](#does-it-reduce-claude-code-costs) · [How it works](#how-it-works) · [Install](#install-the-claude-code-plugin) · [Commands](#commands) · [Options](#options) · [Privacy](#privacy) · [FAQ](#faq)
 
 ## The status band
 
