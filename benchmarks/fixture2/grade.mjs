@@ -3,11 +3,12 @@ import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { unsealed } from './seal.mjs'
 
 export const FIXTURE2 = dirname(fileURLToPath(import.meta.url))
 export const TASK_IDS = ['queue', 'intervals', 'inventory', 'flaky']
 // What the agent gets to see: everything but the hidden tests, the reference solutions and these scripts.
-const HIDDEN = new Set(['hidden', 'reference', 'readme', 'verify.mjs', 'grade.mjs', 'tasks.mts'])
+const HIDDEN = new Set(['hidden', 'reference', 'sealed.tgz', 'seal.mjs', 'readme', 'verify.mjs', 'grade.mjs', 'tasks.mts'])
 
 // The files each task owns. An agent only gets its own task's files, so a red test of another task
 // cannot distract it and `npm test` means the same thing for every strategy.
@@ -34,7 +35,7 @@ const runTests = (cwd, files) => {
 export function grade(dir, task) {
   const visible = runTests(dir, FILES[task].filter(f => f.startsWith('test/')))
   mkdirSync(join(dir, 'hidden'), { recursive: true })
-  cpSync(join(FIXTURE2, 'hidden', `${task}.test.js`), join(dir, 'hidden', `${task}.test.js`))
+  cpSync(join(unsealed(), 'hidden', `${task}.test.js`), join(dir, 'hidden', `${task}.test.js`))
   const hidden = runTests(dir, [`hidden/${task}.test.js`])
   return { ok: hidden.pass && visible.pass, hidden: hidden.pass, visible: visible.pass, detail: hidden.tail }
 }

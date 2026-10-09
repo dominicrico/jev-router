@@ -1,13 +1,10 @@
 // Turns results/session.json into results/SESSION.md. Complete sessions only. No network.
 import { readFileSync, writeFileSync } from 'node:fs'
+import { table, vs, sum, k } from './lib.mts'
 const all: any[] = JSON.parse(readFileSync(new URL('results/session.json', import.meta.url), 'utf8'))
 const rows = all.filter(s => s.complete)
 const S = ['no plugin: always opus', 'no plugin: always sonnet', 'jev-router: stickiness auto', 'jev-router: stickiness off'].filter(s => rows.some(r => r.strategy === s))
 const of = (s: string) => rows.filter(r => r.strategy === s)
-const sum = (a: any[], f: (x: any) => number) => a.reduce((x, r) => x + f(r), 0)
-const table = (h: string[], b: string[][]) => [`| ${h.join(' | ')} |`, `|${h.map(() => '---').join('|')}|`, ...b.map(r => `| ${r.join(' | ')} |`)].join('\n')
-const vs = (a: number, b: number) => `${a <= b ? '-' : '+'}${Math.abs(Math.round((1 - a / b) * 100))}%`
-const k = (n: number) => `${(n / 1000).toFixed(1)}k`
 const short = (m?: string) => (m ?? '?').replace('claude-', '').replace(/-\d.*$/, '')
 const base = sum(of(S[0]!), s => s.totalUsd) / Math.max(1, of(S[0]!).length)
 const turns = (s: string) => of(s).flatMap(r => r.turns)

@@ -3,7 +3,8 @@
 import { cpSync, mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { FIXTURE2, TASK_IDS, copyVisible, grade } from './grade.mjs'
+import { TASK_IDS, copyVisible, grade } from './grade.mjs'
+import { unsealed } from './seal.mjs'
 
 let bad = 0
 const line = (task, what, ok, extra = '') => { if (!ok) bad++; console.log(`${ok ? 'ok  ' : 'BAD '} ${task.padEnd(10)} ${what}${extra ? '  ' + extra : ''}`) }
@@ -14,7 +15,7 @@ for (const task of TASK_IDS) {
   // Three runs before: a hidden test that only fails sometimes is not a grader.
   const before = [1, 2, 3].map(() => grade(dir, task))
   line(task, 'untouched fixture: hidden test fails (3/3 runs)', before.every(r => !r.hidden), `visible tests ${before[0].visible ? 'pass' : 'fail'}`)
-  cpSync(join(FIXTURE2, 'reference', task), dir, { recursive: true })
+  cpSync(join(unsealed(), 'reference', task), dir, { recursive: true })
   const after = [1, 2, 3].map(() => grade(dir, task))
   line(task, 'reference applied: hidden + visible tests pass (3/3 runs)', after.every(r => r.ok), after.every(r => r.ok) ? '' : after.find(r => !r.ok).detail)
   rmSync(dir, { recursive: true, force: true })

@@ -1,58 +1,52 @@
 // Renders assets/band.gif: one slow slide per state the band can be in, each with a caption.
-// usage (needs ImageMagick `magick`): PW_DIR=/path/with/playwright-core CHROME=/path/to/chrome node assets/src/gif.mjs
+// usage (needs ImageMagick `magick`, run from the repo root):
+//   PW_DIR=/path/with/playwright-core CHROME=/path/to/chrome npx -y tsx --tsconfig benchmarks/tsconfig.json assets/src/gif.mts
+// The tsconfig maps the 'claude-code' import in hooks/register.tsx to a stub so it loads outside Claude Code.
 import { createRequire } from 'node:module'
 import { mkdtempSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
 import { tmpdir } from 'node:os'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
+import { segments } from '../../hooks/register.tsx'
+import type { Decision, Effort, Mode } from '../../types'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const { chromium } = createRequire(process.env.PW_DIR + '/')('playwright-core')
 const W = 880, HOLD = 260, SPIN_MS = 55 // centiseconds: 2.6 s per state, the spinner steps every 0.55 s
 
-// Same palette as make.mjs and the same tables as hooks/register.tsx.
-const SPIN = '⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
-const GLOW = ['#c084fc', '#a78bfa', '#818cf8', '#60a5fa', '#38bdf8', '#60a5fa', '#818cf8', '#a78bfa']
-const TIER = { haiku: '#4ade80', sonnet: '#60a5fa', opus: '#c084fc', fable: '#fbbf24' }
-const RANK = ['haiku', 'sonnet', 'opus', 'fable']
-const EFF = ['low', 'medium', 'high', 'xhigh', 'max']
-const bar = (n, on, off, len) => on.repeat(Math.round(n * len)) + off.repeat(len - Math.round(n * len))
-const seg = (t, c, b) => `<span style="color:${c};${b ? 'font-weight:800' : ''}">${t}</span>`
-const sep = seg('  │  ', '#475569')
+// Each slide is built from the mod's own segments(), so the band here cannot drift from the real one.
+type Seg = ReturnType<typeof segments>[number]
+const esc = (t: string) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;')
+const span = ({ text, color, bold }: Seg) => `<span style="color:${color};${bold ? 'font-weight:800' : ''}">${esc(text)}</span>`
 
-// o: { mode, model, effort, conf, cache, spin (frame index), capped, unlocked, kept, pinned, escalated, paused, off, none }
-const band = o => {
-  if (o.off) return seg('JEV ▏off▕', '#64748b')
-  const head = (o.spin === undefined ? seg('◆ JEV ', '#c084fc', 1) : seg(`${SPIN[o.spin % SPIN.length]} JEV `, GLOW[o.spin % GLOW.length], 1)) + seg(`▏${o.mode ?? 'balanced'}▕  `, '#94a3b8')
-  const warn = o.paused ? seg('⚠ Jev paused  ', '#fbbf24', 1) : ''
-  if (o.none) return head + warn + seg('waiting for the first task', '#64748b')
-  const tier = `${o.model} ${'▂▄▆█'.slice(0, RANK.indexOf(o.model) + 1).padEnd(4, '_')}`
-  const model = o.kept
-    ? seg(`${o.model} (kept 🔒 cache warm; wanted ${o.kept})`, '#fbbf24')
-    : seg(`${tier}${o.pinned ? ' 📌' : ''}${o.escalated ? ' ↑' : ''}`, TIER[o.model], 1)
-  const eff = seg(`${o.effort} ${bar((EFF.indexOf(o.effort) + 1) / 5, '▰', '▱', 5)}${o.capped ? ` ⤓${o.capped}` : ''}${o.unlocked ? ' 🔓' : ''}`, o.unlocked ? '#fbbf24' : '#38bdf8')
-  const cc = o.conf >= 0.7 ? '#4ade80' : o.conf >= 0.5 ? '#fbbf24' : '#f87171'
-  const conf = seg(`conf ${bar(o.conf, '▮', '▯', 5)} ${Math.round(o.conf * 100)}%`, cc)
-  const cache = seg(o.cache, o.cache.includes('warm') ? '#4ade80' : '#64748b')
-  return head + warn + model + sep + eff + sep + conf + sep + cache
-}
+// o: { mode, last (a Decision, null while idle), cache (label string), spin (frame index, null = static), paused, off }
+type Band = { mode?: Mode; last?: Decision | null; cache?: string | null; spin?: number | null; paused?: boolean; off?: boolean }
+const band = (o: Band) =>
+  (o.off
+    ? [{ text: 'JEV ▏off▕', color: '#64748b' }]
+    : segments(o.mode ?? 'balanced', o.last ?? null, o.spin ?? null, o.cache ?? null, o.paused ?? false)
+  ).map(span).join('')
 
-const base = { model: 'sonnet', effort: 'medium', conf: 0.88, cache: 'cache 🔒 warm 42k' }
+const IDS = { haiku: 'claude-haiku-5-5', sonnet: 'claude-sonnet-5-5', opus: 'claude-opus-5-5', fable: 'claude-fable-5-1' }
+const dec = (alias: keyof typeof IDS, effort: Effort, confidence: number, extra: Partial<Decision> = {}) =>
+  ({ alias, model: IDS[alias], effort, confidence, turnId: 'gif', ...extra }) as Decision
+const sonnet = dec('sonnet', 'medium', 0.88)
+const warm = 'cache 🔒 warm 42k'
 // [caption, band options, how many frames, delay in centiseconds per frame]
-const STATES = [
-  ['Idle, before the first task', { none: true }],
-  ['A task is running: the spinner turns and the label glows', { ...base, spin: 0 }, 4],
-  ['Routed to haiku for a small task', { ...base, model: 'haiku', effort: 'low', conf: 0.93, cache: 'cache 🔒 warm 12k' }],
-  ['Sonnet at medium effort for ordinary work', base],
-  ['Hard task: opus, with the effort capped from xhigh', { ...base, model: 'opus', effort: 'high', capped: 'xhigh', conf: 0.81 }],
-  ['Prompt starts with !full: the cap is lifted for that prompt only', { ...base, model: 'opus', effort: 'xhigh', unlocked: true, conf: 0.81 }],
-  ['Cache is warm: Jev wanted haiku, the band stays on sonnet', { ...base, kept: 'haiku', conf: 0.64 }],
-  ['Prompt starts with !opus: the model is pinned, no Jev call', { ...base, model: 'opus', effort: 'high', pinned: true, conf: 1 }],
-  ['Three failed tool calls in a row: the task moved up one model', { ...base, model: 'opus', effort: 'medium', escalated: true }],
-  ['Jev is unsure: confidence turns amber, then red below 50%', { ...base, conf: 0.55 }],
-  ['Cold cache and cheap mode', { ...base, mode: 'cheap', model: 'haiku', effort: 'low', conf: 0.74, cache: 'cache cold 12k' }],
-  ['Jev failed three times: paused for a minute, session model keeps working', { ...base, paused: true, conf: 0.4 }],
+const STATES: [string, Band, number?][] = [
+  ['Idle, before the first task', {}],
+  ['A task is running: the spinner turns and the label glows', { last: sonnet, cache: warm, spin: 0 }, 4],
+  ['Routed to haiku for a small task', { last: dec('haiku', 'low', 0.93), cache: 'cache 🔒 warm 12k' }],
+  ['Sonnet at medium effort for ordinary work', { last: sonnet, cache: warm }],
+  ['Hard task: opus, with the effort capped from xhigh', { last: dec('opus', 'high', 0.81, { capped: 'xhigh' }), cache: warm }],
+  ['Prompt starts with !full: the cap is lifted for that prompt only', { last: dec('opus', 'xhigh', 0.81, { unlocked: true }), cache: warm }],
+  ['Cache is warm: Jev wanted haiku, the band stays on sonnet', { last: dec('sonnet', 'medium', 0.64, { kept: 'haiku' }), cache: warm }],
+  ['Prompt starts with !opus: the model is pinned, no Jev call', { last: dec('opus', 'high', 1, { pinned: true }), cache: warm }],
+  ['Three failed tool calls in a row: the task moved up one model', { last: dec('opus', 'medium', 0.88, { escalated: true }), cache: warm }],
+  ['Jev is unsure: confidence turns amber, then red below 50%', { last: dec('sonnet', 'medium', 0.55), cache: warm }],
+  ['Cold cache and cheap mode', { mode: 'cheap', last: dec('haiku', 'low', 0.74), cache: 'cache cold 12k' }],
+  ['Jev failed three times: paused for a minute, session model keeps working', { last: dec('sonnet', 'medium', 0.4), cache: warm, paused: true }],
   ['Routing switched off with /jev off', { off: true }],
 ]
 

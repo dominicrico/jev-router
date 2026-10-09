@@ -1,6 +1,7 @@
 // Turns results/agentic.json into results/AGENTIC.md. No network.
 // RESULTS=results/agentic2.json (or FIXTURE=fixture2) reads the fixture2 run and writes results/AGENTIC2.md instead.
 import { readFileSync, writeFileSync } from 'node:fs'
+import { table, vs, sum } from './lib.mts'
 const F2 = process.env.FIXTURE === 'fixture2' || /agentic2/.test(process.env.RESULTS ?? '')
 const IN = process.env.RESULTS ?? (F2 ? 'results/agentic2.json' : 'results/agentic.json')
 const OUTFILE = process.env.OUT ?? (/agentic2/.test(IN) ? 'results/AGENTIC2.md' : 'results/AGENTIC.md')
@@ -8,9 +9,6 @@ const rows: any[] = JSON.parse(readFileSync(new URL(IN, import.meta.url), 'utf8'
 const S = ['no plugin: always opus', 'no plugin: always sonnet', 'jev-router: per prompt', 'jev-router: every step + subagents', 'jev-router: !full'].filter(s => rows.some(r => r.strategy === s))
 const ORDER = ['rename', 'bugfix', 'feature', 'subagent', 'refactor', 'hard', 'queue', 'intervals', 'inventory', 'flaky']
 const T = ORDER.filter(t => rows.some(r => r.task === t))
-const sum = (a: any[], f: string) => a.reduce((x, r) => x + (r[f] ?? 0), 0)
-const table = (h: string[], b: string[][]) => [`| ${h.join(' | ')} |`, `|${h.map(() => '---').join('|')}|`, ...b.map(r => `| ${r.join(' | ')} |`)].join('\n')
-const vs = (a: number, b: number) => `${a <= b ? '-' : '+'}${Math.abs(Math.round((1 - a / b) * 100))}%`
 const of = (s: string, t?: string) => rows.filter(r => r.strategy === s && (!t || r.task === t))
 const runs = Math.max(...S.map(s => of(s, T[0]).length))
 const base = sum(of(S[0]!), 'usd'), sonnet = sum(of(S[1]!), 'usd')

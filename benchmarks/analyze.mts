@@ -2,6 +2,7 @@
 // usage: npx tsx --tsconfig benchmarks/tsconfig.json benchmarks/analyze.mts
 import { readFileSync, writeFileSync } from 'node:fs'
 import { decide } from '../hooks/register.tsx'
+import { table, pct, mean } from './lib.mts'
 
 const rows: any[] = JSON.parse(readFileSync(new URL('results/raw.json', import.meta.url), 'utf8')).filter((r: any) => !r.error)
 const cases: any[] = JSON.parse(readFileSync(new URL('cases.json', import.meta.url), 'utf8'))
@@ -17,10 +18,7 @@ const FIT: Record<string, string[]> = { trivial: ['haiku'], standard: ['sonnet']
 const LEVEL: Record<string, number> = { haiku: 0, sonnet: 1, opus: 2, fable: 3 }
 const NEED: Record<string, number> = { trivial: 0, standard: 1, hard: 2 }
 
-const pct = (n: number, d: number) => (d ? `${Math.round((100 * n) / d)}%` : '-')
-const mean = (a: number[]) => a.reduce((x, y) => x + y, 0) / (a.length || 1)
 const q = (a: number[], p: number) => [...a].sort((x, y) => x - y)[Math.min(a.length - 1, Math.floor(p * a.length))]!
-const table = (head: string[], body: string[][]) => [`| ${head.join(' | ')} |`, `|${head.map(() => '---').join('|')}|`, ...body.map(r => `| ${r.join(' | ')} |`)].join('\n')
 
 const out: string[] = []
 const by = (mode: string, tier?: string) => rows.filter(r => r.mode === mode && (!tier || r.tier === tier))

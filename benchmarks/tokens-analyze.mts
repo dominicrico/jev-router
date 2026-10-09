@@ -1,6 +1,7 @@
 // Turns results/tokens.json into results/TOKENS.md. No network.
 import { readFileSync, writeFileSync } from 'node:fs'
 import { capEffort } from '../hooks/register.tsx'
+import { table, vs, sum, k } from './lib.mts'
 
 const cases: any[] = JSON.parse(readFileSync(new URL('cases.json', import.meta.url), 'utf8'))
 const raw: any[] = JSON.parse(readFileSync(new URL('results/raw.json', import.meta.url), 'utf8'))
@@ -24,12 +25,8 @@ const STRATS: Record<string, (id: string) => string> = {
 }
 const ok = cases.filter(c => Object.values(STRATS).every(k => byKey[k(c.id)] && !byKey[k(c.id)].error))
 const skipped = cases.length - ok.length
-const sum = (rs: any[], f: string) => rs.reduce((a, r) => a + (r[f] ?? 0), 0)
 const rowsOf = (s: string, tier?: string) => ok.filter(c => !tier || c.tier === tier).map(c => byKey[STRATS[s]!(c.id)])
-const table = (head: string[], body: string[][]) => [`| ${head.join(' | ')} |`, `|${head.map(() => '---').join('|')}|`, ...body.map(r => `| ${r.join(' | ')} |`)].join('\n')
 const usd = (n: number) => `$${n.toFixed(n < 0.1 ? 3 : 2)}`
-const k = (n: number) => `${(n / 1000).toFixed(1)}k`
-const vs = (a: number, b: number) => (b ? `${a <= b ? '-' : '+'}${Math.abs(Math.round((1 - a / b) * 100))}%` : '')
 
 const out: string[] = ['# Token usage and cost\n', `${ok.length} tasks measured${skipped ? `, ${skipped} skipped for errors` : ''}. Each task ran once per strategy, headless, with no tools, in an empty directory. Output tokens include thinking tokens. Cost is the dollar figure Claude Code reports.\n`]
 const base = 'no plugin: always opus'
