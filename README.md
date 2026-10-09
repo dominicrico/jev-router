@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/hero.jpg" width="880" alt="A raccoon switchman at a track junction sends a little train to one of four stations: a green hut, a blue house, a purple tower or a gold castle.">
+  <img src="assets/hero.jpg" width="880" alt="jev-router: right model, right effort, every task. Tasks routed to haiku, sonnet or opus, minus 97% cost on trivial tasks, minus 65% on standard, 253 ms per pick. And yet hard tasks cost more.">
 </p>
 
 <p align="center">
