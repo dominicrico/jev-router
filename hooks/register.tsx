@@ -6,8 +6,8 @@ import type { Cache, Decision, Effort, EffortCap, Mode, Sticky } from '../types'
 export const JEV_URL = 'https://api.typesafe.ai/v1/systemone'
 const MODES: readonly Mode[] = ['efficient', 'balanced', 'cheap']
 const STICKY: readonly Sticky[] = ['off', 'auto', 'strict']
-const CAPS: readonly EffortCap[] = ['low', 'medium', 'high', 'xhigh', 'max', 'none']
 const EFFORTS: readonly Effort[] = ['low', 'medium', 'high', 'xhigh', 'max']
+const CAPS: readonly EffortCap[] = [...EFFORTS, 'none']
 
 const CLAUDE: Record<string, { id: string; about: string }> = {
   haiku: {
@@ -72,8 +72,8 @@ export type Config = {
 }
 type Picked = Omit<Decision, 'turnId'>
 
-// Cheapest to dearest; a switch up this ladder is an upgrade.
-const RANK = ['haiku', 'sonnet', 'opus', 'fable']
+// Cheapest to dearest (CLAUDE's key order); a switch up this ladder is an upgrade.
+const RANK = Object.keys(CLAUDE)
 const aliasOf = (model: string) => Object.keys(CLAUDE).find(a => CLAUDE[a]!.id === model)
 
 // Jev's effort drives token use more than its model pick does, so it is capped.
@@ -136,8 +136,6 @@ export const segments = (mode: Mode, last: Decision | null, frame: number | null
     ...(cache ? [sep, { text: cache, color: cache.includes('warm') ? '#4ade80' : '#64748b' }] : []),
   ]
 }
-
-export const statusLine = (mode: Mode, last: Decision | null) => segments(mode, last).map(x => x.text).join('').trimEnd()
 
 // One row per model: tasks routed to it this session, with a share bar.
 const usageRows = (stats: Record<string, number>, pool: string[]): [string, string][] => {
@@ -251,7 +249,6 @@ async function askJev($: EngineInterface, cfg: Config, key: string, state: strin
   }
 }
 
-
 let task = '' // the prompt the current task started with, for re-routing its later steps
 const agents = new Map<string, Promise<Picked | null>>()
 
@@ -264,9 +261,9 @@ async function decideFor($: EngineInterface, cfg: Config, key: string, state: st
 
 // Before every step after the first, ask again: the task may have turned easier or harder.
 // Failures keep the last pick quietly; the task's own first call already warned.
-async function restep($: EngineInterface, cfg: Config, e: { turnId: string; index: number }, last: Decision) {
+async function restep($: EngineInterface, cfg: Config, e: { turnId: string; index: number }, last: Decision): Promise<Decision> {
   const auth = await resolveKey($, cfg)
-  if (!auth) return
+  if (!auth) return last
   try {
     const mode = await currentMode($, cfg)
     const now = await $.clock.now()
@@ -274,8 +271,13 @@ async function restep($: EngineInterface, cfg: Config, e: { turnId: string; inde
     const text = `${task}\n\n[Routing step ${e.index + 1} of this task. The recent messages above show its progress.]`
     const cap = last.unlocked ? 'none' : (await read($, capAtom)) ?? cfg.defaultCap
     const d = await decideFor($, cfg, auth.key, await buildState($, text, mode, cache, now, cfg), mode, cache, now, cap)
-    await update($, lastAtom, () => ({ ...d, turnId: last.turnId, ...(last.unlocked ? { unlocked: true } : {}) }))
-  } catch {}
+    const next: Decision = { ...d, turnId: last.turnId, unlocked: last.unlocked }
+    await update($, lastAtom, () => next)
+
+    return next
+  } catch {
+    return last
+  }
 }
 
 // A subagent has its own context, so it is routed once, from what the Agent call said it is for.
@@ -295,11 +297,8 @@ async function routeAgent($: EngineInterface, cfg: Config, id: string, current: 
   }
 }
 
-function agentPick($: EngineInterface, cfg: Config, id: string, current: string) {
-  if (!agents.has(id)) agents.set(id, routeAgent($, cfg, id, current))
-
-  return agents.get(id)!
-}
+const usage = (cmd: string, list: readonly string[]) => ({ text: `Usage: /jev ${cmd} ${list.join(' | ')}` })
+const applied = (name: string, v: string) => ({ text: `Jev ${name}: ${v}. Applies from the next task.` })
 
 export const register: Register = (on, options) => {
   const apiKey = String(options.apiKey ?? '')
@@ -307,7 +306,6 @@ export const register: Register = (on, options) => {
   const allowed = (Array.isArray(options.models) ? options.models : Object.keys(CLAUDE))
     .map(m => String(m).toLowerCase())
     .filter(m => m in CLAUDE)
-  const pool = allowed.length > 0 ? allowed : Object.keys(CLAUDE)
   const defaultMode: Mode = MODES.includes(options.mode as Mode) ? (options.mode as Mode) : 'balanced'
 
   const defaultSticky: Sticky = STICKY.includes(options.stickiness as Sticky) ? (options.stickiness as Sticky) : 'auto'
@@ -318,7 +316,7 @@ export const register: Register = (on, options) => {
   const cfg: Config = {
     apiKey,
     timeoutMs,
-    pool,
+    pool: allowed.length > 0 ? allowed : Object.keys(CLAUDE),
     defaultMode,
     defaultSticky,
     defaultCap,
@@ -338,7 +336,9 @@ export const register: Register = (on, options) => {
 
   on('prompt.submit', async ($, e, next) => {
     stop()
-    ticker = $.clock.every(120, () => update($, frameAtom, n => n + 1))
+    let ticks = 0 // self-cancel: a prompt that never reaches turn.complete must not tick forever
+    const t = $.clock.every(120, () => (++ticks > 5000 ? t.cancel() : update($, frameAtom, n => n + 1)))
+    ticker = t
     const m = UNLOCK.exec(e.text)
     if (!m || e.text.length === m[0].length) return next(e)
     await update($, unlockAtom, () => true)
@@ -348,6 +348,11 @@ export const register: Register = (on, options) => {
 
   on('turn.complete', async ($, e, next) => {
     stop()
+    return next(e)
+  })
+
+  on('command.run', { command: 'jev' }, async ($, e, next) => {
+    stop() // a /jev command is not a task: no spinner
     return next(e)
   })
 
@@ -372,6 +377,7 @@ export const register: Register = (on, options) => {
   })
 
   on('session.start', async ($, e, next) => {
+    agents.clear()
     await $.command.register({
       name: 'jev',
       description: 'Jev model routing: efficient | balanced | cheap | sticky <off|auto|strict> | cap <effort|none> | full | on | off | status | key <key>',
@@ -399,10 +405,9 @@ export const register: Register = (on, options) => {
     try {
       const cache = await read($, cacheAtom)
       const now = await $.clock.now()
-      const asked = await askJev($, cfg, auth.key, await buildState($, e.text, mode, cache, now, cfg), mode)
-      const picked = decide(asked, cache, now, cfg, (await read($, stickyAtom)) ?? cfg.defaultSticky)
       const cap = unlocked ? 'none' : (await read($, capAtom)) ?? cfg.defaultCap
-      const decision: Decision = { turnId: e.turnId, ...picked, ...capEffort(picked.effort, cap), ...(unlocked ? { unlocked } : {}) }
+      const picked = await decideFor($, cfg, auth.key, await buildState($, e.text, mode, cache, now, cfg), mode, cache, now, cap)
+      const decision: Decision = { turnId: e.turnId, ...picked, unlocked }
       await update($, lastAtom, () => decision)
       await update($, statsAtom, n => ({ ...n, [decision.alias]: (n[decision.alias] ?? 0) + 1 }))
     } catch (err) {
@@ -420,15 +425,13 @@ export const register: Register = (on, options) => {
     if (!(await read($, enabledAtom))) return yield* next(e)
     if (e.agentId !== undefined) {
       if (!cfg.routeSubagents) return yield* next(e)
-      const pick = await agentPick($, cfg, e.agentId, e.model)
+      const id = e.agentId
+      const pick = await (agents.get(id) ?? agents.set(id, routeAgent($, cfg, id, e.model)).get(id)!)
 
       return yield* next(pick ? { ...e, model: pick.model, effort: pick.effort } : e)
     }
-    let last = await read($, lastAtom)
-    if (cfg.routeSteps && e.index > 0 && last) {
-      await restep($, cfg, e, last)
-      last = await read($, lastAtom)
-    }
+    const prev = await read($, lastAtom)
+    const last = cfg.routeSteps && e.index > 0 && prev ? await restep($, cfg, e, prev) : prev
 
     // A model that takes no effort setting is sent none, whatever is asked.
     const res = yield* next(last ? { ...e, model: last.model, effort: last.effort } : e)
@@ -453,9 +456,9 @@ export const register: Register = (on, options) => {
     }
     if (arg.startsWith('sticky')) {
       const v = arg.slice(6).trim()
-      if (!STICKY.includes(v as Sticky)) return { text: 'Usage: /jev sticky off | auto | strict' }
+      if (!STICKY.includes(v as Sticky)) return usage('sticky', STICKY)
       await update($, stickyAtom, () => v as Sticky)
-      return { text: `Jev cache stickiness: ${v}. Applies from the next task.` }
+      return applied('cache stickiness', v)
     }
     if (arg === 'full') {
       await update($, unlockAtom, () => true)
@@ -463,9 +466,9 @@ export const register: Register = (on, options) => {
     }
     if (arg.startsWith('cap')) {
       const v = arg.slice(3).trim()
-      if (!CAPS.includes(v as EffortCap)) return { text: 'Usage: /jev cap low | medium | high | xhigh | max | none' }
+      if (!CAPS.includes(v as EffortCap)) return usage('cap', CAPS)
       await update($, capAtom, () => v as EffortCap)
-      return { text: `Jev effort cap: ${v}. Applies from the next task. Start a prompt with !full to lift it once.` }
+      return applied('effort cap', v)
     }
     if (arg === 'on' || arg === 'off') {
       await update($, enabledAtom, () => arg === 'on')
@@ -474,7 +477,7 @@ export const register: Register = (on, options) => {
     }
     if (arg === 'key' || arg.startsWith('key ')) {
       const key = e.args.trim().slice(3).trim()
-      if (key === '' ) return { text: 'Usage: /jev key <TypeSafe API key>   or   /jev key clear' }
+      if (key === '') return { text: 'Usage: /jev key <TypeSafe API key>   or   /jev key clear' }
       if (key === 'clear') {
         await $.store.delete('apiKey')
         return { text: 'Stored TypeSafe API key removed.' }
@@ -492,11 +495,11 @@ export const register: Register = (on, options) => {
       return {
         text: '\n' + box('Jev router', [
           ['state', `${enabled ? '● on ' : '○ off'}   mode  ${await currentMode($, cfg)}`],
-          ['pool', pool.join(' · ')],
+          ['pool', cfg.pool.join(' · ')],
           ['sticky', `${(await read($, stickyAtom)) ?? cfg.defaultSticky}   cache ${warm ? '● warm' : '○ cold'}`],
           ['cap', `${(await read($, capAtom)) ?? cfg.defaultCap}${(await read($, unlockAtom)) ? '   🔓 next prompt uncapped' : ''}`],
           ['last', last ? `${last.alias} / ${last.effort}  ${gauge(last.confidence)} ${last.confidence.toFixed(2)}${last.kept ? `  kept (wanted ${last.kept})` : ''}${last.capped ? `  capped from ${last.capped}` : ''}` : 'none yet'],
-          ...usageRows(await read($, statsAtom), pool),
+          ...usageRows(await read($, statsAtom), cfg.pool),
           ['key', auth ? `…${auth.key.slice(-4)}  (${auth.source})` : 'none: /jev key <key>'],
         ]),
       }

@@ -1,24 +1,20 @@
 import { expect, mock, test } from 'claude-code/testing'
 import type { On } from 'claude-code'
 import type { Engine } from 'claude-code/testing'
-import { capEffort, statusLine } from './register'
+import { capEffort, segments } from './register'
 
 const OPTS = { options: { apiKey: 'k-test', mode: 'balanced' } }
 
-type World = { bodies: any[]; steps: any[]; toasts: string[]; status: (string | undefined)[]; usage: any; clock: ReturnType<typeof mock.clock> }
+type World = { bodies: any[]; steps: any[]; toasts: string[]; usage: any; clock: ReturnType<typeof mock.clock> }
 
 function world(on: On, answer: () => { ok: boolean; status: number; text: string }): World {
-  const w: World = { bodies: [], steps: [], toasts: [], status: [], usage: null, clock: mock.clock(on) }
+  const w: World = { bodies: [], steps: [], toasts: [], usage: null, clock: mock.clock(on) }
   on('http.fetch', async (_$, e) => {
     w.bodies.push({ ...JSON.parse(e.init?.body ?? '{}'), auth: e.init?.headers?.authorization })
     return { value: { headers: {}, ...answer() } }
   })
   on('session.model', async () => ({ value: 'claude-sonnet-5-5' }))
   on('session.messages', async () => ({ value: [] }))
-  on('ui.status', async (_$, e) => {
-    w.status.push(e.text)
-    return { value: undefined }
-  })
   on('ui.toast', async (_$, e) => {
     w.toasts.push(String(e.text))
     return { value: undefined }
@@ -158,7 +154,7 @@ test('warm cache: a downgrade is refused, effort still follows Jev', OPTS, async
   expect(w.steps[0].model).toBe('claude-sonnet-5-5')
   expect(w.steps[0].effort).toBe('low')
   expect(w.bodies[0].state).toContain('Prompt cache: warm')
-  expect(statusLine('balanced', { turnId: 't1', model: 'claude-sonnet-5-5', alias: 'sonnet', effort: 'low', confidence: 0.9, kept: 'haiku' })).toContain('wanted haiku')
+  expect(segments('balanced', { turnId: 't1', model: 'claude-sonnet-5-5', alias: 'sonnet', effort: 'low', confidence: 0.9, kept: 'haiku' } as any).map(x => x.text).join('')).toContain('wanted haiku')
 })
 
 test('warm cache: a confident upgrade goes through', OPTS, async ($, on) => {
