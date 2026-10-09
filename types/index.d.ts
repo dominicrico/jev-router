@@ -4,6 +4,7 @@ export type Cache = { model: string; at: number; contextTokens: number }
 export type Effort = 'low' | 'medium' | 'high' | 'xhigh' | 'max'
 export type EffortCap = Effort | 'none'
 export type Savings = { actual: number; baseline: number; steps: number; name: string; models: Record<string, number> }
+export type Ran = { alias: string; model: string; turnId: string; at: number }
 export type Pending = { full?: true; pin?: string; mode?: Mode }
 export type Decision = {
   turnId: string
@@ -14,6 +15,7 @@ export type Decision = {
   kept?: string
   capped?: Effort
   pinned?: boolean
+  clamped?: string
   escalated?: boolean
   unlocked?: boolean
 }
@@ -28,6 +30,9 @@ declare module 'claude-code' {
       sticky: Sticky | null
       cap: EffortCap | null
       pending: Pending | null
+      ran: Ran | null
+      ceiling: string | null
+      floor: string | null
       frame: number
       warned: boolean
     }

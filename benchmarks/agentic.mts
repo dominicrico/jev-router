@@ -51,16 +51,17 @@ const STRATS: Record<string, string[]> = {
   'jev-router: per prompt': ['--plugin-dir', `${PLUGINS}/prompt`],
   'jev-router: every step + subagents': ['--plugin-dir', `${PLUGINS}/full`],
   ...(F2 ? { 'jev-router: !full': ['--plugin-dir', `${PLUGINS}/full`] } : {}), // the default plugin, effort cap lifted by a "!full " prefix
+  ...(F2 ? { 'jev-router: ceiling sonnet': ['--plugin-dir', `${PLUGINS}/ceiling`] } : {}), // every step and subagent routed, never above sonnet unless Jev is 90% sure
 }
 const PREFIX: Record<string, string> = { 'jev-router: !full': '!full ' }
 
-// Two copies of the mod, differing only in the defaults of the two new options.
-for (const [name, on] of [['prompt', false], ['full', true]] as const) {
+// Copies of the mod, differing only in the defaults of the new options (the ceiling copy routes everything, like full).
+for (const [name, on, ceiling] of [['prompt', false, 'none'], ['full', true, 'none'], ['ceiling', true, 'sonnet']] as const) {
   const dst = `${PLUGINS}/${name}`
   rmSync(dst, { recursive: true, force: true }); mkdirSync(dst, { recursive: true })
   for (const p of ['hooks', 'types', '.claude-plugin/plugin.json']) { mkdirSync(dirname(join(dst, p)), { recursive: true }); cpSync(join(here, '..', p), join(dst, p), { recursive: true }) }
   const pj = JSON.parse(readFileSync(join(dst, '.claude-plugin/plugin.json'), 'utf8'))
-  pj.userConfig.routeSteps.default = on; pj.userConfig.routeSubagents.default = on
+  pj.userConfig.routeSteps.default = on; pj.userConfig.routeSubagents.default = on; pj.userConfig.ceiling.default = ceiling
   writeFileSync(join(dst, '.claude-plugin/plugin.json'), JSON.stringify(pj, null, 2))
   rmSync(join(dst, 'hooks/register.test.ts'), { force: true })
 }

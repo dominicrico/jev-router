@@ -78,11 +78,15 @@ ${[['efficient', fE, uE], ['balanced', fB, uB], ['cheap', fC, uC]].map(([m, f, u
  <div><div class=mono style="font-size:28px;font-weight:700">97–100%</div><div class=muted style="font-size:13px">same pick on every repeat</div></div></div>
 <div class=foot>Fit means the pick matches what an engineer would choose for the tier: trivial haiku, standard sonnet, hard opus or fable. Tier labels are the author's. Measures what Jev picks, not answer quality.</div></div>`
 
-const mx = Math.max(...results.map(r => r[1]))
-const cacheCard = `<div class=card><div class=eye>Cache guard · simulated session · 30 mixed tasks</div>
-<h1>Following every pick in a long session costs <span class=g>3× more</span>. The guard stops that.</h1>
-<div style="display:grid;gap:15px">${results.map(([n, v]) => `<div><div style="font-size:14px;margin-bottom:6px;${/stickiness off/.test(n) ? 'color:#fbbf24' : ''}">${n}</div>${bar(v, mx, v, '', /stickiness off/.test(n) ? 'linear-gradient(90deg,#fbbf24,#fb7185)' : /always/.test(n) ? '#475569' : G, 14)}</div>`).join('')}</div>
-<div class=foot>Relative cost, lower is better. A switch re-writes the whole warm context at 1.25× instead of reading it at 0.1×. With tasks 5+ minutes apart the cache is cold, switching is free, and routing wins outright. Jev was asked without cache info here, so this isolates the mod's guard.</div></div>`
+const sess = JSON.parse(readFileSync(res('session-long.json'), 'utf8')).filter(x => x.complete)
+const SN = [['no plugin: always opus', 'always opus', '#475569'], ['no plugin: always sonnet', 'always sonnet', '#64748b'], ['jev-router: stickiness auto', 'jev-router, cache guard on (auto)', G], ['jev-router: stickiness off', 'jev-router, cache guard off', 'linear-gradient(90deg,#fbbf24,#fb7185)']]
+const sMean = (st, f) => { const r = sess.filter(x => x.strategy === st); return r.reduce((a, x) => a + f(x), 0) / r.length }
+const sCost = st => sMean(st, x => x.totalUsd), sSw = st => sMean(st, x => x.switches), sCw = st => sMean(st, x => x.turns.reduce((a, t) => a + (t.cacheWrite ?? 0), 0))
+const sMax = Math.max(...SN.map(([st]) => sCost(st)))
+const cacheCard = `<div class=card><div class=eye>Cache guard · measured · ${sess.length / SN.length} long sessions of 8 tasks per strategy</div>
+<h1>The guard cut cache re-writes by <span class=g>${Math.round(100 - (100 * sCw(SN[2][0])) / sCw(SN[3][0]))}%</span>. In a long warm session routing still cost more than opus.</h1>
+<div style="display:grid;gap:15px">${SN.map(([st, label, fill]) => `<div><div style="font-size:14px;margin-bottom:6px">${label}</div><div style="display:flex;align-items:center;gap:12px"><div style="width:${(sCost(st) / sMax) * 480}px;height:14px;border-radius:7px;background:${fill}"></div><span class=mono style="font-size:13px;font-weight:700">$${sCost(st).toFixed(2)}</span><span class=mono style="font-size:12px;color:#94a3b8">${sSw(st).toFixed(1)} switches · ${Math.round(sCw(st) / 1000)}k cache writes</span></div></div>`).join('')}</div>
+<div class=foot>Mean per session, real runs: one long Claude Code process per session, about 20k tokens of source pasted first so the cache is large, then 8 mixed tasks. A model switch re-writes the whole warm context. The guard helped (+${Math.round((100 * sCost(SN[2][0])) / sCost(SN[0][0]) - 100)}% against opus instead of +${Math.round((100 * sCost(SN[3][0])) / sCost(SN[0][0]) - 100)}%), but staying on one model was cheaper. Routing pays when the cache is cold or the context is small.</div></div>`
 
 const rows = [['1', 'A task arrives', 'your prompt'], ['2', 'Ask Jev: which model, which effort?', `~${q(0.5)} ms per call`], ['3', 'Is the prompt cache warm?', 'stay put unless Jev is sure'], ['4', 'Cap the effort at high', '!full lifts it for one prompt'], ['5', 'Re-ask before each step, route each subagent', 'routeSteps, routeSubagents'], ['6', 'Show it above the prompt', 'the band']]
 const howCard = `<div class=card><div class=eye>How it works</div>
@@ -102,7 +106,7 @@ ${[['#4ade80', 'haiku', 'trivial'], ['#60a5fa', 'sonnet', 'standard'], ['#c084fc
 
 
 const AS = [['no plugin: always opus', 'always opus', '#475569'], ['no plugin: always sonnet', 'always sonnet', '#64748b'], ['jev-router: per prompt', 'jev-router, per prompt', G], ['jev-router: every step + subagents', 'jev-router, every step + subagents', G]]
-const AS2 = [...AS, ['jev-router: !full', 'jev-router, !full', G]]
+const AS2 = [...AS, ['jev-router: !full', 'jev-router, !full', G], ['jev-router: ceiling sonnet', 'jev-router, ceiling sonnet', G]]
 const ag2 = JSON.parse(readFileSync(res('agentic2.json'), 'utf8'))
 const aCost = (st, t, rows = ag) => rows.filter(r => r.strategy === st && (!t || r.task === t)).reduce((a, r) => a + r.usd, 0)
 const aDone = (st, rows = ag) => { const r = rows.filter(x => x.strategy === st); return `${r.filter(x => x.ok).length}/${r.length}` }
@@ -118,7 +122,7 @@ ${list.map(([st, label]) => `<div style="border:1px solid #1e293b;background:#0e
 <div class=foot>${foot}</div></div>`
 }
 const agenticCard = strategyCard(ag, AS, `Benchmark · 6 multi-step tasks · ${ag.length} real runs with tools`, `Same tasks done, <span class=g>${Math.round(100 - (100 * aCost(AS[3][0])) / aBase)}% cheaper</span> than always opus.`, 'Cost as % of always opus (= 100%). A script checks each task is really done: tests pass, the fix works, the files exist. 3 runs each on a small fixture repo. The extra saving from routing every step and subagent comes mostly from the subagent task. All four strategies finished 18 of 18, but these are not hard tasks.')
-const hardCard = strategyCard(ag2, AS2, `Benchmark · 4 harder tasks · ${ag2.length} real runs, graded by hidden tests`, `On harder tasks sonnet alone <span class=g>did as well</span> as opus, for less.`, 'Cost as % of always opus (= 100%). Each task is graded by a hidden test the agent never saw. 5 runs each. Pass counts differ by at most one run, which is noise at this size: always sonnet is the cheapest and matched always opus. jev-router lands between the two, and !full finished 20 of 20.')
+const hardCard = strategyCard(ag2, AS2, `Benchmark · 4 harder tasks · ${ag2.length} real runs, graded by hidden tests`, `A sonnet ceiling finished <span class=g>20 of 20</span> hard tasks for half of opus's cost.`, 'Cost as % of always opus (= 100%). Each task is graded by a hidden test the agent never saw. 5 runs each. Pass counts differ by at most two runs, which is noise at this size. Always sonnet is still the cheapest; the ceiling keeps jev-router close to it while Jev can still pick opus when it is 90% sure.')
 
 const lanes = [['haiku', '#4ade80', 85, ['rename usr to user', 'fix typo in README']], ['sonnet', '#60a5fa', 185, ['add /health endpoint + test']], ['opus', '#c084fc', 285, ['double-charge root cause', 'migrate auth to JWT']], ['fable', '#fbbf24', 385, []]]
 const hero = `<div style="width:880px;height:495px;position:relative;background:radial-gradient(700px 420px at 18% 40%,#16305f 0%,#0b1020 65%);overflow:hidden">

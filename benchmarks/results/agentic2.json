@@ -1798,5 +1798,365 @@
     "usd": 0.0815
    }
   }
+ },
+ {
+  "task": "queue",
+  "tier": "hard",
+  "strategy": "jev-router: ceiling sonnet",
+  "run": 0,
+  "ok": true,
+  "usd": 0.0641708,
+  "turns": 4,
+  "ms": 22554,
+  "output": 1787,
+  "input": 91915,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 1787,
+    "usd": 0.0642
+   }
+  }
+ },
+ {
+  "task": "queue",
+  "tier": "hard",
+  "strategy": "jev-router: ceiling sonnet",
+  "run": 2,
+  "ok": true,
+  "usd": 0.0701542,
+  "turns": 4,
+  "ms": 24676,
+  "output": 2263,
+  "input": 91990,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2263,
+    "usd": 0.0702
+   }
+  }
+ },
+ {
+  "task": "queue",
+  "tier": "hard",
+  "strategy": "jev-router: ceiling sonnet",
+  "run": 1,
+  "ok": true,
+  "usd": 0.0832392,
+  "turns": 9,
+  "ms": 44770,
+  "output": 2814,
+  "input": 117858,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2814,
+    "usd": 0.0832
+   }
+  }
+ },
+ {
+  "task": "queue",
+  "tier": "hard",
+  "strategy": "jev-router: ceiling sonnet",
+  "run": 3,
+  "ok": true,
+  "usd": 0.06563340000000001,
+  "turns": 4,
+  "ms": 26964,
+  "output": 2112,
+  "input": 90483,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2112,
+    "usd": 0.0656
+   }
+  }
+ },
+ {
+  "task": "queue",
+  "tier": "hard",
+  "strategy": "jev-router: ceiling sonnet",
+  "run": 4,
+  "ok": true,
+  "usd": 0.09890959999999999,
+  "turns": 11,
+  "ms": 31965,
+  "output": 3013,
+  "input": 171043,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 3013,
+    "usd": 0.0989
+   }
+  }
+ },
+ {
+  "task": "intervals",
+  "tier": "hard",
+  "strategy": "jev-router: ceiling sonnet",
+  "run": 0,
+  "ok": true,
+  "usd": 0.07386960000000001,
+  "turns": 6,
+  "ms": 25505,
+  "output": 3115,
+  "input": 68821,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 3115,
+    "usd": 0.0739
+   }
+  }
+ },
+ {
+  "task": "intervals",
+  "tier": "hard",
+  "strategy": "jev-router: ceiling sonnet",
+  "run": 1,
+  "ok": true,
+  "usd": 0.0714816,
+  "turns": 6,
+  "ms": 31304,
+  "output": 2989,
+  "input": 68539,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2989,
+    "usd": 0.0715
+   }
+  }
+ },
+ {
+  "task": "intervals",
+  "tier": "hard",
+  "strategy": "jev-router: ceiling sonnet",
+  "run": 2,
+  "ok": true,
+  "usd": 0.0727096,
+  "turns": 6,
+  "ms": 25813,
+  "output": 3037,
+  "input": 68726,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 3037,
+    "usd": 0.0727
+   }
+  }
+ },
+ {
+  "task": "intervals",
+  "tier": "hard",
+  "strategy": "jev-router: ceiling sonnet",
+  "run": 3,
+  "ok": true,
+  "usd": 0.0719716,
+  "turns": 6,
+  "ms": 22729,
+  "output": 2976,
+  "input": 68694,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2976,
+    "usd": 0.072
+   }
+  }
+ },
+ {
+  "task": "intervals",
+  "tier": "hard",
+  "strategy": "jev-router: ceiling sonnet",
+  "run": 4,
+  "ok": true,
+  "usd": 0.0672296,
+  "turns": 6,
+  "ms": 30391,
+  "output": 2633,
+  "input": 68366,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2633,
+    "usd": 0.0672
+   }
+  }
+ },
+ {
+  "task": "inventory",
+  "tier": "hard",
+  "strategy": "jev-router: ceiling sonnet",
+  "run": 0,
+  "ok": true,
+  "usd": 0.1014734,
+  "turns": 4,
+  "ms": 39068,
+  "output": 4067,
+  "input": 97662,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 4067,
+    "usd": 0.1015
+   }
+  }
+ },
+ {
+  "task": "inventory",
+  "tier": "hard",
+  "strategy": "jev-router: ceiling sonnet",
+  "run": 1,
+  "ok": true,
+  "usd": 0.09340219999999999,
+  "turns": 3,
+  "ms": 31931,
+  "output": 4049,
+  "input": 73044,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 4049,
+    "usd": 0.0934
+   }
+  }
+ },
+ {
+  "task": "inventory",
+  "tier": "hard",
+  "strategy": "jev-router: ceiling sonnet",
+  "run": 2,
+  "ok": true,
+  "usd": 0.0951022,
+  "turns": 3,
+  "ms": 36642,
+  "output": 4147,
+  "input": 73224,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 4147,
+    "usd": 0.0951
+   }
+  }
+ },
+ {
+  "task": "inventory",
+  "tier": "hard",
+  "strategy": "jev-router: ceiling sonnet",
+  "run": 4,
+  "ok": true,
+  "usd": 0.08320620000000001,
+  "turns": 3,
+  "ms": 27042,
+  "output": 3393,
+  "input": 72135,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 3393,
+    "usd": 0.0832
+   }
+  }
+ },
+ {
+  "task": "inventory",
+  "tier": "hard",
+  "strategy": "jev-router: ceiling sonnet",
+  "run": 3,
+  "ok": true,
+  "usd": 0.11800819999999998,
+  "turns": 5,
+  "ms": 41171,
+  "output": 4799,
+  "input": 128822,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 4799,
+    "usd": 0.118
+   }
+  }
+ },
+ {
+  "task": "flaky",
+  "tier": "hard",
+  "strategy": "jev-router: ceiling sonnet",
+  "run": 0,
+  "ok": true,
+  "usd": 0.05794799999999999,
+  "turns": 3,
+  "ms": 25097,
+  "output": 2053,
+  "input": 67526,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2053,
+    "usd": 0.0579
+   }
+  }
+ },
+ {
+  "task": "flaky",
+  "tier": "hard",
+  "strategy": "jev-router: ceiling sonnet",
+  "run": 1,
+  "ok": true,
+  "usd": 0.0664498,
+  "turns": 4,
+  "ms": 41220,
+  "output": 2306,
+  "input": 91667,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2306,
+    "usd": 0.0664
+   }
+  }
+ },
+ {
+  "task": "flaky",
+  "tier": "hard",
+  "strategy": "jev-router: ceiling sonnet",
+  "run": 2,
+  "ok": true,
+  "usd": 0.0751376,
+  "turns": 5,
+  "ms": 43035,
+  "output": 2492,
+  "input": 115946,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2492,
+    "usd": 0.0751
+   }
+  }
+ },
+ {
+  "task": "flaky",
+  "tier": "hard",
+  "strategy": "jev-router: ceiling sonnet",
+  "run": 3,
+  "ok": true,
+  "usd": 0.0630172,
+  "turns": 4,
+  "ms": 38541,
+  "output": 1929,
+  "input": 91891,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 1929,
+    "usd": 0.063
+   }
+  }
+ },
+ {
+  "task": "flaky",
+  "tier": "hard",
+  "strategy": "jev-router: ceiling sonnet",
+  "run": 4,
+  "ok": true,
+  "usd": 0.0683342,
+  "turns": 4,
+  "ms": 38905,
+  "output": 2383,
+  "input": 92185,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2383,
+    "usd": 0.0683
+   }
+  }
  }
 ]

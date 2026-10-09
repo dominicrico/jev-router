@@ -63,6 +63,8 @@ When the cache wins, the band says so: `opus (kept 🔒 cache warm; wanted haiku
 - **Three routing modes.** `efficient` for the best result, `balanced` for quality and cost evenly, `cheap` for the cheapest model that can plausibly succeed.
 - **Guards the prompt cache.** Switching models throws the cache away. While it is warm and big enough to matter, he stays put unless Jev confidently asks for something stronger.
 - **Caps the effort.** Jev's effort pick is limited to `high` by default, because effort drives token use far more than the model does. Start a prompt with `!full` (or run `/jev full`) to lift the cap for that one prompt.
+- **Shows what is really running.** The band follows the model that ran the last step, not only the pick: if a `/model` switch or a fallback ran something else it says `sonnet (picked opus)`, and after a Jev failure it shows the session model instead of waiting.
+- **Ceiling and floor.** `ceiling: sonnet` keeps tasks off opus unless Jev is at least `ceilingBreak` (0.9) sure; `floor` sets the cheapest allowed model. `/jev ceiling sonnet`, `/jev floor haiku`. Off by default.
 - **Escalates when a task struggles.** After `escalateAfter` (default 3) failed tool calls in a row, the rest of the task moves up one model. The band shows `↑`.
 - **Pins a model for one prompt.** Start a prompt with `!opus`, `!sonnet`, `!haiku` or `!fable` to skip Jev and use that model (at the effort cap). `!cheap` and `!efficient` set the routing mode for that prompt. Markers combine, like `!opus !full`.
 - **Keeps a savings tally.** `/jev status` shows an estimated saving against the model you would otherwise use (`baselineModel`, default opus), kept across sessions. It is a model-price estimate in relative units, blind to effort.
@@ -95,7 +97,7 @@ Three benchmarks. First, 30 single-prompt tasks: 270 calls to Jev for the picks,
 The honest read: the model switch saves a lot on easy and mid tasks, and the default cap of `high` brings every mode to or below always-opus overall. Hard tasks still cost 24% to 43% more in `efficient` and `balanced`, because Jev picks opus there and asks for deeper reasoning. `!full` lifts the cap for one prompt when you want that. The cap changes tokens spent, not answer quality, and that is not measured.
 
 <p align="center">
-  <img src="assets/cache.png" width="880" alt="Cache guard: following every pick in a warm session costs 4735 against 1500 for always opus. With the guard it is 1500. With cold cache and tasks 400 seconds apart it is 820.">
+  <img src="assets/cache.png" width="880" alt="Measured long sessions: always opus costs 51 cents, always sonnet 27, jev-router with the cache guard 63 with 1 model switch, without the guard 70 with 6 switches and 194k cache tokens re-written.">
 </p>
 
 ### Multi-step tasks, with tools
@@ -126,10 +128,28 @@ Routing every step and subagent saved 11% on top of per-prompt routing. Most of 
 | jev-router, per prompt | 19/20 | $2.65 | -14% | +122% |
 | jev-router, every step + subagents | 18/20 | $2.08 | -33% | +74% |
 | jev-router, `!full` | 20/20 | $1.87 | -40% | +57% |
+| jev-router, `ceiling: sonnet` | 20/20 | $1.56 | -50% | +31% |
 
 The honest read: **on these tasks plain sonnet did as well as opus, and was the cheapest.** The tasks (a concurrency bug, an interval merger with open and closed bounds, a refactor that must keep an invariant, a flaky test with three causes) are harder than the first set, but not hard enough to need opus. jev-router lands between the two on cost because Jev sent about half of the spend to opus. Pass counts differ by at most one run, so none of the quality differences are significant at 5 runs. If your work looks like this, routing buys you less than just using sonnet; it earns its keep when tasks vary, or when your default is opus.
 
-Without the cache guard, following every pick in a long warm session cost 3x more than just using opus. Inside one long warm session the guard keeps you on the first model, so the savings above show up mostly when the cache is cold or the context is small. Method, per-tier tables and all caveats: [benchmarks/](benchmarks/README.md).
+### Long sessions: the cache guard, measured
+
+Switching models throws away the warm prompt cache, so the mod holds the current model while the cache is warm and large. I measured this with real long sessions: one Claude Code process per session, about 20k tokens of source pasted first, then 8 mixed tasks, 3 sessions per strategy.
+
+| Mean per session | cost | vs always opus | model switches | cache tokens re-written |
+| --- | --- | --- | --- | --- |
+| always opus | $0.51 | | 0 | 42k |
+| always sonnet | $0.27 | -46% | 0 | 41k |
+| jev-router, cache guard on (`auto`) | $0.63 | +24% | 1.0 | 78k |
+| jev-router, cache guard off | $0.70 | +38% | 6.3 | 194k |
+
+The guard works (6 switches become 1, cache re-writes fall by 60%, cost falls from +38% to +24% against opus), but **in a long warm session routing still cost more than just staying on opus**, and always-sonnet was half the price. (My earlier simulation said "3x more"; the measurement says +38%, so the simulation exaggerated.) In short sessions with small contexts (5 to 10k tokens, below the guard's threshold) the guard barely matters and the picture is the same: routing saved 14% against opus with the guard off and 4% with it on, always-sonnet saved 59%. Routing earns its keep when the cache is cold or the context is small, and when your habit is to run everything on opus. If you work in long warm sessions, set a ceiling (below) or just use sonnet.
+
+### Sonnet-first: the ceiling
+
+`ceiling: sonnet` keeps Jev from sending a task above sonnet unless it is at least 90% sure (`ceilingBreak`). On the harder tasks above it finished 20 of 20 for $1.56 against $3.10 for always opus (-50%), staying close to always-sonnet's $1.19 while still allowing opus when Jev is sure. Try it with `/jev ceiling sonnet`. Ceiling is off by default.
+
+Method, per-tier tables and all caveats: [benchmarks/](benchmarks/README.md).
 
 ## How it works
 
@@ -177,6 +197,8 @@ That was it. He'd be proud. He won't say it.
 | `/jev efficient \| balanced \| cheap` | Set the routing mode, from the next task |
 | `/jev sticky off \| auto \| strict` | Set cache stickiness |
 | `/jev cap low \| medium \| high \| xhigh \| max \| none` | Set the effort cap |
+| `/jev ceiling <model\|none>` | Never go above this model unless Jev is very sure |
+| `/jev floor <model\|none>` | Never go below this model |
 | `/jev full` | Lift the effort cap for the next prompt only |
 | `/jev stats clear` | Reset the savings tally |
 | `/jev on` / `/jev off` | Enable routing / use the session model |
@@ -203,6 +225,9 @@ That was it. He'd be proud. He won't say it.
 | `mode` | `balanced` | Routing mode |
 | `models` | all four | Aliases Jev may choose from |
 | `effortCap` | `high` | Highest effort the router applies. `none` follows Jev. Per prompt: start with `!full` or run `/jev full` |
+| `ceiling` | `none` | Highest model Jev may pick unless it is `ceilingBreak` sure (`haiku`, `sonnet`, `opus`, `fable`) |
+| `floor` | `none` | Lowest model Jev may pick |
+| `ceilingBreak` | `0.9` | Confidence needed to exceed the ceiling |
 | `pauseMs` | `60000` | Stop asking Jev for this long after 3 failed calls in a row |
 | `escalateAfter` | `3` | Failed tool calls in a row before the task moves up one model. `0` is off |
 | `baselineModel` | `opus` | The model the savings estimate compares against |

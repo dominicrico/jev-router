@@ -1,7 +1,7 @@
 import { expect, mock, test } from 'claude-code/testing'
 import type { On } from 'claude-code'
 import type { Engine } from 'claude-code/testing'
-import { capEffort, heuristic, markers, redact, savingsLine, segments, stepUnits } from './register'
+import { capEffort, heuristic, limit, markers, redact, savingsLine, segments, stepUnits } from './register'
 
 // Fake secrets, assembled at runtime so secret scanners do not flag this file.
 const SK = ['sk', '-abcdefghijklmnop1234'].join('')
@@ -477,4 +477,65 @@ test('!opus works without a Jev key, and the marker does not leak to the next pr
   await $.turn.start({ text: 'next thing', turnId: 't2' }) // no key: warns, no pin left over
   await step($, 't2')
   expect(w.steps[1].model).not.toBe('claude-opus-5-5')
+})
+
+const pk = (alias: string, confidence: number) => ({ alias, model: `claude-${alias}-5-5`, effort: 'high', confidence }) as any
+
+test('limit clamps above the ceiling unless Jev is very sure, and raises to the floor', OPTS, async () => {
+  const pool = ['haiku', 'sonnet', 'opus', 'fable']
+  expect(limit(pk('opus', 0.6), 'sonnet', 'none', 0.9, pool)).toMatchObject({ alias: 'sonnet', clamped: 'opus' })
+  expect(limit(pk('opus', 0.95), 'sonnet', 'none', 0.9, pool).alias).toBe('opus')
+  expect(limit(pk('haiku', 0.9), 'none', 'sonnet', 0.9, pool)).toMatchObject({ alias: 'sonnet', clamped: 'haiku' })
+  expect(limit(pk('fable', 0.5), 'sonnet', 'none', 0.9, ['haiku', 'opus', 'fable']).alias).toBe('haiku') // sonnet not allowed: nearest below
+  expect(limit(pk('sonnet', 0.5), 'sonnet', 'sonnet', 0.9, pool).clamped).toBeUndefined()
+})
+
+test('a ceiling stops an opus pick; !opus and the confidence break are not stopped', { options: { apiKey: 'k-test', ceiling: 'sonnet', ceilingBreak: 0.95 } }, async ($, on) => {
+  const w = world(on, jev('opus', 'high')) // confidence 0.9 < 0.95
+  on('prompt.submit', async (_$, e) => ({ text: e.text }))
+  await $.turn.start({ text: 'redesign the queue', turnId: 't1' })
+  await step($, 't1')
+  expect(w.steps[0].model).toBe('claude-sonnet-5-5')
+
+  await $.prompt.submit({ text: '!opus hard thing' } as any)
+  await $.turn.start({ text: 'hard thing', turnId: 't2' })
+  await step($, 't2')
+  expect(w.steps[1].model).toBe('claude-opus-5-5')
+})
+
+test('/jev ceiling and /jev floor change the limits at runtime', { options: { apiKey: 'k-test', ceilingBreak: 0.95 } }, async ($, on) => {
+  mock.store(on)
+  const w = world(on, jev('opus', 'high'))
+  expect(JSON.stringify(await $.command.run({ command: 'jev', args: 'ceiling nope' } as any))).toContain('Usage')
+  await $.command.run({ command: 'jev', args: 'ceiling haiku' } as any)
+  await $.command.run({ command: 'jev', args: 'floor haiku' } as any)
+  await $.turn.start({ text: 'redesign the queue', turnId: 't1' })
+  await step($, 't1')
+  expect(w.steps[0].model).toBe('claude-haiku-5-5')
+  expect(JSON.stringify(await $.command.run({ command: 'jev', args: 'status' } as any))).toContain('ceiling haiku')
+})
+
+test('the ceiling is applied before the cache guard sees the pick', { options: { apiKey: 'k-test', ceiling: 'sonnet', ceilingBreak: 0.95 } }, async ($, on) => {
+  const w = world(on, jev('opus', 'high'))
+  await warmUp(w, $, 'claude-sonnet-5-5', 50_000)
+  await $.turn.start({ text: 'redesign the queue', turnId: 't1' })
+  await step($, 't1')
+  expect(w.steps[0].model).toBe('claude-sonnet-5-5') // clamped to sonnet, which is the warm model: nothing to keep
+})
+
+const dec = (alias: string, extra: object = {}) => ({ turnId: 't1', model: `claude-${alias}-5-5`, alias, effort: 'high', confidence: 0.8, ...extra }) as any
+const text = (segs: { text: string }[]) => segs.map(s => s.text).join('')
+
+test('segments: the model that ran wins over the pick, but only within the same task', OPTS, async () => {
+  const ran = (alias: string, turnId: string) => ({ alias, model: `claude-${alias}-5-5`, turnId, at: 0 })
+  expect(text(segments('balanced', dec('haiku'), null, null, false, ran('sonnet', 't1')))).toContain('sonnet (picked haiku)')
+  expect(text(segments('balanced', dec('haiku'), null, null, false, ran('sonnet', 'earlier')))).not.toContain('picked')
+  expect(text(segments('balanced', dec('haiku'), null, null, false, ran('haiku', 't1')))).not.toContain('picked')
+  expect(text(segments('balanced', dec('sonnet', { clamped: 'opus' })))).toContain('⤒opus')
+})
+
+test('segments: with no pick the band shows the session model that ran, not "waiting"', OPTS, async () => {
+  const ran = { alias: 'sonnet', model: 'claude-sonnet-5-5', turnId: 't9', at: 0 }
+  expect(text(segments('balanced', null, null, null, false, ran))).toContain('sonnet (session model)')
+  expect(text(segments('balanced', null))).toContain('waiting for the first task')
 })

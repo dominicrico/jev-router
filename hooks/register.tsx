@@ -1,7 +1,7 @@
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
-import type { Cache, Decision, Effort, EffortCap, Mode, Pending, Savings, Sticky } from '../types'
+import type { Cache, Decision, Effort, EffortCap, Mode, Pending, Ran, Savings, Sticky } from '../types'
 
 export const JEV_URL = 'https://api.typesafe.ai/v1/systemone'
 const MODES: readonly Mode[] = ['efficient', 'balanced', 'cheap']
@@ -54,6 +54,9 @@ const lastAtom = atom({ ...S, key: 'last' } as const, null)
 const cacheAtom = atom({ ...S, key: 'cache' } as const, null)
 const stickyAtom = atom({ ...S, key: 'sticky' } as const, null)
 const capAtom = atom({ ...S, key: 'cap' } as const, null)
+const ranAtom = atom({ ...S, key: 'ran' } as const, null)
+const ceilingAtom = atom({ ...S, key: 'ceiling' } as const, null)
+const floorAtom = atom({ ...S, key: 'floor' } as const, null)
 const pendingAtom = atom({ ...S, key: 'pending' } as const, null)
 const frameAtom = atom({ ...S, key: 'frame' } as const, 0)
 const warnedAtom = atom({ ...S, key: 'warned' } as const, false)
@@ -77,6 +80,9 @@ export type Config = {
   maxTaskChars: number
   fallback: 'session' | 'heuristic'
   escalateAfter: number
+  ceiling: string
+  floor: string
+  ceilingBreak: number
   minConfidence: number
   minContextTokens: number
   cacheTtlMs: number
@@ -124,6 +130,19 @@ export function markers(text: string, pool: readonly string[]): { text: string; 
 export const isWarm = (cache: Cache | null, now: number, cfg: Config): cache is Cache =>
   cache !== null && now - cache.at <= cfg.cacheTtlMs && cache.contextTokens >= cfg.minContextTokens
 
+// Keeps a pick between a floor and a ceiling. Going above the ceiling needs `ceilingBreak` confidence.
+// The replacement is the nearest allowed model on the right side of the limit. Pure.
+export function limit(picked: Picked, ceiling: string, floor: string, ceilingBreak: number, pool: readonly string[]): Picked {
+  const allowed = RANK.filter(a => pool.includes(a))
+  const move = (p: Picked, to: string | undefined): Picked => (to && to !== p.alias ? { ...p, alias: to, model: CLAUDE[to]!.id, clamped: picked.alias } : p)
+  let p = picked
+  if (ceiling !== 'none' && RANK.indexOf(p.alias) > RANK.indexOf(ceiling) && p.confidence < ceilingBreak)
+    p = move(p, [...allowed].reverse().find(a => RANK.indexOf(a) <= RANK.indexOf(ceiling)))
+  if (floor !== 'none' && RANK.indexOf(p.alias) < RANK.indexOf(floor)) p = move(p, allowed.find(a => RANK.indexOf(a) >= RANK.indexOf(floor)))
+
+  return p
+}
+
 // A switch discards the prompt cache. While it is warm and worth keeping, stay
 // on the cached model unless Jev confidently asks for a stronger one.
 export function decide(picked: Picked, cache: Cache | null, now: number, cfg: Config, sticky: Sticky): Picked {
@@ -150,18 +169,26 @@ const SPIN = '⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
 const GLOW = ['#c084fc', '#a78bfa', '#818cf8', '#60a5fa', '#38bdf8', '#60a5fa', '#818cf8', '#a78bfa']
 
 // frame is null while idle: static. While a task runs the mark spins and the label glows.
-export const segments = (mode: Mode, last: Decision | null, frame: number | null = null, cache: string | null = null, paused = false): Seg[] => {
+// `ran` is the model the last step really used: it overrides the pick when they disagree, and stands in for it when there is no pick.
+export const segments = (mode: Mode, last: Decision | null, frame: number | null = null, cache: string | null = null, paused = false, ran: Ran | null = null): Seg[] => {
   const head: Seg[] = [
     frame === null
       ? { text: '◆ JEV ', color: '#c084fc', bold: true }
       : { text: `${SPIN[frame % SPIN.length]} JEV `, color: GLOW[frame % GLOW.length], bold: true }, { text: `▏${mode}▕  `, color: '#94a3b8' },
   ]
   const warn: Seg[] = paused ? [{ text: '⚠ Jev paused  ', color: '#fbbf24', bold: true }] : []
-  if (!last) return [...head, ...warn, { text: 'waiting for the first task', color: '#64748b' }]
+  const sep: Seg = { text: '  │  ', color: '#475569' }
+  const cacheSeg: Seg[] = cache ? [sep, { text: cache, color: cache.includes('warm') ? '#4ade80' : '#64748b' }] : []
+  if (!last) {
+    if (!ran) return [...head, ...warn, { text: 'waiting for the first task', color: '#64748b' }]
+    return [...head, ...warn, { text: `${ran.alias} (session model)`, color: '#94a3b8' }, ...cacheSeg]
+  }
+  const differs = ran && ran.turnId === last.turnId && ran.model !== last.model // only within this task: a stale model from the last one is not a mismatch
   const model: Seg = last.kept
     ? { text: `${last.alias} (kept 🔒 cache warm; wanted ${last.kept})`, color: '#fbbf24' }
-    : { text: `${tier(last.alias)}${last.pinned ? ' 📌' : ''}${last.escalated ? ' ↑' : ''}`, color: TIER_COLOR[last.alias], bold: true }
-  const sep: Seg = { text: '  │  ', color: '#475569' }
+    : differs
+      ? { text: `${ran.alias} (picked ${last.alias})`, color: '#fbbf24', bold: true }
+      : { text: `${tier(last.alias)}${last.pinned ? ' 📌' : ''}${last.escalated ? ' ↑' : ''}${last.clamped ? ` ⤒${last.clamped}` : ''}`, color: TIER_COLOR[last.alias], bold: true }
   return [
     ...head,
     ...warn,
@@ -170,7 +197,7 @@ export const segments = (mode: Mode, last: Decision | null, frame: number | null
     { text: `${last.effort} ${effortBar(last.effort)}${last.capped ? ` ⤓${last.capped}` : ''}${last.unlocked ? ' 🔓' : ''}`, color: last.unlocked ? '#fbbf24' : '#38bdf8' },
     sep,
     { text: `conf ${gauge(last.confidence)} ${Math.round(last.confidence * 100)}%`, color: confColor(last.confidence) },
-    ...(cache ? [sep, { text: cache, color: cache.includes('warm') ? '#4ade80' : '#64748b' }] : []),
+    ...cacheSeg,
   ]
 }
 
@@ -336,6 +363,7 @@ async function ask($: EngineInterface, cfg: Config, key: string, state: string, 
   }
 }
 
+let coldTimer: { cancel: () => void } | undefined
 let strikes = 0 // consecutive failed tool calls of the current task
 let skipNext = false // the next turn is a background notification, not a task of the user's
 let task = '' // the prompt the current task started with, for re-routing its later steps
@@ -350,9 +378,10 @@ async function decideFor($: EngineInterface, cfg: Config, kind: string, key: str
     asked = heuristic(text, cfg.pool)
     $.ui.log(`jev ${kind}: Jev unavailable (${(err as Error).message}), heuristic pick ${asked.alias}`, { to: 'debug' })
   }
-  const picked = decide(asked, cache, now, cfg, (await read($, stickyAtom)) ?? cfg.defaultSticky)
+  const limited = limit(asked, (await read($, ceilingAtom)) ?? cfg.ceiling, (await read($, floorAtom)) ?? cfg.floor, cfg.ceilingBreak, cfg.pool)
+  const picked = decide(limited, cache, now, cfg, (await read($, stickyAtom)) ?? cfg.defaultSticky)
   const d = { ...picked, ...capEffort(picked.effort, cap) }
-  $.ui.log(`jev ${kind}: ${d.alias}/${d.effort}${d.kept ? ` (kept, wanted ${d.kept})` : ''}${d.capped ? ` (capped from ${d.capped})` : ''} conf ${d.confidence.toFixed(2)} ${(await $.clock.now()) - now} ms`, { to: 'debug' })
+  $.ui.log(`jev ${kind}: ${d.alias}/${d.effort}${d.kept ? ` (kept, wanted ${d.kept})` : ''}${d.capped ? ` (capped from ${d.capped})` : ''}${d.clamped ? ` (clamped from ${d.clamped})` : ''} conf ${d.confidence.toFixed(2)} cache ${cache ? `${isWarm(cache, now, cfg) ? 'warm' : 'cold'} ${cache.contextTokens} on ${cache.model}` : 'none'} ${(await $.clock.now()) - now} ms`, { to: 'debug' })
 
   return d
 }
@@ -436,6 +465,7 @@ export const register: Register = (on, options) => {
 
   const defaultSticky: Sticky = STICKY.includes(options.stickiness as Sticky) ? (options.stickiness as Sticky) : 'auto'
   const defaultCap: EffortCap = CAPS.includes(options.effortCap as EffortCap) ? (options.effortCap as EffortCap) : 'high'
+  const alias = (v: unknown) => (String(v) in CLAUDE ? String(v) : 'none')
   const flag = (v: unknown, d: boolean) => (v === undefined || v === '' ? d : String(v) !== 'false')
   const num = (v: unknown, d: number) => (v !== undefined && v !== '' && Number.isFinite(Number(v)) ? Number(v) : d)
 
@@ -450,6 +480,9 @@ export const register: Register = (on, options) => {
     routeSteps: flag(options.routeSteps, true),
     routeSubagents: flag(options.routeSubagents, true),
     escalateAfter: num(options.escalateAfter, 3),
+    ceiling: alias(options.ceiling),
+    floor: alias(options.floor),
+    ceilingBreak: num(options.ceilingBreak, 0.9),
     sendHistory: flag(options.sendHistory, true),
     redact: flag(options.redact, true),
     maxTaskChars: num(options.maxTaskChars, 8000),
@@ -505,8 +538,8 @@ export const register: Register = (on, options) => {
     if (e.props.hasSurvey) return next(e)
     const { Box, Text } = $.ui.resolve(e)
     const segs: Seg[] = (await read($, enabledAtom))
-      ? segments(await currentMode($, cfg), await read($, lastAtom), e.props.isWorking ? await read($, frameAtom) : null, await cacheLabel($, cfg), isPaused(await $.clock.now()))
-      : [{ text: 'JEV ▏off▕', color: '#64748b' }]
+      ? segments(await currentMode($, cfg), await read($, lastAtom), e.props.isWorking ? await read($, frameAtom) : null, await cacheLabel($, cfg), isPaused(await $.clock.now()), await read($, ranAtom))
+      : [{ text: 'JEV ▏off▕', color: '#64748b' }, ...((await read($, ranAtom)) ? [{ text: `  ${(await read($, ranAtom))!.alias} (session model)`, color: '#475569' }] : [])]
 
     return (
       <Box>
@@ -526,7 +559,7 @@ export const register: Register = (on, options) => {
     totals = await tally($, cfg)
     await $.command.register({
       name: 'jev',
-      description: 'Jev model routing (prompt markers: !full !haiku !sonnet !opus !fable !cheap !efficient): efficient | balanced | cheap | sticky <off|auto|strict> | cap <effort|none> | full | on | off | status | key <key>',
+      description: 'Jev model routing (prompt markers: !full !haiku !sonnet !opus !fable !cheap !efficient): efficient | balanced | cheap | sticky <off|auto|strict> | cap <effort|none> | ceiling <model|none> | floor <model|none> | full | on | off | status | key <key>',
     })
 
     return next(e)
@@ -613,6 +646,10 @@ export const register: Register = (on, options) => {
       const contextTokens = u.input_tokens + u.cache_read_input_tokens + u.cache_creation_input_tokens + u.output_tokens
       const at = await $.clock.now()
       await update($, cacheAtom, () => ({ model: u.model, at, contextTokens }))
+      await update($, ranAtom, () => ({ alias: aliasOf(u.model) ?? u.model, model: u.model, turnId: e.turnId, at }))
+      // the band shows the cache going cold with no event to redraw it: write the atom again when the cache expires
+      coldTimer?.cancel()
+      coldTimer = $.clock.after(cfg.cacheTtlMs + 500, () => update($, ranAtom, r => (r ? { ...r } : r)))
     }
     await record($, cfg, res.usage)
     return res
@@ -631,6 +668,18 @@ export const register: Register = (on, options) => {
       if (!STICKY.includes(v as Sticky)) return usage('sticky', STICKY)
       await update($, stickyAtom, () => v as Sticky)
       return applied('cache stickiness', v)
+    }
+    if (arg.startsWith('ceiling')) {
+      const v = arg.slice(7).trim()
+      if (v !== 'none' && !(v in CLAUDE)) return usage('ceiling', [...Object.keys(CLAUDE), 'none'])
+      await update($, ceilingAtom, () => v)
+      return applied('model ceiling', v)
+    }
+    if (arg.startsWith('floor')) {
+      const v = arg.slice(5).trim()
+      if (v !== 'none' && !(v in CLAUDE)) return usage('floor', [...Object.keys(CLAUDE), 'none'])
+      await update($, floorAtom, () => v)
+      return applied('model floor', v)
     }
     if (arg === 'stats clear') {
       totals = null
@@ -675,7 +724,8 @@ export const register: Register = (on, options) => {
           ['pool', cfg.pool.join(' · ')],
           ['sticky', `${(await read($, stickyAtom)) ?? cfg.defaultSticky}   cache ${warm ? '● warm' : '○ cold'}`],
           ['cap', `${(await read($, capAtom)) ?? cfg.defaultCap}${(await read($, pendingAtom)) ? '   🔓 next prompt: overrides set' : ''}`],
-          ['last', last ? `${last.alias} / ${last.effort}  ${gauge(last.confidence)} ${last.confidence.toFixed(2)}${last.kept ? `  kept (wanted ${last.kept})` : ''}${last.capped ? `  capped from ${last.capped}` : ''}` : 'none yet'],
+          ['limits', `ceiling ${(await read($, ceilingAtom)) ?? cfg.ceiling} (break at ${cfg.ceilingBreak})   floor ${(await read($, floorAtom)) ?? cfg.floor}`],
+          ['last', last ? `${last.alias} / ${last.effort}  ${gauge(last.confidence)} ${last.confidence.toFixed(2)}${last.kept ? `  kept (wanted ${last.kept})` : ''}${last.capped ? `  capped from ${last.capped}` : ''}${last.clamped ? `  clamped from ${last.clamped}` : ''}` : 'none yet'],
           ...usageRows(totals?.models ?? {}, cfg.pool),
           ['saved', savingsLine(totals ?? (await tally($, cfg)))],
           ['jev', isPaused(await $.clock.now()) ? `⚠ paused ${Math.ceil((pausedUntil - (await $.clock.now())) / 1000)} s` : '● ok'],

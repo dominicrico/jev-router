@@ -37,8 +37,7 @@ Full tables in [results/RESULTS.md](results/RESULTS.md).
 - **The modes are a real dial.** `balanced` sends some hard tasks (40%) to sonnet to save money; `cheap` sends all of them there, which is why a third of its picks are under-served. Use `cheap` for work where a miss is cheap.
 - **It is stable.** The same task got the same model on 97% to 100% of repeats.
 - **It is fast.** Asking Jev adds about 250 ms before a task (p95 314 ms, max 397 ms; the mod's timeout is 4000 ms).
-- **Switching models is expensive in a long session, so the cache guard matters.** In a simulated session of 30 mixed tasks with a warm, growing cache, following every Jev pick (`stickiness off`) switched models 19 times and re-wrote 1.2M tokens, a total cost 3x above just using opus the whole time. With the guard (`auto` or `strict`) there are no switches.
-- **The savings land where the cache is cold.** With tasks more than five minutes apart (or fresh contexts), routing costs 820 against 1500 for always opus: 45% less. Inside one warm, long session the guard keeps you on the first model, so you pay what that model costs and nothing worse.
+- **Cache stickiness, simulated first, then measured.** A simulation said following every pick in a long warm session would cost 3x more than opus; the real long-session run below says +38%, so treat the simulation as an upper bound.
 
 ## Measured tokens and cost
 
@@ -101,11 +100,35 @@ npx tsx --tsconfig benchmarks/tsconfig.json benchmarks/agentic-analyze.mts
 | jev-router, per prompt | 19/20 | $2.65 | -14% | +122% |
 | jev-router, every step + subagents | 18/20 | $2.08 | -33% | +74% |
 | jev-router, `!full` | 20/20 | $1.87 | -40% | +57% |
+| jev-router, `ceiling: sonnet` | 20/20 | $1.56 | -50% | +31% |
 
 - **Always sonnet matched always opus and cost 61% less.** These tasks are harder than the first set but did not need opus.
 - **jev-router is cheaper than always opus but dearer than always sonnet,** because Jev put about half the spend on opus. It did not finish more tasks than sonnet alone.
 - **The quality differences are noise.** 18, 19 and 20 of 20 differ by at most two runs; at 5 runs per cell that says nothing. Note `!full` (cap lifted) finishing 20/20 is one run more than the others and not evidence that the cap hurts.
 - **How the hidden tests are protected.** A first run of this benchmark was thrown away: a headless agent could read the hidden tests from disk by path (tested, `Read` works anywhere). They and the reference solutions are now sealed in `fixture2/sealed.tgz` and unpacked into a random temp directory only while grading; `node fixture2/verify.mjs` still checks every hidden test fails on the untouched fixture and passes with the reference. Anyone can unseal them (`node fixture2/seal.mjs unseal <dir>`): this guards the runs, not secrecy.
+
+## Long sessions: the cache guard, measured
+
+Finding the right way to measure it took two probes. `claude -p --resume` per turn does **not** keep the mod's state (the second turn logged `cache none`), so the cache guard would never engage; and `total_cost_usd` and `modelUsage` on a resumed turn are cumulative. A single process fed through `--input-format stream-json` does keep the state, so `session.mts` runs each session as one long-lived process, one task per turn, and records per-turn deltas. Run with `CONTEXT=repo` the first turn also carries about 20k tokens of source so contexts are large.
+
+Short contexts first (5 to 10k tokens, `results/SESSION.md`): always opus $0.225 per session, always sonnet $0.093, guard on $0.216 (4.7 switches), guard off $0.193 (6.3 switches). The guard is below its 8,000-token threshold for much of these, switches cost little, and keeping the guard on actually cost slightly more because it held the session on opus.
+
+Long contexts (`results/SESSION-LONG.md`, 3 sessions per strategy, 12 complete sessions, $6.32):
+
+| Mean per session | cost | vs always opus | model switches | cache write tokens | cache read tokens |
+| --- | --- | --- | --- | --- | --- |
+| always opus | $0.506 | | 0 | 41.7k | 285.6k |
+| always sonnet | $0.273 | -46% | 0 | 41.0k | 283.0k |
+| jev-router, guard on (`auto`) | $0.627 | +24% | 1.0 | 78.4k | 247.9k |
+| jev-router, guard off | $0.699 | +38% | 6.3 | 193.8k | 131.6k |
+
+- **The guard does what it says:** switches 6.3 to 1.0, cache re-writes 194k to 78k tokens, cost +38% to +24% against opus.
+- **But routing lost to staying on one model** in a long warm session, in both strategies. The savings in the other benchmarks come from easy tasks and cold or small contexts.
+- **Caveats:** tools off, 8 short tasks, 3 sessions per strategy, one fixture of context. A real session has tool results growing the context, which would make switches dearer still.
+
+## Ceiling
+
+`ceiling: sonnet` was added after the hard-task result and run on the same four sealed tasks, 5 runs: 20/20 done for $1.56 (-50% against opus, +31% against always-sonnet), spend 100% sonnet. It finished the most tasks of any strategy, but 20 against 19 is one run and not evidence of anything. Its cost is above always-sonnet's $1.19 because Jev still asks for a higher effort than sonnet's default (capped at `high`).
 
 ## Verified live
 
