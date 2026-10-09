@@ -1,1 +1,18 @@
-{ "compilerOptions": { "module": "esnext", "moduleResolution": "bundler", "target": "es2022", "jsx": "preserve", "paths": { "claude-code": ["./stub-claude-code.ts"] } } }
+{
+  "compilerOptions": {
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "target": "es2022",
+    "jsx": "preserve",
+    "types": ["node"],
+    "allowImportingTsExtensions": true,
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "noImplicitAny": false,
+    "paths": { "claude-code": ["./stub-claude-code.ts"] }
+  },
+  "include": ["./*.mts", "./*.ts", "../hooks/register.tsx", "../assets/src/*.mts"]
+}

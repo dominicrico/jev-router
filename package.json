@@ -1,0 +1,13 @@
+{
+  "name": "jev-router",
+  "private": true,
+  "description": "Dev tooling only: the plugin itself needs no install step.",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p benchmarks/tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  }
+}
