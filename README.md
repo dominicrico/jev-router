@@ -53,6 +53,7 @@ When the cache wins, the band says so: `opus (kept 🔒 cache warm; wanted haiku
 - **Picks the model and the effort**, before every task, from haiku, sonnet, opus and fable. You can narrow the pool.
 - **Three routing modes.** `efficient` for the best result, `balanced` for quality and cost evenly, `cheap` for the cheapest model that can plausibly succeed.
 - **Guards the prompt cache.** Switching models throws the cache away. While it is warm and big enough to matter, he stays put unless Jev confidently asks for something stronger.
+- **Caps the effort.** Jev's effort pick is limited to `high` by default, because effort drives token use far more than the model does. Start a prompt with `!full` (or run `/jev full`) to lift the cap for that one prompt.
 - **Never blocks you.** Jev slow or down? The session model keeps working.
 - **Leaves subagents alone.** Only the main thread is rerouted.
 - **Keeps score.** `/jev status` shows how often each model was used this session.
@@ -69,7 +70,7 @@ Benchmarked on 30 tasks: 270 calls to Jev for the picks, then 131 real runs for 
   <img src="assets/cost.png" width="880" alt="Cost as a percentage of always opus. Trivial tasks cost 3%, standard 32 to 35%, hard tasks 342%, 307% and 61% for efficient, balanced and cheap. Overall 223%, 201% and 47%.">
 </p>
 
-The honest read: the model switch saves a lot on easy and mid tasks. On hard tasks Jev also asks for `xhigh` effort, so `efficient` and `balanced` spend more tokens thinking than opus at its default, which is deeper reasoning rather than savings. Only `cheap` is cheaper overall.
+The numbers below were measured **before the effort cap existed**, with Jev's effort applied as picked (`effortCap` set to `none`). With the default cap of `high` the hard-task bars should shrink; that has not been re-measured yet. The honest read: the model switch saves a lot on easy and mid tasks. On hard tasks Jev also asks for `xhigh` effort, so `efficient` and `balanced` spend more tokens thinking than opus at its default, which is deeper reasoning rather than savings. Only `cheap` is cheaper overall.
 
 <p align="center">
   <img src="assets/cache.png" width="880" alt="Cache guard: following every pick in a warm session costs 4735 against 1500 for always opus. With the guard it is 1500. With cold cache and tasks 400 seconds apart it is 820.">
@@ -122,6 +123,8 @@ That was it. He'd be proud. He won't say it.
 | `/jev` or `/jev status` | Settings, cache state, last decision and per-model usage |
 | `/jev efficient \| balanced \| cheap` | Set the routing mode, from the next task |
 | `/jev sticky off \| auto \| strict` | Set cache stickiness |
+| `/jev cap low \| medium \| high \| xhigh \| max \| none` | Set the effort cap |
+| `/jev full` | Lift the effort cap for the next prompt only |
 | `/jev on` / `/jev off` | Enable routing / use the session model |
 | `/jev key <key>` | Store the TypeSafe API key |
 
@@ -145,6 +148,7 @@ That was it. He'd be proud. He won't say it.
 | --- | --- | --- |
 | `mode` | `balanced` | Routing mode |
 | `models` | all four | Aliases Jev may choose from |
+| `effortCap` | `high` | Highest effort the router applies. `none` follows Jev. Per prompt: start with `!full` or run `/jev full` |
 | `stickiness` | `auto` | `off`: always follow Jev. `auto`: while the cache is warm, only upgrade on high confidence. `strict`: never switch while warm |
 | `minConfidence` | `0.7` | Confidence needed for a warm-cache upgrade |
 | `minContextTokens` | `8000` | Below this a switch is free and stickiness is skipped |

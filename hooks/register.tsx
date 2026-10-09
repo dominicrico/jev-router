@@ -1,11 +1,12 @@
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
-import type { Cache, Decision, Effort, Mode, Sticky } from '../types'
+import type { Cache, Decision, Effort, EffortCap, Mode, Sticky } from '../types'
 
 export const JEV_URL = 'https://api.typesafe.ai/v1/systemone'
 const MODES: readonly Mode[] = ['efficient', 'balanced', 'cheap']
 const STICKY: readonly Sticky[] = ['off', 'auto', 'strict']
+const CAPS: readonly EffortCap[] = ['low', 'medium', 'high', 'xhigh', 'max', 'none']
 const EFFORTS: readonly Effort[] = ['low', 'medium', 'high', 'xhigh', 'max']
 
 const CLAUDE: Record<string, { id: string; about: string }> = {
@@ -48,6 +49,8 @@ const lastAtom = atom({ ...S, key: 'last' } as const, null)
 const cacheAtom = atom({ ...S, key: 'cache' } as const, null)
 const stickyAtom = atom({ ...S, key: 'sticky' } as const, null)
 const statsAtom = atom({ ...S, key: 'stats' } as const, {})
+const capAtom = atom({ ...S, key: 'cap' } as const, null)
+const unlockAtom = atom({ ...S, key: 'unlock' } as const, false)
 const frameAtom = atom({ ...S, key: 'frame' } as const, 0)
 const warnedAtom = atom({ ...S, key: 'warned' } as const, false)
 
@@ -60,6 +63,7 @@ export type Config = {
   pool: string[]
   defaultMode: Mode
   defaultSticky: Sticky
+  defaultCap: EffortCap
   minConfidence: number
   minContextTokens: number
   cacheTtlMs: number
@@ -69,6 +73,16 @@ type Picked = Omit<Decision, 'turnId'>
 // Cheapest to dearest; a switch up this ladder is an upgrade.
 const RANK = ['haiku', 'sonnet', 'opus', 'fable']
 const aliasOf = (model: string) => Object.keys(CLAUDE).find(a => CLAUDE[a]!.id === model)
+
+// Jev's effort drives token use more than its model pick does, so it is capped.
+// `capped` is what Jev wanted when the cap lowered it.
+export function capEffort(effort: Effort, cap: EffortCap): { effort: Effort; capped?: Effort } {
+  if (cap === 'none' || EFFORTS.indexOf(effort) <= EFFORTS.indexOf(cap)) return { effort }
+  return { effort: cap, capped: effort }
+}
+
+// A prompt that starts with this runs uncapped. The marker is stripped before the model reads it.
+export const UNLOCK = /^\s*!full\b[ \t]*/i
 
 export const isWarm = (cache: Cache | null, now: number, cfg: Config): cache is Cache =>
   cache !== null && now - cache.at <= cfg.cacheTtlMs && cache.contextTokens >= cfg.minContextTokens
@@ -114,7 +128,7 @@ export const segments = (mode: Mode, last: Decision | null, frame: number | null
     ...head,
     model,
     sep,
-    { text: `${last.effort} ${effortBar(last.effort)}`, color: '#38bdf8' },
+    { text: `${last.effort} ${effortBar(last.effort)}${last.capped ? ` ⤓${last.capped}` : ''}${last.unlocked ? ' 🔓' : ''}`, color: last.unlocked ? '#fbbf24' : '#38bdf8' },
     sep,
     { text: `conf ${gauge(last.confidence)} ${Math.round(last.confidence * 100)}%`, color: confColor(last.confidence) },
     ...(cache ? [sep, { text: cache, color: cache.includes('warm') ? '#4ade80' : '#64748b' }] : []),
@@ -246,6 +260,7 @@ export const register: Register = (on, options) => {
   const defaultMode: Mode = MODES.includes(options.mode as Mode) ? (options.mode as Mode) : 'balanced'
 
   const defaultSticky: Sticky = STICKY.includes(options.stickiness as Sticky) ? (options.stickiness as Sticky) : 'auto'
+  const defaultCap: EffortCap = CAPS.includes(options.effortCap as EffortCap) ? (options.effortCap as EffortCap) : 'high'
   const num = (v: unknown, d: number) => (v !== undefined && v !== '' && Number.isFinite(Number(v)) ? Number(v) : d)
 
   const cfg: Config = {
@@ -254,6 +269,7 @@ export const register: Register = (on, options) => {
     pool,
     defaultMode,
     defaultSticky,
+    defaultCap,
     minConfidence: num(options.minConfidence, 0.7),
     minContextTokens: num(options.minContextTokens, 8000),
     cacheTtlMs: num(options.cacheTtlMs, 300_000),
@@ -269,7 +285,11 @@ export const register: Register = (on, options) => {
   on('prompt.submit', async ($, e, next) => {
     stop()
     ticker = $.clock.every(120, () => update($, frameAtom, n => n + 1))
-    return next(e)
+    const m = UNLOCK.exec(e.text)
+    if (!m || e.text.length === m[0].length) return next(e)
+    await update($, unlockAtom, () => true)
+
+    return next({ ...e, text: e.text.slice(m[0].length) })
   })
 
   on('turn.complete', async ($, e, next) => {
@@ -300,7 +320,7 @@ export const register: Register = (on, options) => {
   on('session.start', async ($, e, next) => {
     await $.command.register({
       name: 'jev',
-      description: 'Jev model routing: efficient | balanced | cheap | sticky <off|auto|strict> | on | off | status | key <key>',
+      description: 'Jev model routing: efficient | balanced | cheap | sticky <off|auto|strict> | cap <effort|none> | full | on | off | status | key <key>',
     })
 
     return next(e)
@@ -319,12 +339,15 @@ export const register: Register = (on, options) => {
     }
 
     const mode = await currentMode($, cfg)
+    const unlocked = await read($, unlockAtom)
+    if (unlocked) await update($, unlockAtom, () => false) // one prompt only
     try {
       const cache = await read($, cacheAtom)
       const now = await $.clock.now()
       const asked = await askJev($, cfg, auth.key, await buildState($, e.text, mode, cache, now, cfg), mode)
       const picked = decide(asked, cache, now, cfg, (await read($, stickyAtom)) ?? cfg.defaultSticky)
-      const decision: Decision = { turnId: e.turnId, ...picked }
+      const cap = unlocked ? 'none' : (await read($, capAtom)) ?? cfg.defaultCap
+      const decision: Decision = { turnId: e.turnId, ...picked, ...capEffort(picked.effort, cap), ...(unlocked ? { unlocked } : {}) }
       await update($, lastAtom, () => decision)
       await update($, statsAtom, n => ({ ...n, [decision.alias]: (n[decision.alias] ?? 0) + 1 }))
     } catch (err) {
@@ -369,6 +392,16 @@ export const register: Register = (on, options) => {
       await update($, stickyAtom, () => v as Sticky)
       return { text: `Jev cache stickiness: ${v}. Applies from the next task.` }
     }
+    if (arg === 'full') {
+      await update($, unlockAtom, () => true)
+      return { text: 'Jev: the next prompt runs with the effort cap lifted.' }
+    }
+    if (arg.startsWith('cap')) {
+      const v = arg.slice(3).trim()
+      if (!CAPS.includes(v as EffortCap)) return { text: 'Usage: /jev cap low | medium | high | xhigh | max | none' }
+      await update($, capAtom, () => v as EffortCap)
+      return { text: `Jev effort cap: ${v}. Applies from the next task. Start a prompt with !full to lift it once.` }
+    }
     if (arg === 'on' || arg === 'off') {
       await update($, enabledAtom, () => arg === 'on')
       if (arg === 'off') await update($, lastAtom, () => null)
@@ -396,12 +429,13 @@ export const register: Register = (on, options) => {
           ['state', `${enabled ? '● on ' : '○ off'}   mode  ${await currentMode($, cfg)}`],
           ['pool', pool.join(' · ')],
           ['sticky', `${(await read($, stickyAtom)) ?? cfg.defaultSticky}   cache ${warm ? '● warm' : '○ cold'}`],
-          ['last', last ? `${last.alias} / ${last.effort}  ${gauge(last.confidence)} ${last.confidence.toFixed(2)}${last.kept ? `  kept (wanted ${last.kept})` : ''}` : 'none yet'],
+          ['cap', `${(await read($, capAtom)) ?? cfg.defaultCap}${(await read($, unlockAtom)) ? '   🔓 next prompt uncapped' : ''}`],
+          ['last', last ? `${last.alias} / ${last.effort}  ${gauge(last.confidence)} ${last.confidence.toFixed(2)}${last.kept ? `  kept (wanted ${last.kept})` : ''}${last.capped ? `  capped from ${last.capped}` : ''}` : 'none yet'],
           ...usageRows(await read($, statsAtom), pool),
           ['key', auth ? `…${auth.key.slice(-4)}  (${auth.source})` : 'none: /jev key <key>'],
         ]),
       }
     }
-    return { text: `Unknown option "${arg}". Use: /jev efficient | balanced | cheap | sticky <mode> | on | off | status | key <key>` }
+    return { text: `Unknown option "${arg}". Use: /jev efficient | balanced | cheap | sticky <mode> | cap <effort|none> | full | on | off | status | key <key>` }
   })
 }

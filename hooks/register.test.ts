@@ -1,7 +1,7 @@
 import { expect, mock, test } from 'claude-code/testing'
 import type { On } from 'claude-code'
 import type { Engine } from 'claude-code/testing'
-import { statusLine } from './register'
+import { capEffort, statusLine } from './register'
 
 const OPTS = { options: { apiKey: 'k-test', mode: 'balanced' } }
 
@@ -227,4 +227,58 @@ test('a step without usage leaves the cache untouched', OPTS, async ($, on) => {
   await step($, 't2')
 
   expect(w.steps[1].model).toBe('claude-sonnet-5-5')
+})
+
+test('effort is capped at high by default', OPTS, async ($, on) => {
+  const w = world(on, jev('opus', 'xhigh'))
+  await $.turn.start({ text: 'redesign the queue', turnId: 't1' })
+  await step($, 't1')
+
+  expect(w.steps[0].model).toBe('claude-opus-5-5')
+  expect(w.steps[0].effort).toBe('high')
+})
+
+test('effortCap none and a lower effort pass through untouched', { options: { apiKey: 'k-test', effortCap: 'none' } }, async ($, on) => {
+  const w = world(on, jev('opus', 'max'))
+  await $.turn.start({ text: 'redesign the queue', turnId: 't1' })
+  await step($, 't1')
+  expect(w.steps[0].effort).toBe('max')
+})
+
+test('/jev cap changes the cap', OPTS, async ($, on) => {
+  const w = world(on, jev('opus', 'xhigh'))
+  await $.command.run({ command: 'jev', args: 'cap medium' } as any)
+  await $.turn.start({ text: 'redesign the queue', turnId: 't1' })
+  await step($, 't1')
+  expect(w.steps[0].effort).toBe('medium')
+})
+
+test('/jev full lifts the cap for one prompt only', OPTS, async ($, on) => {
+  const w = world(on, jev('opus', 'xhigh'))
+  await $.command.run({ command: 'jev', args: 'full' } as any)
+  await $.turn.start({ text: 'first', turnId: 't1' })
+  await step($, 't1')
+  await $.turn.start({ text: 'second', turnId: 't2' })
+  await step($, 't2')
+
+  expect(w.steps[0].effort).toBe('xhigh')
+  expect(w.steps[1].effort).toBe('high')
+})
+
+test('a !full prefix lifts the cap for that prompt and is stripped', OPTS, async ($, on) => {
+  const w = world(on, jev('opus', 'xhigh'))
+  const sent: string[] = []
+  on('prompt.submit', async (_$, e) => ({ text: (sent.push(e.text), e.text) }))
+  await $.prompt.submit({ text: '!full redesign the queue' } as any)
+  await $.turn.start({ text: 'redesign the queue', turnId: 't1' })
+  await step($, 't1')
+
+  expect(sent[0]).toBe('redesign the queue')
+  expect(w.steps[0].effort).toBe('xhigh')
+})
+
+test('capEffort', OPTS, async () => {
+  expect(capEffort('xhigh', 'high')).toEqual({ effort: 'high', capped: 'xhigh' })
+  expect(capEffort('medium', 'high')).toEqual({ effort: 'medium' })
+  expect(capEffort('max', 'none')).toEqual({ effort: 'max' })
 })

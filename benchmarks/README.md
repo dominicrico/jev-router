@@ -65,7 +65,7 @@ By tier, cost against always opus:
 - **So only `cheap` is cheaper overall.** `efficient` and `balanced` spend about twice what always-opus-at-default does, because they buy more reasoning on the hard tasks. `cheap` sends hard tasks to sonnet and ends 53% below opus, and 25% above plain sonnet.
 - **Sonnet at `xhigh` beat opus at `xhigh` on cost.** On hard tasks `cheap` (sonnet) used 41k output tokens against 118k for opus at the same effort.
 
-If you want the model savings without the extra reasoning, the clean fix is to cap the effort the mod applies. That is not built yet.
+The mod now has an `effortCap` option (default `high`) for exactly this, and `!full` to lift it for one prompt. These measurements were taken with the cap off (`none`); they have not been re-run with the cap on.
 
 ## Limits, said plainly
 

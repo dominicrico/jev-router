@@ -15,7 +15,11 @@
       "type": "string",
       "title": "Routing mode",
       "description": "efficient: best result; balanced: quality vs cost; cheap: cheapest model that can succeed",
-      "options": ["efficient", "balanced", "cheap"],
+      "options": [
+        "efficient",
+        "balanced",
+        "cheap"
+      ],
       "default": "balanced"
     },
     "models": {
@@ -23,13 +27,22 @@
       "multiple": true,
       "title": "Allowed Claude models",
       "description": "Aliases Jev may choose from: haiku, sonnet, opus, fable",
-      "default": ["haiku", "sonnet", "opus", "fable"]
+      "default": [
+        "haiku",
+        "sonnet",
+        "opus",
+        "fable"
+      ]
     },
     "stickiness": {
       "type": "string",
       "title": "Cache stickiness",
       "description": "off: always follow Jev; auto: while the prompt cache is warm, only upgrade on high confidence; strict: never switch while warm",
-      "options": ["off", "auto", "strict"],
+      "options": [
+        "off",
+        "auto",
+        "strict"
+      ],
       "default": "auto"
     },
     "minConfidence": {
@@ -55,6 +68,20 @@
       "title": "Jev timeout (ms)",
       "description": "Keep the current model when Jev takes longer than this",
       "default": 4000
+    },
+    "effortCap": {
+      "type": "string",
+      "title": "Effort cap",
+      "description": "Highest reasoning effort the router applies. Start a prompt with !full, or run /jev full, to lift it for one prompt",
+      "options": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max",
+        "none"
+      ],
+      "default": "high"
     }
   }
 }
