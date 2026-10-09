@@ -1,7 +1,7 @@
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
-import type { Cache, Decision, Effort, EffortCap, Mode, Sticky } from '../types'
+import type { Cache, Decision, Effort, EffortCap, Mode, Pending, Sticky } from '../types'
 
 export const JEV_URL = 'https://api.typesafe.ai/v1/systemone'
 const MODES: readonly Mode[] = ['efficient', 'balanced', 'cheap']
@@ -50,7 +50,7 @@ const cacheAtom = atom({ ...S, key: 'cache' } as const, null)
 const stickyAtom = atom({ ...S, key: 'sticky' } as const, null)
 const statsAtom = atom({ ...S, key: 'stats' } as const, {})
 const capAtom = atom({ ...S, key: 'cap' } as const, null)
-const unlockAtom = atom({ ...S, key: 'unlock' } as const, false)
+const pendingAtom = atom({ ...S, key: 'pending' } as const, null)
 const frameAtom = atom({ ...S, key: 'frame' } as const, 0)
 const warnedAtom = atom({ ...S, key: 'warned' } as const, false)
 
@@ -84,8 +84,21 @@ export function capEffort(effort: Effort, cap: EffortCap): { effort: Effort; cap
   return { effort: cap, capped: effort }
 }
 
-// A prompt that starts with this runs uncapped. The marker is stripped before the model reads it.
-export const UNLOCK = /^\s*!full\b[ \t]*/i
+// Markers at the start of a prompt apply to that prompt only and are stripped before the model reads it:
+// !full lifts the effort cap, !<model> pins the model (no Jev call), !cheap and !efficient pick the routing mode.
+export function markers(text: string, pool: readonly string[]): { text: string; pending: Pending | null } {
+  const pending: Pending = {}
+  for (let m; (m = /^\s*!(full|cheap|efficient|[a-z]+)\b[ \t]*/i.exec(text)); ) {
+    const w = m[1]!.toLowerCase()
+    if (w === 'full') pending.full = true
+    else if (w === 'cheap' || w === 'efficient') pending.mode = w
+    else if (pool.includes(w)) pending.pin = w
+    else break
+    text = text.slice(m[0].length)
+  }
+
+  return { text, pending: Object.keys(pending).length ? pending : null }
+}
 
 export const isWarm = (cache: Cache | null, now: number, cfg: Config): cache is Cache =>
   cache !== null && now - cache.at <= cfg.cacheTtlMs && cache.contextTokens >= cfg.minContextTokens
@@ -126,7 +139,7 @@ export const segments = (mode: Mode, last: Decision | null, frame: number | null
   if (!last) return [...head, ...warn, { text: 'waiting for the first task', color: '#64748b' }]
   const model: Seg = last.kept
     ? { text: `${last.alias} (kept 🔒 cache warm; wanted ${last.kept})`, color: '#fbbf24' }
-    : { text: tier(last.alias), color: TIER_COLOR[last.alias], bold: true }
+    : { text: `${tier(last.alias)}${last.pinned ? ' 📌' : ''}`, color: TIER_COLOR[last.alias], bold: true }
   const sep: Seg = { text: '  │  ', color: '#475569' }
   return [
     ...head,
@@ -293,7 +306,7 @@ async function decideFor($: EngineInterface, cfg: Config, kind: string, key: str
 // Failures keep the last pick quietly; the task's own first call already warned.
 async function restep($: EngineInterface, cfg: Config, e: { turnId: string; index: number }, last: Decision): Promise<Decision> {
   const auth = await resolveKey($, cfg)
-  if (!auth) return last
+  if (!auth || last.pinned) return last
   try {
     const mode = await currentMode($, cfg)
     const now = await $.clock.now()
@@ -373,11 +386,11 @@ export const register: Register = (on, options) => {
     const t = $.clock.every(120, () => (++ticks > 5000 ? t.cancel() : update($, frameAtom, n => n + 1)))
     ticker = t
     skipNext = e.origin?.kind === 'task-notification'
-    const m = UNLOCK.exec(e.text)
-    if (!m || e.text.length === m[0].length) return next(e)
-    await update($, unlockAtom, () => true)
+    const m = markers(e.text, cfg.pool)
+    if (!m.pending || m.text.trim() === '') return next(e)
+    await update($, pendingAtom, () => m.pending)
 
-    return next({ ...e, text: e.text.slice(m[0].length) })
+    return next({ ...e, text: m.text })
   })
 
   on('turn.complete', async ($, e, next) => {
@@ -414,7 +427,7 @@ export const register: Register = (on, options) => {
     agents.clear()
     await $.command.register({
       name: 'jev',
-      description: 'Jev model routing: efficient | balanced | cheap | sticky <off|auto|strict> | cap <effort|none> | full | on | off | status | key <key>',
+      description: 'Jev model routing (prompt markers: !full !haiku !sonnet !opus !fable !cheap !efficient): efficient | balanced | cheap | sticky <off|auto|strict> | cap <effort|none> | full | on | off | status | key <key>',
     })
 
     return next(e)
@@ -433,14 +446,18 @@ export const register: Register = (on, options) => {
       return next(e)
     }
 
-    const mode = await currentMode($, cfg)
-    const unlocked = await read($, unlockAtom)
-    if (unlocked) await update($, unlockAtom, () => false) // one prompt only
+    const pending = await read($, pendingAtom)
+    if (pending) await update($, pendingAtom, () => null) // one prompt only
+    const unlocked = pending?.full === true
+    const mode = pending?.mode ?? (await currentMode($, cfg))
     try {
       const cache = await read($, cacheAtom)
       const now = await $.clock.now()
       const cap = unlocked ? 'none' : (await read($, capAtom)) ?? cfg.defaultCap
-      const picked = await decideFor($, cfg, 'prompt', auth.key, await buildState($, e.text, mode, cache, now, cfg), mode, cache, now, cap)
+      // A pinned model skips Jev; its effort is the cap (high by default).
+      const picked = pending?.pin
+        ? { alias: pending.pin, model: CLAUDE[pending.pin]!.id, effort: cap === 'none' ? 'high' : cap, confidence: 1, pinned: true }
+        : await decideFor($, cfg, 'prompt', auth.key, await buildState($, e.text, mode, cache, now, cfg), mode, cache, now, cap)
       const decision: Decision = { turnId: e.turnId, ...picked, unlocked }
       await update($, lastAtom, () => decision)
       await update($, statsAtom, n => ({ ...n, [decision.alias]: (n[decision.alias] ?? 0) + 1 }))
@@ -495,7 +512,7 @@ export const register: Register = (on, options) => {
       return applied('cache stickiness', v)
     }
     if (arg === 'full') {
-      await update($, unlockAtom, () => true)
+      await update($, pendingAtom, p => ({ ...p, full: true }))
       return { text: 'Jev: the next prompt runs with the effort cap lifted.' }
     }
     if (arg.startsWith('cap')) {
@@ -531,7 +548,7 @@ export const register: Register = (on, options) => {
           ['state', `${enabled ? '● on ' : '○ off'}   mode  ${await currentMode($, cfg)}`],
           ['pool', cfg.pool.join(' · ')],
           ['sticky', `${(await read($, stickyAtom)) ?? cfg.defaultSticky}   cache ${warm ? '● warm' : '○ cold'}`],
-          ['cap', `${(await read($, capAtom)) ?? cfg.defaultCap}${(await read($, unlockAtom)) ? '   🔓 next prompt uncapped' : ''}`],
+          ['cap', `${(await read($, capAtom)) ?? cfg.defaultCap}${(await read($, pendingAtom)) ? '   🔓 next prompt: overrides set' : ''}`],
           ['last', last ? `${last.alias} / ${last.effort}  ${gauge(last.confidence)} ${last.confidence.toFixed(2)}${last.kept ? `  kept (wanted ${last.kept})` : ''}${last.capped ? `  capped from ${last.capped}` : ''}` : 'none yet'],
           ...usageRows(await read($, statsAtom), cfg.pool),
           ['jev', isPaused(await $.clock.now()) ? `⚠ paused ${Math.ceil((pausedUntil - (await $.clock.now())) / 1000)} s` : '● ok'],

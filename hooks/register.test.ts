@@ -1,7 +1,7 @@
 import { expect, mock, test } from 'claude-code/testing'
 import type { On } from 'claude-code'
 import type { Engine } from 'claude-code/testing'
-import { capEffort, segments } from './register'
+import { capEffort, markers, segments } from './register'
 
 const OPTS = { options: { apiKey: 'k-test', mode: 'balanced' } }
 
@@ -346,4 +346,27 @@ test('a background-task notification keeps the decision and makes no call', OPTS
 
   expect(w.bodies.length).toBe(1)
   expect(w.steps[0].model).toBe('claude-opus-5-5')
+})
+
+test('!opus pins the model without calling Jev; !cheap sets the mode for one prompt', OPTS, async ($, on) => {
+  const w = world(on, jev('haiku', 'low'))
+  on('prompt.submit', async (_$, e) => ({ text: e.text }))
+  await $.prompt.submit({ text: '!opus hard thing' } as any)
+  await $.turn.start({ text: 'hard thing', turnId: 't1' })
+  await step($, 't1')
+  expect(w.bodies.length).toBe(0)
+  expect(w.steps[0].model).toBe('claude-opus-5-5')
+  expect(w.steps[0].effort).toBe('high')
+
+  await $.prompt.submit({ text: '!cheap rename x' } as any)
+  await $.turn.start({ text: 'rename x', turnId: 't2' })
+  expect(w.bodies[0].state).toContain('Routing mode: cheap')
+  await $.turn.start({ text: 'another', turnId: 't3' })
+  expect(w.bodies[1].state).toContain('Routing mode: balanced')
+})
+
+test('markers strips known markers and leaves unknown ones', OPTS, async () => {
+  expect(markers('!full !opus go', ['haiku', 'opus'])).toEqual({ text: 'go', pending: { full: true, pin: 'opus' } })
+  expect(markers('!nope go', ['opus'])).toEqual({ text: '!nope go', pending: null })
+  expect(markers('plain', ['opus']).pending).toBeNull()
 })

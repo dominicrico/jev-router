@@ -88,7 +88,7 @@ const rows = [['1', 'A task arrives', 'your prompt'], ['2', 'Ask Jev: which mode
 const howCard = `<div class=card><div class=eye>How it works</div>
 <h1>Before every task, one lever. <span class=g>Then it gets out of the way.</span></h1>
 <div style="border-top:1px solid #1e293b">${rows.map(([n, a, b], i) => `<div style="display:flex;align-items:center;padding:16px 4px;border-bottom:1px solid #1e293b;font-size:17px"><span style="width:56px;color:${i === 5 ? '#5eead4' : '#94a3b8'};font-weight:${i === 5 ? 700 : 400}">${n}</span><span style="flex:1;font-weight:${i === 5 ? 700 : 400}">${a}</span><span style="font-size:14px;color:#94a3b8">${b}</span></div>`).join('')}</div>
-<div class=foot>Jev slow or unreachable? Your session model keeps working and you get one polite message. Subagents are never rerouted.</div></div>`
+<div class=foot>Jev slow or unreachable? Your session model keeps working and you get one polite message.</div></div>`
 
 const seg = (t, c, b) => `<span style="color:${c};${b ? 'font-weight:800' : ''}">${t}</span>`
 const sep = seg('  │  ', '#475569')
