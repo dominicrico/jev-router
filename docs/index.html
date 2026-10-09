@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>jev-router: automatic Claude model routing for Claude Code (Opus, Sonnet, Haiku)</title>
+<meta name="description" content="jev-router is a Claude Code plugin that picks the right Claude model and effort for every prompt, step and subagent, caps expensive effort, protects the prompt cache and shows the choice above your prompt. Free, MIT.">
+<link rel="canonical" href="https://dominicrico.github.io/jev-router/">
+<link rel="icon" href="assets/logo.jpg">
+<meta name="theme-color" content="#0b1020">
+<meta property="og:type" content="website">
+<meta property="og:title" content="jev-router: automatic Claude model routing for Claude Code">
+<meta property="og:description" content="Right Claude model, right effort, every prompt, step and subagent. A Claude Code plugin with an effort cap, cache guard and benchmarks.">
+<meta property="og:url" content="https://dominicrico.github.io/jev-router/">
+<meta property="og:image" content="https://dominicrico.github.io/jev-router/assets/hero.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://dominicrico.github.io/jev-router/assets/hero.jpg">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"jev-router","applicationCategory":"DeveloperApplication","operatingSystem":"macOS, Linux, Windows (Claude Code)","description":"A Claude Code plugin that routes each prompt, step and subagent to the right Claude model and reasoning effort using TypeSafe Jev.","softwareVersion":"0.2.0","license":"https://opensource.org/licenses/MIT","url":"https://dominicrico.github.io/jev-router/","downloadUrl":"https://github.com/dominicrico/jev-router","codeRepository":"https://github.com/dominicrico/jev-router","author":{"@type":"Person","name":"Dominic Rico Gómez","url":"https://github.com/dominicrico"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"How do I switch between Opus, Sonnet and Haiku automatically in Claude Code?","acceptedAnswer":{"@type":"Answer","text":"Install jev-router. Before each prompt it asks TypeSafe Jev which Claude model and effort fit the task, then runs the turn on that choice. You can pin a model for one prompt with !opus, !sonnet or !haiku."}},
+{"@type":"Question","name":"Does jev-router reduce Claude Code cost?","acceptedAnswer":{"@type":"Answer","text":"On the author's benchmarks, routing cut the cost of trivial tasks by 97% and standard tasks by 65% against always using Opus, and with the default effort cap no routing mode cost more than always Opus overall. On harder tasks plain Sonnet did as well as Opus and was cheaper, so routing saves less if Sonnet is already your default."}},
+{"@type":"Question","name":"What does the effort cap do?","acceptedAnswer":{"@type":"Answer","text":"Jev often asks for xhigh reasoning effort on hard tasks, which uses several times more tokens. The effort cap limits the applied effort to high by default. Start a prompt with !full to lift it for that prompt only."}},
+{"@type":"Question","name":"Does jev-router send my code to a third party?","acceptedAnswer":{"@type":"Answer","text":"It sends the prompt text, optionally recent messages, and subagent task descriptions to api.typesafe.ai. API keys, tokens, private keys and password assignments are redacted first. You can turn the history off with sendHistory."}},
+{"@type":"Question","name":"What is the prompt cache guard?","acceptedAnswer":{"@type":"Answer","text":"Switching models throws away the warm prompt cache. While the cache is warm and large, jev-router stays on the current model unless Jev confidently asks for a stronger one."}}]}
+</script>
+<style>
+:root{--bg:#0b1020;--card:#0e1730;--line:#1e293b;--text:#e2e8f0;--mute:#94a3b8;--a:#5eead4;--b:#38bdf8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:17px/1.65 -apple-system,"SF Pro Text","Inter",system-ui,sans-serif}
+a{color:var(--b)}
+header,main,footer{max-width:960px;margin:0 auto;padding:0 20px}
+.hero{padding:56px 0 24px;text-align:center}
+.hero img.logo{width:96px;height:96px;border-radius:50%;border:2px solid var(--line)}
+h1{font-size:clamp(30px,5vw,46px);line-height:1.15;letter-spacing:-.02em;margin:18px 0 12px}
+.g{background:linear-gradient(90deg,var(--a),var(--b));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{color:var(--mute);font-size:19px;max-width:720px;margin:0 auto 24px}
+.cta{display:inline-block;padding:11px 20px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--text);text-decoration:none;margin:4px;font-weight:600}
+.cta.p{background:linear-gradient(90deg,var(--a),var(--b));color:#06121f;border:0}
+img.shot{width:100%;height:auto;border-radius:14px;border:1px solid var(--line);margin:18px 0}
+h2{font-size:28px;letter-spacing:-.01em;margin:52px 0 8px}
+h3{font-size:19px;margin:26px 0 4px}
+p,li{color:#cbd5e1}
+pre{background:#070b17;border:1px solid var(--line);border-radius:12px;padding:14px 16px;overflow:auto;font:14px/1.5 "JetBrains Mono",ui-monospace,Menlo,monospace;color:#e2e8f0}
+code{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:.92em;color:#5eead4}
+pre code{color:inherit}
+table{border-collapse:collapse;width:100%;font-size:15px;margin:14px 0}
+th,td{border-bottom:1px solid var(--line);padding:9px 10px;text-align:left}
+th{color:var(--mute);font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.card b{display:block;margin-bottom:4px}
+details{border-bottom:1px solid var(--line);padding:12px 0}
+summary{cursor:pointer;font-weight:600}
+footer{padding:40px 20px 60px;color:var(--mute);font-size:14px;text-align:center}
+</style>
+</head>
+<body>
+<header class="hero">
+  <img class="logo" src="assets/logo.jpg" alt="jev-router logo: a raccoon switchman with glasses and a conductor cap" width="96" height="96">
+  <h1>Automatic <span class="g">Claude model routing</span> for Claude Code</h1>
+  <p class="lead">jev-router is a free Claude Code plugin that picks the right model (Haiku, Sonnet, Opus) and reasoning effort for every prompt, step and subagent, caps expensive effort, protects your prompt cache and shows the choice above your prompt.</p>
+  <a class="cta p" href="#install">Install in 30 seconds</a>
+  <a class="cta" href="https://github.com/dominicrico/jev-router">View on GitHub</a>
+  <a class="cta" href="#benchmarks">See the benchmarks</a>
+  <img class="shot" src="assets/hero.jpg" alt="jev-router sends each Claude Code task down the right track: haiku, sonnet, opus or fable" width="1760" height="990">
+</header>
+<main>
+<h2 id="what">What is jev-router?</h2>
+<p>Using one model for everything wastes money: an expensive model renames a variable, a cheap one stalls on a hard refactor. <strong>jev-router</strong> is a Claude Code plugin (a "mod") that asks <a href="https://typesafe.ai">TypeSafe Jev</a> which Claude model and effort a task needs, then runs the turn on that choice. It works per prompt, again before each step of a long task, and once for every subagent.</p>
+<img class="shot" src="assets/band.gif" alt="The jev-router band above the Claude Code prompt, stepping through its states: idle, running, haiku, sonnet, capped opus, pinned, escalated, paused" width="880" height="141">
+
+<h2 id="install">Install</h2>
+<p>You need Claude Code with plugin support and a TypeSafe API key.</p>
+<pre><code>/plugin marketplace add dominicrico/jev-router
+/plugin install jev-router@jev-router</code></pre>
+<p>Then give it your key with <code>/jev key &lt;key&gt;</code> or the <code>TYPESAFE_API_KEY</code> environment variable, and run <code>/jev status</code>.</p>
+
+<h2 id="features">Features</h2>
+<div class="grid">
+<div class="card"><b>Right model per prompt</b>Haiku for renames, Sonnet for features, Opus for hard debugging. Three modes: efficient, balanced, cheap.</div>
+<div class="card"><b>Per step and per subagent</b>Long tasks are re-routed before each step. Each subagent gets its own model, shown in the subagent list.</div>
+<div class="card"><b>Effort cap</b>Limits Jev's effort to <code>high</code> by default, because extra reasoning is what makes hard tasks expensive. <code>!full</code> lifts it for one prompt.</div>
+<div class="card"><b>Prompt cache guard</b>Switching models discards a warm cache. jev-router stays put unless Jev is confident a stronger model is needed.</div>
+<div class="card"><b>Per-prompt markers</b><code>!opus</code>, <code>!sonnet</code>, <code>!haiku</code> pin a model with no Jev call; <code>!cheap</code> and <code>!efficient</code> set the mode.</div>
+<div class="card"><b>Escalation</b>After three failed tool calls in a row the task moves up one model.</div>
+<div class="card"><b>Live status band</b>Model, effort, confidence and cache state above the prompt, with a spinner while a task runs.</div>
+<div class="card"><b>Savings tally</b><code>/jev status</code> estimates your saving against the model you would otherwise use.</div>
+<div class="card"><b>Privacy controls</b>Secrets are redacted before anything is sent; history can be switched off; Jev down? Optional local fallback.</div>
+</div>
+
+<h2 id="benchmarks">Does it save money? The benchmarks</h2>
+<p>Everything is measured with real Claude Code runs and reproducible scripts. The honest summary: it saves a lot on easy and medium work, costs more than plain Sonnet on harder work, and with the default effort cap no mode costs more than always using Opus.</p>
+<img class="shot" src="assets/cost.png" alt="Cost as a percentage of always opus for trivial, standard and hard tasks in each routing mode" width="1760" height="1588">
+<table>
+<tr><th>Cost vs always Opus</th><th>efficient</th><th>balanced</th><th>cheap</th></tr>
+<tr><td>Trivial tasks</td><td>−97%</td><td>−97%</td><td>−97%</td></tr>
+<tr><td>Standard tasks</td><td>−65%</td><td>−65%</td><td>−68%</td></tr>
+<tr><td>Hard tasks (effort capped at high)</td><td>+43%</td><td>+24%</td><td>−56%</td></tr>
+<tr><td><strong>All 30 tasks</strong></td><td><strong>−1%</strong></td><td><strong>−13%</strong></td><td><strong>−64%</strong></td></tr>
+</table>
+<img class="shot" src="assets/agentic.png" alt="Multi-step tasks with tools: jev-router finished 18 of 18 tasks at 47% of the cost of always opus" width="1760" height="1114">
+<img class="shot" src="assets/hard.png" alt="Harder tasks graded by hidden tests: plain sonnet matched opus and was cheapest, jev-router sits between" width="1760" height="1114">
+<p>On the harder, hidden-test-graded tasks plain Sonnet did as well as Opus and cost 61% less, so routing helps most when your tasks vary or your default is Opus. Method, limits and raw results are in the <a href="https://github.com/dominicrico/jev-router/tree/main/benchmarks">benchmarks folder</a>.</p>
+
+<h2 id="faq">FAQ</h2>
+<details><summary>How do I switch between Opus, Sonnet and Haiku automatically in Claude Code?</summary><p>Install jev-router. It picks the model per prompt, and you can override one prompt with <code>!opus</code>, <code>!sonnet</code> or <code>!haiku</code>.</p></details>
+<details><summary>How do I reduce Claude Code token cost?</summary><p>Route easy tasks to cheaper models and cap reasoning effort. jev-router does both, and shows an estimated saving in <code>/jev status</code>. The benchmarks above show where it helps and where it does not.</p></details>
+<details><summary>What is the effort cap?</summary><p>Jev often asks for <code>xhigh</code> effort on hard tasks, which can use several times the tokens. The cap limits it to <code>high</code> by default. Start a prompt with <code>!full</code> to lift it once.</p></details>
+<details><summary>Does it send my code anywhere?</summary><p>It sends the prompt text, optionally recent messages, and subagent task descriptions to api.typesafe.ai. API keys, tokens, private keys and <code>password=</code> style values are redacted first, and <code>sendHistory</code> turns the history off. Pattern redaction is not a guarantee.</p></details>
+<details><summary>Will it slow Claude Code down?</summary><p>Each Jev call adds about 250 ms. After three failed calls in a row it pauses for a minute and keeps the current model.</p></details>
+<details><summary>Which models does it use?</summary><p>Claude Haiku, Sonnet, Opus and Fable, narrowed by the <code>models</code> option.</p></details>
+</main>
+<footer>
+  jev-router is MIT licensed. <a href="https://github.com/dominicrico/jev-router">GitHub</a> · <a href="https://github.com/dominicrico/jev-router/releases">Releases</a> · <a href="https://github.com/dominicrico/jev-router/blob/main/CHANGELOG.md">Changelog</a><br>
+  Not affiliated with Anthropic or TypeSafe.
+</footer>
+</body>
+</html>

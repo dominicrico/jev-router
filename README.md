@@ -2,10 +2,10 @@
   <img src="assets/logo.jpg" width="200" alt="Jev Router, the smug switchman raccoon">
 </p>
 
-<h1 align="center">jev-router</h1>
+<h1 align="center">jev-router: automatic Claude model routing for Claude Code</h1>
 
 <p align="center">
-  <em>He pulls one lever. Your task rides the right track.</em>
+  <em>Switch between Opus, Sonnet and Haiku automatically. He pulls one lever; your task rides the right track.</em>
 </p>
 
 <p align="center">
@@ -20,19 +20,24 @@
 </p>
 
 <p align="center">
-  <strong>A Claude Code mod that asks <a href="#how-it-works">TypeSafe Jev</a> which Claude model and effort each task needs.</strong><br>
-  <sub>Rename a variable on Haiku. Redesign the queue on Opus. Never pay castle prices for a hut.</sub>
+  <a href="https://dominicrico.github.io/jev-router/">Website</a> ·
+  <a href="#install-the-claude-code-plugin">Install</a> ·
+  <a href="#does-it-reduce-claude-code-costs">Benchmarks</a> ·
+  <a href="#faq">FAQ</a> ·
+  <a href="CHANGELOG.md">Changelog</a>
 </p>
 
 ---
 
-You know the problem. You rename one variable and your most expensive model thinks about it for a minute. Or you start a gnarly refactor and a bargain model happily shrugs.
+**jev-router is a free, open-source Claude Code plugin that routes every prompt, step and subagent to the right Claude model (Haiku, Sonnet, Opus, Fable) and the right reasoning effort.** It asks [TypeSafe Jev](#how-it-works) which model a task needs, caps the effort so hard tasks do not burn tokens, protects your prompt cache from needless model switches, and shows the choice in a live status band above the prompt. Use it to cut Claude Code cost on easy work without giving up Opus when a task needs it.
 
-jev-router puts a switchman in front of your session. Before every task he reads it, asks Jev, pulls the lever, and the turn runs on the model and reasoning effort that fit. He is smug about it. You will see.
+You know the problem. You rename one variable and your most expensive model thinks about it for a minute. Or you start a gnarly refactor and a bargain model happily shrugs. jev-router puts a switchman in front of your session: before every task he reads it, asks Jev, pulls the lever, and the turn runs on the model and effort that fit.
 
-## The band
+**Contents:** [Status band](#the-status-band) · [Features](#features-model-routing-effort-cap-cache-guard-subagents) · [Does it reduce costs?](#does-it-reduce-claude-code-costs) · [How it works](#how-it-works) · [Install](#install-the-claude-code-plugin) · [Commands](#commands) · [Options](#options) · [Privacy](#privacy) · [FAQ](#faq)
 
-A live band above your prompt shows what he picked. Colour coded, with a spinner while a task runs.
+## The status band
+
+A live Claude Code status band above your prompt shows which model and effort were picked. Colour coded, with a spinner while a task runs.
 
 <p align="center">
   <img src="assets/band.gif" width="880" alt="The band in all its states, one slide at a time: idle, running, haiku, sonnet, capped opus, !full unlock, cache kept, pinned, escalated, low confidence, cheap mode, paused, off.">
@@ -52,7 +57,7 @@ A live band above your prompt shows what he picked. Colour coded, with a spinner
 
 When the cache wins, the band says so: `opus (kept 🔒 cache warm; wanted haiku)`.
 
-## What he does
+## Features: model routing, effort cap, cache guard, subagents
 
 - **Picks the model and the effort**, before every task, from haiku, sonnet, opus and fable. You can narrow the pool.
 - **Three routing modes.** `efficient` for the best result, `balanced` for quality and cost evenly, `cheap` for the cheapest model that can plausibly succeed.
@@ -66,7 +71,7 @@ When the cache wins, the band says so: `opus (kept 🔒 cache warm; wanted haiku
 - **Routes subagents.** Each subagent is routed when it is spawned, from its full task prompt, and the pick shows in the subagent list as a tag on its description (`find importers · haiku/medium`). Its steps then run on that model and effort. An explicit `model` on the Agent call wins. Turn it off with `routeSubagents`.
 - **Keeps score.** `/jev status` shows how often each model was used this session.
 
-## Does it pay off?
+## Does it reduce Claude Code costs?
 
 Three benchmarks. First, 30 single-prompt tasks: 270 calls to Jev for the picks, then 147 real runs for token usage and cost, with the effort cap at its default (`high`) and uncapped. Second, 6 multi-step tasks with tools on a fixture repo, 72 real runs, checking per prompt against every-step-and-subagent routing. Third, 4 harder tasks graded by hidden tests, 100 real runs, where quality is measured.
 
@@ -136,7 +141,7 @@ Per prompt, the mod sends Jev the routing mode, the current model, the cache sta
 
 Sent to `api.typesafe.ai`: the task text, recent conversation, and subagent descriptions. Each step and subagent adds one call (about 250 ms). Your API key travels in the request header and nowhere else.
 
-## Install
+## Install the Claude Code plugin
 
 Needs a Claude Code version with mods (hooks modules) and a TypeSafe API key.
 
@@ -219,6 +224,22 @@ Sent to `api.typesafe.ai`: the prompt text (up to `maxTaskChars`), recent messag
 
 ## FAQ
 
+**How do I switch between Opus, Sonnet and Haiku automatically in Claude Code?**
+Install jev-router. It picks the model per prompt, again before each step, and once per subagent. Pin a model for one prompt with `!opus`, `!sonnet` or `!haiku`.
+
+**How do I reduce Claude Code token cost?**
+Send easy tasks to cheaper models and cap the reasoning effort. jev-router does both; the [benchmarks](#does-it-reduce-claude-code-costs) show where it saves (trivial tasks -97%, standard -65% against always Opus) and where it does not (on harder tasks plain Sonnet was as good and cheaper).
+
+**What is the Claude Code effort cap?**
+Jev often asks for `xhigh` reasoning on hard tasks, which can use several times the tokens. jev-router limits it to `high` by default; start a prompt with `!full` to lift it once.
+
+**Does jev-router send my code to a third party?**
+It sends the prompt, optionally the last messages, and subagent task text to `api.typesafe.ai`. Keys, tokens, private keys and `password=` style values are redacted first, and `sendHistory` can turn the history off. See [Privacy](#privacy).
+
+**Will it slow Claude Code down?**
+Each Jev call adds about 250 ms. After three failed calls in a row it pauses for a minute and keeps your current model.
+
+
 **Does it need a config file?**
 No. Set a key, pick a mode, done. Everything else has a default.
 
@@ -249,3 +270,5 @@ Benchmarks: see [benchmarks/](benchmarks/README.md).
 ## License
 
 [MIT](LICENSE).
+
+<sub>Keywords: Claude Code plugin, Claude model router, Claude Code cost optimization, Opus Sonnet Haiku switching, Claude Code subagents, prompt cache, reasoning effort, LLM routing.</sub>

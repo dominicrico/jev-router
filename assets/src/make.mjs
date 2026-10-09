@@ -1,7 +1,7 @@
 // Renders the README images from the benchmark results. HTML cards, screenshotted at 2x.
 // usage: PW_DIR=/path/with/playwright-core node assets/src/make.mjs
 import { createRequire } from 'node:module'
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdirSync, cpSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
@@ -150,3 +150,5 @@ await shoot(hero, 'hero.jpg', 880, 'jpeg')
 await shoot(costCard, 'cost.png', 880); await shoot(fitCard, 'fit.png', 880); await shoot(cacheCard, 'cache.png', 880)
 await shoot(howCard, 'how.png', 880); await shoot(agenticCard, 'agentic.png', 880); await shoot(hardCard, 'hard.png', 880); await shoot(bandCard, 'band.png', 880)
 await browser.close()
+// the GitHub Pages site serves its own copies
+for (const f of ['hero.jpg', 'band.gif', 'cost.png', 'fit.png', 'hard.png', 'agentic.png', 'cache.png', 'how.png', 'logo.jpg']) cpSync(join(here, '..', f), join(here, '../../docs/assets', f))
