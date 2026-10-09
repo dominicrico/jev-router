@@ -73,6 +73,10 @@ export type Config = {
   routeSteps: boolean
   routeSubagents: boolean
   baseline: string
+  sendHistory: boolean
+  redact: boolean
+  maxTaskChars: number
+  fallback: 'session' | 'heuristic'
   escalateAfter: number
   minConfidence: number
   minContextTokens: number
@@ -213,16 +217,39 @@ async function buildState($: EngineInterface, text: string, mode: Mode, cache: C
   return composeState(text, mode, current, history, cache, now, cfg)
 }
 
+// Secrets that must not leave the machine inside a prompt or the conversation sent to Jev.
+const SECRETS: RegExp[] = [
+  /-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/g,
+  /\b(?:sk|pk|rk)-[A-Za-z0-9_-]{16,}/g,
+  /\bgh[pousr]_[A-Za-z0-9]{20,}/g,
+  /\b(?:AKIA|ASIA)[A-Z0-9]{16}\b/g,
+  /\bBearer\s+[A-Za-z0-9._~+/=-]{16,}/gi,
+]
+export const redact = (text: string) =>
+  SECRETS.reduce((t, re) => t.replace(re, '[redacted]'), text).replace(/\b([A-Z][A-Z0-9_]*(?:KEY|TOKEN|SECRET|PASSWORD)[A-Z0-9_]*)\s*[=:]\s*\S+/g, '$1=[redacted]')
+
+// Used only when Jev is down and `fallback` is 'heuristic'. ponytail: three buckets from length and a few words; real routing needs Jev.
+export function heuristic(text: string, pool: readonly string[]): Picked {
+  const hard = text.length > 1500 || /architect|design|migrat|root cause|concurren|race|deadlock|security|across .* (modules|services)/i.test(text)
+  const easy = text.length < 200 && /rename|typo|bump|format|lint|comment|where is|what does|show me/i.test(text)
+  const want = hard ? 'opus' : easy ? 'haiku' : 'sonnet'
+  const alias = RANK.slice(RANK.indexOf(want)).find(a => pool.includes(a)) ?? RANK.filter(a => pool.includes(a)).pop()!
+
+  return { alias, model: CLAUDE[alias]!.id, effort: hard ? 'high' : easy ? 'low' : 'medium', confidence: 0.3 }
+}
+
 // Pure, so the benchmark sends Jev exactly what the mod sends.
 export function composeState(text: string, mode: Mode, current: string, history: string, cache: Cache | null, now: number, cfg: Config) {
+  const clean = (t: string) => (cfg.redact ? redact(t) : t)
+
   return [
     `Routing mode: ${mode}. ${MODE_RULE[mode]}`,
     `Current model: ${current}. Switching models discards the prompt cache, so prefer staying on it when the gain from switching is small.`,
     cache
       ? `Prompt cache: ${isWarm(cache, now, cfg) ? 'warm' : 'cold'}, ~${cache.contextTokens} tokens on ${cache.model}. Switching re-writes them.`
       : '',
-    history ? `Recent conversation:\n${history}` : 'Recent conversation: (none, this is the first task)',
-    `New task from the user:\n${text.slice(0, 8000)}`,
+    history && cfg.sendHistory ? `Recent conversation:\n${clean(history)}` : 'Recent conversation: (none, this is the first task)',
+    `New task from the user:\n${clean(text.slice(0, cfg.maxTaskChars))}`,
   ]
     .filter(Boolean)
     .join('\n\n')
@@ -312,8 +339,15 @@ let skipNext = false // the next turn is a background notification, not a task o
 let task = '' // the prompt the current task started with, for re-routing its later steps
 const agents = new Map<string, Promise<Picked | null>>()
 
-async function decideFor($: EngineInterface, cfg: Config, kind: string, key: string, state: string, mode: Mode, cache: Cache | null, now: number, cap: EffortCap) {
-  const asked = await ask($, cfg, key, state, mode)
+async function decideFor($: EngineInterface, cfg: Config, kind: string, key: string, text: string, state: string, mode: Mode, cache: Cache | null, now: number, cap: EffortCap) {
+  let asked: Picked
+  try {
+    asked = await ask($, cfg, key, state, mode)
+  } catch (err) {
+    if (cfg.fallback !== 'heuristic') throw err
+    asked = heuristic(text, cfg.pool)
+    $.ui.log(`jev ${kind}: Jev unavailable (${(err as Error).message}), heuristic pick ${asked.alias}`, { to: 'debug' })
+  }
   const picked = decide(asked, cache, now, cfg, (await read($, stickyAtom)) ?? cfg.defaultSticky)
   const d = { ...picked, ...capEffort(picked.effort, cap) }
   $.ui.log(`jev ${kind}: ${d.alias}/${d.effort}${d.kept ? ` (kept, wanted ${d.kept})` : ''}${d.capped ? ` (capped from ${d.capped})` : ''} conf ${d.confidence.toFixed(2)} ${(await $.clock.now()) - now} ms`, { to: 'debug' })
@@ -334,7 +368,7 @@ async function restep($: EngineInterface, cfg: Config, e: { turnId: string; inde
     if (((await read($, stickyAtom)) ?? cfg.defaultSticky) === 'strict' && isWarm(cache, now, cfg)) return last
     const text = `${task}\n\n[Routing step ${e.index + 1} of this task. The recent messages above show its progress.]`
     const cap = last.unlocked ? 'none' : (await read($, capAtom)) ?? cfg.defaultCap
-    const d = await decideFor($, cfg, `step ${e.index + 1}`, auth.key, await buildState($, text, mode, cache, now, cfg), mode, cache, now, cap)
+    const d = await decideFor($, cfg, `step ${e.index + 1}`, auth.key, text, await buildState($, text, mode, cache, now, cfg), mode, cache, now, cap)
     if (last.escalated && RANK.indexOf(d.alias) <= RANK.indexOf(last.alias)) return last // never de-escalate within a task
     const next: Decision = { ...d, turnId: last.turnId, unlocked: last.unlocked }
     await update($, lastAtom, () => next)
@@ -356,7 +390,7 @@ async function routeAgent($: EngineInterface, cfg: Config, id: string, current: 
     const cap = (await read($, lastAtom))?.unlocked ? 'none' : (await read($, capAtom)) ?? cfg.defaultCap
     const state = composeState(`Subagent task (${info.type}): ${info.description}`, mode, current, '', null, now, cfg)
 
-    return await decideFor($, cfg, `agent ${info.type}: ${info.description}`, auth.key, state, mode, null, now, cap)
+    return await decideFor($, cfg, `agent ${info.type}: ${info.description}`, auth.key, info.description, state, mode, null, now, cap)
   } catch {
     return null
   }
@@ -401,6 +435,10 @@ export const register: Register = (on, options) => {
     routeSteps: flag(options.routeSteps, true),
     routeSubagents: flag(options.routeSubagents, true),
     escalateAfter: num(options.escalateAfter, 3),
+    sendHistory: flag(options.sendHistory, true),
+    redact: flag(options.redact, true),
+    maxTaskChars: num(options.maxTaskChars, 8000),
+    fallback: options.fallback === 'heuristic' ? 'heuristic' : 'session',
     baseline: String(options.baselineModel ?? 'opus') in CLAUDE ? String(options.baselineModel ?? 'opus') : 'opus',
     minConfidence: num(options.minConfidence, 0.7),
     minContextTokens: num(options.minContextTokens, 8000),
@@ -492,7 +530,7 @@ export const register: Register = (on, options) => {
       // A pinned model skips Jev; its effort is the cap (high by default).
       const picked = pending?.pin
         ? { alias: pending.pin, model: CLAUDE[pending.pin]!.id, effort: cap === 'none' ? 'high' : cap, confidence: 1, pinned: true }
-        : await decideFor($, cfg, 'prompt', auth.key, await buildState($, e.text, mode, cache, now, cfg), mode, cache, now, cap)
+        : await decideFor($, cfg, 'prompt', auth.key, e.text, await buildState($, e.text, mode, cache, now, cfg), mode, cache, now, cap)
       const decision: Decision = { turnId: e.turnId, ...picked, unlocked }
       await update($, lastAtom, () => decision)
       await update($, statsAtom, n => ({ ...n, [decision.alias]: (n[decision.alias] ?? 0) + 1 }))

@@ -1,20 +1,20 @@
 import { expect, mock, test } from 'claude-code/testing'
 import type { On } from 'claude-code'
 import type { Engine } from 'claude-code/testing'
-import { capEffort, markers, savingsLine, segments, stepUnits } from './register'
+import { capEffort, heuristic, markers, redact, savingsLine, segments, stepUnits } from './register'
 
 const OPTS = { options: { apiKey: 'k-test', mode: 'balanced' } }
 
-type World = { bodies: any[]; steps: any[]; toasts: string[]; usage: any; clock: ReturnType<typeof mock.clock> }
+type World = { messages: any[]; bodies: any[]; steps: any[]; toasts: string[]; usage: any; clock: ReturnType<typeof mock.clock> }
 
 function world(on: On, answer: () => { ok: boolean; status: number; text: string }): World {
-  const w: World = { bodies: [], steps: [], toasts: [], usage: null, clock: mock.clock(on) }
+  const w: World = { messages: [], bodies: [], steps: [], toasts: [], usage: null, clock: mock.clock(on) }
   on('http.fetch', async (_$, e) => {
     w.bodies.push({ ...JSON.parse(e.init?.body ?? '{}'), auth: e.init?.headers?.authorization })
     return { value: { headers: {}, ...answer() } }
   })
   on('session.model', async () => ({ value: 'claude-sonnet-5-5' }))
-  on('session.messages', async () => ({ value: [] }))
+  on('session.messages', async () => ({ value: w.messages }))
   on('ui.toast', async (_$, e) => {
     w.toasts.push(String(e.text))
     return { value: undefined }
@@ -397,4 +397,29 @@ test('three failed tool calls in a row move the task up one model', OPTS, async 
   await step($, 't1')
 
   expect(w.steps[0].model).toBe('claude-sonnet-5-5')
+})
+
+test('redact hides keys, tokens and secret assignments', OPTS, async () => {
+  expect(redact('use sk-abcdefghijklmnop1234 and ghp_abcdefghijklmnopqrst12 please')).toBe('use [redacted] and [redacted] please')
+  expect(redact('export STRIPE_SECRET_KEY=whsec_abc123 then run')).toContain('STRIPE_SECRET_KEY=[redacted]')
+  expect(redact('Authorization: Bearer abcdefghijklmnop12345')).toBe('Authorization: [redacted]')
+  expect(redact('nothing secret here')).toBe('nothing secret here')
+})
+
+test('secrets never reach Jev and history can be switched off', { options: { apiKey: 'k-test', sendHistory: false } }, async ($, on) => {
+  const w = world(on, jev('sonnet', 'low'))
+  w.messages.push({ role: 'user', text: 'earlier talk' })
+  await $.turn.start({ text: 'deploy with sk-abcdefghijklmnop1234', turnId: 't1' })
+  expect(w.bodies[0].state).not.toContain('sk-abcdefghijklmnop1234')
+  expect(w.bodies[0].state).toContain('[redacted]')
+  expect(w.bodies[0].state).not.toContain('earlier talk')
+})
+
+test('heuristic fallback picks locally when Jev is down', { options: { apiKey: 'k-test', fallback: 'heuristic' } }, async ($, on) => {
+  const w = world(on, () => ({ ok: false, status: 500, text: 'boom' }))
+  await $.turn.start({ text: 'rename foo to bar', turnId: 't1' })
+  await step($, 't1')
+  expect(w.steps[0].model).toBe('claude-haiku-5-5')
+  expect(heuristic('find the root cause of the race condition', ['haiku', 'sonnet', 'opus']).alias).toBe('opus')
+  expect(heuristic('add a button', ['sonnet']).alias).toBe('sonnet')
 })

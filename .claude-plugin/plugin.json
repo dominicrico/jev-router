@@ -118,6 +118,34 @@
       "title": "Escalate after failures",
       "description": "After this many failed tool calls in a row, move the rest of the task up one model. 0 turns it off",
       "default": 3
+    },
+    "sendHistory": {
+      "type": "boolean",
+      "title": "Send conversation history",
+      "description": "Send the last messages to Jev for context. Off sends only the task text",
+      "default": true
+    },
+    "redact": {
+      "type": "boolean",
+      "title": "Redact secrets",
+      "description": "Replace API keys, tokens, private keys and KEY=value lines with [redacted] before anything is sent to Jev",
+      "default": true
+    },
+    "maxTaskChars": {
+      "type": "number",
+      "title": "Max task characters",
+      "description": "How much of the prompt is sent to Jev",
+      "default": 8000
+    },
+    "fallback": {
+      "type": "string",
+      "title": "Fallback when Jev is down",
+      "description": "session: keep the session model. heuristic: a crude local guess from the prompt length and a few words",
+      "options": [
+        "session",
+        "heuristic"
+      ],
+      "default": "session"
     }
   }
 }
