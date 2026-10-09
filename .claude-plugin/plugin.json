@@ -82,6 +82,18 @@
         "none"
       ],
       "default": "high"
+    },
+    "routeSteps": {
+      "type": "boolean",
+      "title": "Route every step",
+      "description": "Ask Jev again before each step of a task (the cache guard still applies). Off: one call per prompt",
+      "default": true
+    },
+    "routeSubagents": {
+      "type": "boolean",
+      "title": "Route subagents",
+      "description": "Pick a model and effort for each subagent from its task description",
+      "default": true
     }
   }
 }

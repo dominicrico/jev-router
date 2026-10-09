@@ -55,12 +55,13 @@ When the cache wins, the band says so: `opus (kept 🔒 cache warm; wanted haiku
 - **Guards the prompt cache.** Switching models throws the cache away. While it is warm and big enough to matter, he stays put unless Jev confidently asks for something stronger.
 - **Caps the effort.** Jev's effort pick is limited to `high` by default, because effort drives token use far more than the model does. Start a prompt with `!full` (or run `/jev full`) to lift the cap for that one prompt.
 - **Never blocks you.** Jev slow or down? The session model keeps working.
-- **Leaves subagents alone.** Only the main thread is rerouted.
+- **Routes every step.** Before each step after the first, Jev is asked again, so a task that turned out easier or harder moves to a fitting model (the cache guard still applies). Turn it off with `routeSteps`.
+- **Routes subagents.** Each subagent gets its own model and effort, picked once from what its Agent call says it is for. Turn it off with `routeSubagents`.
 - **Keeps score.** `/jev status` shows how often each model was used this session.
 
 ## Does it pay off?
 
-Benchmarked on 30 tasks: 270 calls to Jev for the picks, then 147 real runs for token usage and cost, with the effort cap at its default (`high`) and uncapped.
+Benchmarked on 30 single-prompt tasks (per-step and subagent routing are newer and **not benchmarked yet**): 270 calls to Jev for the picks, then 147 real runs for token usage and cost, with the effort cap at its default (`high`) and uncapped.
 
 <p align="center">
   <img src="assets/fit.png" width="880" alt="Routing fit: efficient 100%, balanced 87%, cheap 66% of picks fit the task. 253 ms added per task, 97 to 100% same pick on repeat.">
@@ -93,9 +94,9 @@ Without the cache guard, following every pick in a long warm session cost 3x mor
   <img src="assets/how.png" width="880" alt="How it works in five steps: a task arrives, ask Jev which model and effort, check whether the prompt cache is warm, run the turn on the pick, show it above the prompt.">
 </p>
 
-On each new task the mod sends Jev the routing mode, the current model, the cache state, the last few messages and the task text, and asks two choice questions: which model, and how much effort. The answer is applied to every step of that task. After each step the mod notes which model the API cached and how many tokens, so the next task knows whether a switch is worth losing the cache.
+Per prompt, the mod sends Jev the routing mode, the current model, the cache state, the last few messages and the task text, and asks two choice questions: which model, and how much effort. The answer is applied to every step of that task. After each step the mod notes which model the API cached and how many tokens, so the next task knows whether a switch is worth losing the cache.
 
-Sent to `api.typesafe.ai`: the task text and recent conversation. Your API key travels in the request header and nowhere else.
+Sent to `api.typesafe.ai`: the task text, recent conversation, and subagent descriptions. Each step and subagent adds one call (about 250 ms). Your API key travels in the request header and nowhere else.
 
 ## Install
 
@@ -158,6 +159,8 @@ That was it. He'd be proud. He won't say it.
 | `mode` | `balanced` | Routing mode |
 | `models` | all four | Aliases Jev may choose from |
 | `effortCap` | `high` | Highest effort the router applies. `none` follows Jev. Per prompt: start with `!full` or run `/jev full` |
+| `routeSteps` | `true` | Ask Jev again before every step after the first. Off: one call per prompt |
+| `routeSubagents` | `true` | Pick a model and effort for each subagent from its description |
 | `stickiness` | `auto` | `off`: always follow Jev. `auto`: while the cache is warm, only upgrade on high confidence. `strict`: never switch while warm |
 | `minConfidence` | `0.7` | Confidence needed for a warm-cache upgrade |
 | `minContextTokens` | `8000` | Below this a switch is free and stickiness is skipped |

@@ -64,6 +64,8 @@ export type Config = {
   defaultMode: Mode
   defaultSticky: Sticky
   defaultCap: EffortCap
+  routeSteps: boolean
+  routeSubagents: boolean
   minConfidence: number
   minContextTokens: number
   cacheTtlMs: number
@@ -250,6 +252,55 @@ async function askJev($: EngineInterface, cfg: Config, key: string, state: strin
 }
 
 
+let task = '' // the prompt the current task started with, for re-routing its later steps
+const agents = new Map<string, Promise<Picked | null>>()
+
+async function decideFor($: EngineInterface, cfg: Config, key: string, state: string, mode: Mode, cache: Cache | null, now: number, cap: EffortCap) {
+  const asked = await askJev($, cfg, key, state, mode)
+  const picked = decide(asked, cache, now, cfg, (await read($, stickyAtom)) ?? cfg.defaultSticky)
+
+  return { ...picked, ...capEffort(picked.effort, cap) }
+}
+
+// Before every step after the first, ask again: the task may have turned easier or harder.
+// Failures keep the last pick quietly; the task's own first call already warned.
+async function restep($: EngineInterface, cfg: Config, e: { turnId: string; index: number }, last: Decision) {
+  const auth = await resolveKey($, cfg)
+  if (!auth) return
+  try {
+    const mode = await currentMode($, cfg)
+    const now = await $.clock.now()
+    const cache = await read($, cacheAtom)
+    const text = `${task}\n\n[Routing step ${e.index + 1} of this task. The recent messages above show its progress.]`
+    const cap = last.unlocked ? 'none' : (await read($, capAtom)) ?? cfg.defaultCap
+    const d = await decideFor($, cfg, auth.key, await buildState($, text, mode, cache, now, cfg), mode, cache, now, cap)
+    await update($, lastAtom, () => ({ ...d, turnId: last.turnId, ...(last.unlocked ? { unlocked: true } : {}) }))
+  } catch {}
+}
+
+// A subagent has its own context, so it is routed once, from what the Agent call said it is for.
+async function routeAgent($: EngineInterface, cfg: Config, id: string, current: string): Promise<Picked | null> {
+  const auth = await resolveKey($, cfg)
+  const info = (await $.agent.list()).find(a => a.id === id)
+  if (!auth || !info?.description) return null
+  try {
+    const now = await $.clock.now()
+    const mode = await currentMode($, cfg)
+    const cap = (await read($, lastAtom))?.unlocked ? 'none' : (await read($, capAtom)) ?? cfg.defaultCap
+    const state = composeState(`Subagent task (${info.type}): ${info.description}`, mode, current, '', null, now, cfg)
+
+    return await decideFor($, cfg, auth.key, state, mode, null, now, cap)
+  } catch {
+    return null
+  }
+}
+
+function agentPick($: EngineInterface, cfg: Config, id: string, current: string) {
+  if (!agents.has(id)) agents.set(id, routeAgent($, cfg, id, current))
+
+  return agents.get(id)!
+}
+
 export const register: Register = (on, options) => {
   const apiKey = String(options.apiKey ?? '')
   const timeoutMs = Number(options.timeoutMs ?? 4000)
@@ -261,6 +312,7 @@ export const register: Register = (on, options) => {
 
   const defaultSticky: Sticky = STICKY.includes(options.stickiness as Sticky) ? (options.stickiness as Sticky) : 'auto'
   const defaultCap: EffortCap = CAPS.includes(options.effortCap as EffortCap) ? (options.effortCap as EffortCap) : 'high'
+  const flag = (v: unknown, d: boolean) => (v === undefined || v === '' ? d : String(v) !== 'false')
   const num = (v: unknown, d: number) => (v !== undefined && v !== '' && Number.isFinite(Number(v)) ? Number(v) : d)
 
   const cfg: Config = {
@@ -270,6 +322,8 @@ export const register: Register = (on, options) => {
     defaultMode,
     defaultSticky,
     defaultCap,
+    routeSteps: flag(options.routeSteps, true),
+    routeSubagents: flag(options.routeSubagents, true),
     minConfidence: num(options.minConfidence, 0.7),
     minContextTokens: num(options.minContextTokens, 8000),
     cacheTtlMs: num(options.cacheTtlMs, 300_000),
@@ -329,6 +383,7 @@ export const register: Register = (on, options) => {
   on('turn.start', async ($, e, next) => {
     // A continuation keeps the decision of the task it continues.
     if (!(await read($, enabledAtom)) || e.text.trim() === '') return next(e)
+    task = e.text
     const auth = await resolveKey($, cfg)
     if (!auth) {
       if (!(await read($, warnedAtom))) {
@@ -362,8 +417,18 @@ export const register: Register = (on, options) => {
   })
 
   on('turn.step', async function* ($, e, next) {
-    if (e.agentId !== undefined || !(await read($, enabledAtom))) return yield* next(e)
-    const last = await read($, lastAtom)
+    if (!(await read($, enabledAtom))) return yield* next(e)
+    if (e.agentId !== undefined) {
+      if (!cfg.routeSubagents) return yield* next(e)
+      const pick = await agentPick($, cfg, e.agentId, e.model)
+
+      return yield* next(pick ? { ...e, model: pick.model, effort: pick.effort } : e)
+    }
+    let last = await read($, lastAtom)
+    if (cfg.routeSteps && e.index > 0 && last) {
+      await restep($, cfg, e, last)
+      last = await read($, lastAtom)
+    }
 
     // A model that takes no effort setting is sent none, whatever is asked.
     const res = yield* next(last ? { ...e, model: last.model, effort: last.effort } : e)

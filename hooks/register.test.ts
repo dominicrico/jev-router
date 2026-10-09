@@ -102,7 +102,7 @@ test('/jev off leaves the session model alone', OPTS, async ($, on) => {
   expect(w.steps[0].model).toBe('claude-sonnet-5-5')
 })
 
-test('subagent steps are not rerouted', OPTS, async ($, on) => {
+test('subagent steps are left alone with routeSubagents off', { options: { apiKey: 'k-test', routeSubagents: false } }, async ($, on) => {
   const w = world(on, jev('opus', 'high'))
   await $.turn.start({ text: 'big task', turnId: 't1' })
   await step($, 't1', 'agent-1')
@@ -281,4 +281,37 @@ test('capEffort', OPTS, async () => {
   expect(capEffort('xhigh', 'high')).toEqual({ effort: 'high', capped: 'xhigh' })
   expect(capEffort('medium', 'high')).toEqual({ effort: 'medium' })
   expect(capEffort('max', 'none')).toEqual({ effort: 'max' })
+})
+
+test('every step after the first asks Jev again', OPTS, async ($, on) => {
+  const w = world(on, jev('sonnet', 'medium'))
+  await $.turn.start({ text: 'build the feature', turnId: 't1' })
+  await step($, 't1')
+  const s = $.turn.step({ turnId: 't1', index: 1, model: 'claude-sonnet-5-5', effort: 'medium', messageCount: 3 })
+  for await (const _ of s) {
+  }
+
+  expect(w.bodies.length).toBe(2)
+  expect(w.bodies[1].state).toContain('step 2 of this task')
+})
+
+test('routeSteps off: one call per prompt', { options: { apiKey: 'k-test', routeSteps: false } }, async ($, on) => {
+  const w = world(on, jev('sonnet', 'medium'))
+  await $.turn.start({ text: 'build the feature', turnId: 't1' })
+  const s = $.turn.step({ turnId: 't1', index: 1, model: 'claude-sonnet-5-5', effort: 'medium', messageCount: 3 })
+  for await (const _ of s) {
+  }
+
+  expect(w.bodies.length).toBe(1)
+})
+
+test('a subagent is routed once from its description', OPTS, async ($, on) => {
+  const w = world(on, jev('haiku', 'low'))
+  on('agent.list', async () => ({ value: [{ id: 'agent-1', description: 'find where parseDuration is defined', type: 'Explore' }] }))
+  await step($, 't1', 'agent-1')
+  await step($, 't1', 'agent-1')
+
+  expect(w.bodies.length).toBe(1)
+  expect(w.bodies[0].state).toContain('Subagent task (Explore): find where parseDuration')
+  expect(w.steps.map(x => x.model)).toEqual(['claude-haiku-5-5', 'claude-haiku-5-5'])
 })
