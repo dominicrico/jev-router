@@ -7,7 +7,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Added
 - Per-step routing: Jev is asked again before every step of a task, not only at the prompt (`routeSteps`).
-- Per-subagent routing: each subagent is routed once from its description (`routeSubagents`).
+- Per-subagent routing: each subagent is routed at spawn from its full task prompt, sets the subagent's model and tags its description in the subagent list (`routeSubagents`). Verified live.
 - Effort cap, `high` by default, so the `xhigh`/`max` that Jev suggests on hard tasks no longer drives cost above always-opus. Lift it for one prompt with a `!full` prefix or `/jev full`; change it with `/jev cap <effort|none>` or the `effortCap` option. The band shows the cap (`⤓xhigh`) and the unlock (`🔓`).
 - Circuit breaker: three failed Jev calls in a row pause routing, then it recovers; strict stickiness with a warm cache makes no step calls.
 - Per-prompt markers: `!opus`, `!sonnet`, `!haiku`, `!fable` pin a model and skip Jev; `!cheap`, `!efficient` set the mode; they combine with `!full`.

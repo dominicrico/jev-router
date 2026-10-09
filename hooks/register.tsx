@@ -379,6 +379,24 @@ async function restep($: EngineInterface, cfg: Config, e: { turnId: string; inde
   }
 }
 
+// Routes a subagent when it is spawned, from the full task prompt the Agent call gives it, so the pick is known
+// before the subagent exists: the spawn can carry the model and the subagent list can show it.
+async function routeSpawn($: EngineInterface, cfg: Config, e: { prompt: string; description: string; subagentType: string; parentModel: string }): Promise<Picked | null> {
+  const auth = await resolveKey($, cfg)
+  if (!auth) return null
+  try {
+    const now = await $.clock.now()
+    const mode = await currentMode($, cfg)
+    const cap = (await read($, lastAtom))?.unlocked ? 'none' : (await read($, capAtom)) ?? cfg.defaultCap
+    const text = `Subagent task (${e.subagentType}): ${e.description}\n\n${e.prompt}`
+    const state = composeState(text, mode, e.parentModel, '', null, now, cfg)
+
+    return await decideFor($, cfg, `spawn ${e.subagentType}: ${e.description}`, auth.key, text, state, mode, null, now, cap)
+  } catch {
+    return null
+  }
+}
+
 // A subagent has its own context, so it is routed once, from what the Agent call said it is for.
 async function routeAgent($: EngineInterface, cfg: Config, id: string, current: string): Promise<Picked | null> {
   const auth = await resolveKey($, cfg)
@@ -473,6 +491,17 @@ export const register: Register = (on, options) => {
   on('command.run', { command: 'jev' }, async ($, e, next) => {
     stop() // a /jev command is not a task: no spinner
     return next(e)
+  })
+
+  // Pick the subagent's model at spawn and show it in the subagent list.
+  on('agent.spawn', async ($, e, next) => {
+    if (!cfg.routeSubagents || !(await read($, enabledAtom)) || e.model) return next(e) // an explicit model on the Agent call wins
+    const pick = await routeSpawn($, cfg, e)
+    if (!pick) return next(e)
+    const res = await next({ ...e, model: pick.alias, description: `${e.description} · ${pick.alias}/${pick.effort}` })
+    if (res.agentId) agents.set(res.agentId, Promise.resolve(pick)) // its steps reuse the pick (and its effort)
+
+    return res
   })
 
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {

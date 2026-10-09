@@ -59,7 +59,7 @@ When the cache wins, the band says so: `opus (kept 🔒 cache warm; wanted haiku
 - **Keeps a savings tally.** `/jev status` shows an estimated saving against the model you would otherwise use (`baselineModel`, default opus), kept across sessions. It is a model-price estimate in relative units, blind to effort.
 - **Never blocks you.** After 3 failed Jev calls in a row it pauses for a minute instead of paying a timeout on every step. Optional `fallback: heuristic` guesses locally meanwhile. Jev slow or down? The session model keeps working.
 - **Routes every step.** Before each step after the first, Jev is asked again, so a task that turned out easier or harder moves to a fitting model (the cache guard still applies). Turn it off with `routeSteps`.
-- **Routes subagents.** Each subagent gets its own model and effort, picked once from what its Agent call says it is for. Turn it off with `routeSubagents`.
+- **Routes subagents.** Each subagent is routed when it is spawned, from its full task prompt, and the pick shows in the subagent list as a tag on its description (`find importers · haiku/medium`). Its steps then run on that model and effort. An explicit `model` on the Agent call wins. Turn it off with `routeSubagents`.
 - **Keeps score.** `/jev status` shows how often each model was used this session.
 
 ## Does it pay off?

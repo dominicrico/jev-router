@@ -3,25 +3,34 @@
 //   prompt: jev-router with one Jev call per prompt (routeSteps and routeSubagents off)
 //   full:   jev-router with every step and every subagent routed (the defaults)
 // Records real tokens, cost and turns, and checks whether the task was actually done.
-// usage: TYPESAFE_API_KEY=... npx tsx --tsconfig benchmarks/tsconfig.json benchmarks/agentic.mts [runs]
+// FIXTURE=fixture2 (or --fixture fixture2) switches to the harder fixture2: four tasks graded by hidden tests,
+// one more strategy ('!full'), results in results/agentic2.json. Stops launching runs once the total cost passes
+// BUDGET_USD (default 25).
+// usage: TYPESAFE_API_KEY=... [FIXTURE=fixture2] npx tsx --tsconfig benchmarks/tsconfig.json benchmarks/agentic.mts [runs]
 import { execFile, execFileSync } from 'node:child_process'
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { promisify } from 'node:util'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
+import { copyVisible } from './fixture2/grade.mjs'
+import { TASKS2 } from './fixture2/tasks.mts'
 
 const run = promisify(execFile)
 const here = dirname(fileURLToPath(import.meta.url))
-const fixture = join(here, 'fixture'), OUT = join(here, 'results/agentic.json')
-const WORK = '/tmp/jevbench/agentic', PLUGINS = '/tmp/jevbench/plugins'
-const RUNS = Number(process.argv[2] ?? 1)
+const argv = process.argv.slice(2), fi = argv.indexOf('--fixture')
+const F2 = (fi >= 0 ? argv[fi + 1] : process.env.FIXTURE) === 'fixture2'
+if (fi >= 0) argv.splice(fi, 2)
+const fixture = join(here, F2 ? 'fixture2' : 'fixture'), OUT = join(here, F2 ? 'results/agentic2.json' : 'results/agentic.json')
+const WORK = F2 ? '/tmp/jevbench/agentic2' : '/tmp/jevbench/agentic', PLUGINS = '/tmp/jevbench/plugins'
+const RUNS = Number(argv[0] ?? 1)
+const BUDGET = Number(process.env.BUDGET_USD ?? 25)
 
 const node = (dir: string, code: string) => { try { return execFileSync('node', ['-e', code], { cwd: dir, encoding: 'utf8', timeout: 20000, stdio: ['ignore', 'pipe', 'pipe'] }).trim() } catch { return 'ERR' } }
 const testsPass = (dir: string) => { try { execFileSync('node', ['--test'], { cwd: dir, stdio: 'ignore', timeout: 30000 }); return true } catch { return false } }
 const passCount = (dir: string) => { try { return Number(/ℹ pass (\d+)/.exec(execFileSync('node', ['--test', '--test-reporter=spec'], { cwd: dir, encoding: 'utf8', timeout: 30000, stdio: ['ignore', 'pipe', 'ignore'] }))?.[1]) } catch (e: any) { return Number(/ℹ pass (\d+)/.exec(String(e.stdout))?.[1] ?? 0) } }
 const grep = (dir: string, re: string, ...files: string[]) => node(dir, `const fs=require('fs');console.log(${JSON.stringify(files)}.map(f=>fs.readFileSync(f,'utf8')).join('\\n').match(new RegExp(${JSON.stringify(re)},'g'))?.length||0)`)
 
-const TASKS = [
+const TASKS1 = [
   { id: 'rename', tier: 'easy', prompt: 'Rename the function `calcTotal` to `computeTotal` everywhere in this repo (source and tests) and make sure `node --test` passes.',
     check: (d: string) => grep(d, 'calcTotal', 'src/cart.js', 'src/report.js', 'test/cart.test.js') === '0' && testsPass(d) },
   { id: 'bugfix', tier: 'easy', prompt: '`node --test` has a failing test. Find the cause and fix the source code, not the test.',
@@ -35,12 +44,15 @@ const TASKS = [
   { id: 'hard', tier: 'hard', prompt: 'A customer reports the cart total is too low when the same SKU appears in the cart twice, for example two lines of 6 apples. Find the root cause, explain it in NOTES.md, and fix it. Add a regression test.',
     check: (d: string) => existsSync(join(d, 'NOTES.md')) && node(d, `const {calcTotal:c}=require('./src/cart');const {lineTotal:l}=require('./src/pricing');console.log(c([{sku:'apple',qty:6},{sku:'apple',qty:6}]).subtotal===l('apple',12))`) === 'true' },
 ]
+const TASKS: { id: string; tier: string; prompt: string; check: (d: string) => boolean }[] = F2 ? TASKS2 : TASKS1
 const STRATS: Record<string, string[]> = {
   'no plugin: always opus': ['--model', 'claude-opus-5-5'],
   'no plugin: always sonnet': ['--model', 'claude-sonnet-5-5'],
   'jev-router: per prompt': ['--plugin-dir', `${PLUGINS}/prompt`],
   'jev-router: every step + subagents': ['--plugin-dir', `${PLUGINS}/full`],
+  ...(F2 ? { 'jev-router: !full': ['--plugin-dir', `${PLUGINS}/full`] } : {}), // the default plugin, effort cap lifted by a "!full " prefix
 }
+const PREFIX: Record<string, string> = { 'jev-router: !full': '!full ' }
 
 // Two copies of the mod, differing only in the defaults of the two new options.
 for (const [name, on] of [['prompt', false], ['full', true]] as const) {
@@ -58,9 +70,10 @@ const jobs = TASKS.flatMap(t => Object.keys(STRATS).flatMap(s => Array.from({ le
 
 async function one({ t, s, r }: any) {
   const dir = `${WORK}/${t.id}-${Object.keys(STRATS).indexOf(s)}-${r}`
-  rmSync(dir, { recursive: true, force: true }); cpSync(fixture, dir, { recursive: true })
+  rmSync(dir, { recursive: true, force: true })
+  if (F2) copyVisible(dir, t.id); else cpSync(fixture, dir, { recursive: true })
   execFileSync('git', ['init', '-q'], { cwd: dir })
-  const args = ['-p', t.prompt, '--setting-sources', '', '--strict-mcp-config', '--disable-slash-commands', '--no-session-persistence', '--output-format', 'json',
+  const args = ['-p', (PREFIX[s] ?? '') + t.prompt, '--setting-sources', '', '--strict-mcp-config', '--disable-slash-commands', '--no-session-persistence', '--output-format', 'json',
     '--max-budget-usd', '2', '--max-turns', '40', '--allowedTools', 'Bash,Edit,Write,Read,Glob,Grep,Agent', ...STRATS[s]!]
   let rec: any
   try {
@@ -73,8 +86,11 @@ async function one({ t, s, r }: any) {
     rec = { task: t.id, tier: t.tier, strategy: s, run: r, ok: false, error: String(e).slice(0, 160) }
   }
   done.push(rec); writeFileSync(OUT, JSON.stringify(done, null, 1))
-  console.log(`${done.length} ${t.id} | ${s} | ${rec.ok ? 'OK ' : 'FAIL'} $${rec.usd?.toFixed(3)} ${rec.turns}t ${Object.keys(rec.models ?? {}).map(m => m.replace('claude-', '')).join(',')}`)
+  total += rec.usd ?? 0
+  console.log(`${done.length} ${t.id} | ${s} | ${rec.ok ? 'OK ' : 'FAIL'} $${rec.usd?.toFixed(3)} ${rec.turns}t ${Object.keys(rec.models ?? {}).map(m => m.replace('claude-', '')).join(',')} | total $${total.toFixed(2)} of $${BUDGET}`)
 }
+let total = done.reduce((a, d) => a + (d.usd ?? 0), 0) // includes runs kept from earlier invocations
 const queue = [...jobs]
-await Promise.all(Array.from({ length: 3 }, async () => { for (let j; (j = queue.shift()); ) await one(j) }))
+await Promise.all(Array.from({ length: 3 }, async () => { for (let j; total <= BUDGET && (j = queue.shift()); ) await one(j) }))
+if (queue.length) console.log(`budget reached ($${total.toFixed(2)} > $${BUDGET}): ${queue.length} runs not launched, rerun to continue`)
 console.log('errors:', done.filter(d => d.error).length)

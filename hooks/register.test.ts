@@ -423,3 +423,28 @@ test('heuristic fallback picks locally when Jev is down', { options: { apiKey: '
   expect(heuristic('find the root cause of the race condition', ['haiku', 'sonnet', 'opus']).alias).toBe('opus')
   expect(heuristic('add a button', ['sonnet']).alias).toBe('sonnet')
 })
+
+test('a subagent is routed at spawn: model set, description tagged, steps reuse the pick', OPTS, async ($, on) => {
+  const w = world(on, jev('haiku', 'low'))
+  let seen: any
+  on('agent.spawn', async (_$, e) => {
+    seen = e
+    return { model: e.model ?? '', agentId: 'agent-9' } as any
+  })
+  on('agent.list', async () => ({ value: [] }))
+  await $.agent.spawn({ prompt: 'List every file that imports pricing.js', description: 'find importers', subagentType: 'Explore' } as any)
+  await step($, 't1', 'agent-9')
+
+  expect(seen.model).toBe('haiku')
+  expect(seen.description).toBe('find importers · haiku/low')
+  expect(w.bodies.length).toBe(1) // spawn only; the first step reused the pick
+  expect(w.bodies[0].state).toContain('List every file that imports pricing.js')
+  expect(w.steps[0].model).toBe('claude-haiku-5-5')
+})
+
+test('an explicit model on the Agent call is respected', OPTS, async ($, on) => {
+  const w = world(on, jev('haiku', 'low'))
+  on('agent.spawn', async (_$, e) => ({ model: e.model ?? '', agentId: 'agent-8' }) as any)
+  await $.agent.spawn({ prompt: 'x', description: 'y', subagentType: 'Explore', model: 'opus' } as any)
+  expect(w.bodies.length).toBe(0)
+})
