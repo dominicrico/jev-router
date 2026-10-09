@@ -1,0 +1,2702 @@
+[
+ {
+  "id": "t01",
+  "tier": "trivial",
+  "mode": "efficient",
+  "run": 0,
+  "ms": 355,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.75
+ },
+ {
+  "id": "t01",
+  "tier": "trivial",
+  "mode": "efficient",
+  "run": 1,
+  "ms": 337,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.75
+ },
+ {
+  "id": "t01",
+  "tier": "trivial",
+  "mode": "efficient",
+  "run": 2,
+  "ms": 337,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.71
+ },
+ {
+  "id": "t01",
+  "tier": "trivial",
+  "mode": "balanced",
+  "run": 0,
+  "ms": 338,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.95
+ },
+ {
+  "id": "t01",
+  "tier": "trivial",
+  "mode": "cheap",
+  "run": 0,
+  "ms": 241,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.83
+ },
+ {
+  "id": "t01",
+  "tier": "trivial",
+  "mode": "balanced",
+  "run": 1,
+  "ms": 243,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.93
+ },
+ {
+  "id": "t01",
+  "tier": "trivial",
+  "mode": "cheap",
+  "run": 1,
+  "ms": 258,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.83
+ },
+ {
+  "id": "t01",
+  "tier": "trivial",
+  "mode": "balanced",
+  "run": 2,
+  "ms": 263,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.95
+ },
+ {
+  "id": "t02",
+  "tier": "trivial",
+  "mode": "efficient",
+  "run": 0,
+  "ms": 270,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.85
+ },
+ {
+  "id": "t02",
+  "tier": "trivial",
+  "mode": "efficient",
+  "run": 1,
+  "ms": 259,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.88
+ },
+ {
+  "id": "t01",
+  "tier": "trivial",
+  "mode": "cheap",
+  "run": 2,
+  "ms": 278,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.85
+ },
+ {
+  "id": "t02",
+  "tier": "trivial",
+  "mode": "efficient",
+  "run": 2,
+  "ms": 260,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.91
+ },
+ {
+  "id": "t02",
+  "tier": "trivial",
+  "mode": "balanced",
+  "run": 1,
+  "ms": 211,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.93
+ },
+ {
+  "id": "t02",
+  "tier": "trivial",
+  "mode": "cheap",
+  "run": 0,
+  "ms": 217,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.87
+ },
+ {
+  "id": "t02",
+  "tier": "trivial",
+  "mode": "balanced",
+  "run": 2,
+  "ms": 240,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.95
+ },
+ {
+  "id": "t02",
+  "tier": "trivial",
+  "mode": "balanced",
+  "run": 0,
+  "ms": 244,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.96
+ },
+ {
+  "id": "t02",
+  "tier": "trivial",
+  "mode": "cheap",
+  "run": 1,
+  "ms": 213,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.85
+ },
+ {
+  "id": "t02",
+  "tier": "trivial",
+  "mode": "cheap",
+  "run": 2,
+  "ms": 297,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.85
+ },
+ {
+  "id": "t03",
+  "tier": "trivial",
+  "mode": "efficient",
+  "run": 1,
+  "ms": 271,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.6
+ },
+ {
+  "id": "t03",
+  "tier": "trivial",
+  "mode": "efficient",
+  "run": 0,
+  "ms": 274,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.63
+ },
+ {
+  "id": "t03",
+  "tier": "trivial",
+  "mode": "balanced",
+  "run": 1,
+  "ms": 237,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.81
+ },
+ {
+  "id": "t03",
+  "tier": "trivial",
+  "mode": "balanced",
+  "run": 2,
+  "ms": 242,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.77
+ },
+ {
+  "id": "t03",
+  "tier": "trivial",
+  "mode": "efficient",
+  "run": 2,
+  "ms": 336,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.64
+ },
+ {
+  "id": "t03",
+  "tier": "trivial",
+  "mode": "balanced",
+  "run": 0,
+  "ms": 263,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.81
+ },
+ {
+  "id": "t04",
+  "tier": "trivial",
+  "mode": "efficient",
+  "run": 0,
+  "ms": 259,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.56
+ },
+ {
+  "id": "t03",
+  "tier": "trivial",
+  "mode": "cheap",
+  "run": 1,
+  "ms": 279,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.77
+ },
+ {
+  "id": "t03",
+  "tier": "trivial",
+  "mode": "cheap",
+  "run": 2,
+  "ms": 277,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.76
+ },
+ {
+  "id": "t03",
+  "tier": "trivial",
+  "mode": "cheap",
+  "run": 0,
+  "ms": 315,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.79
+ },
+ {
+  "id": "t04",
+  "tier": "trivial",
+  "mode": "efficient",
+  "run": 2,
+  "ms": 233,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.53
+ },
+ {
+  "id": "t04",
+  "tier": "trivial",
+  "mode": "efficient",
+  "run": 1,
+  "ms": 245,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.64
+ },
+ {
+  "id": "t04",
+  "tier": "trivial",
+  "mode": "balanced",
+  "run": 0,
+  "ms": 271,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.79
+ },
+ {
+  "id": "t04",
+  "tier": "trivial",
+  "mode": "balanced",
+  "run": 1,
+  "ms": 251,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.77
+ },
+ {
+  "id": "t04",
+  "tier": "trivial",
+  "mode": "balanced",
+  "run": 2,
+  "ms": 290,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.8
+ },
+ {
+  "id": "t04",
+  "tier": "trivial",
+  "mode": "cheap",
+  "run": 1,
+  "ms": 251,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.8
+ },
+ {
+  "id": "t04",
+  "tier": "trivial",
+  "mode": "cheap",
+  "run": 0,
+  "ms": 278,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.77
+ },
+ {
+  "id": "t04",
+  "tier": "trivial",
+  "mode": "cheap",
+  "run": 2,
+  "ms": 243,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.8
+ },
+ {
+  "id": "t05",
+  "tier": "trivial",
+  "mode": "efficient",
+  "run": 1,
+  "ms": 224,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.75
+ },
+ {
+  "id": "t05",
+  "tier": "trivial",
+  "mode": "efficient",
+  "run": 2,
+  "ms": 249,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.76
+ },
+ {
+  "id": "t05",
+  "tier": "trivial",
+  "mode": "balanced",
+  "run": 0,
+  "ms": 262,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.92
+ },
+ {
+  "id": "t05",
+  "tier": "trivial",
+  "mode": "efficient",
+  "run": 0,
+  "ms": 283,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.75
+ },
+ {
+  "id": "t05",
+  "tier": "trivial",
+  "mode": "balanced",
+  "run": 1,
+  "ms": 300,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.92
+ },
+ {
+  "id": "t05",
+  "tier": "trivial",
+  "mode": "balanced",
+  "run": 2,
+  "ms": 268,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.92
+ },
+ {
+  "id": "t05",
+  "tier": "trivial",
+  "mode": "cheap",
+  "run": 0,
+  "ms": 262,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.84
+ },
+ {
+  "id": "t05",
+  "tier": "trivial",
+  "mode": "cheap",
+  "run": 1,
+  "ms": 261,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.8
+ },
+ {
+  "id": "t05",
+  "tier": "trivial",
+  "mode": "cheap",
+  "run": 2,
+  "ms": 253,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.79
+ },
+ {
+  "id": "t06",
+  "tier": "trivial",
+  "mode": "efficient",
+  "run": 0,
+  "ms": 286,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.73
+ },
+ {
+  "id": "t06",
+  "tier": "trivial",
+  "mode": "efficient",
+  "run": 1,
+  "ms": 296,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.73
+ },
+ {
+  "id": "t06",
+  "tier": "trivial",
+  "mode": "efficient",
+  "run": 2,
+  "ms": 283,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.77
+ },
+ {
+  "id": "t06",
+  "tier": "trivial",
+  "mode": "balanced",
+  "run": 0,
+  "ms": 267,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.91
+ },
+ {
+  "id": "t06",
+  "tier": "trivial",
+  "mode": "balanced",
+  "run": 1,
+  "ms": 251,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.92
+ },
+ {
+  "id": "t06",
+  "tier": "trivial",
+  "mode": "balanced",
+  "run": 2,
+  "ms": 250,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.92
+ },
+ {
+  "id": "t06",
+  "tier": "trivial",
+  "mode": "cheap",
+  "run": 0,
+  "ms": 270,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.81
+ },
+ {
+  "id": "t07",
+  "tier": "trivial",
+  "mode": "efficient",
+  "run": 0,
+  "ms": 264,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.83
+ },
+ {
+  "id": "t06",
+  "tier": "trivial",
+  "mode": "cheap",
+  "run": 1,
+  "ms": 291,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.8
+ },
+ {
+  "id": "t07",
+  "tier": "trivial",
+  "mode": "efficient",
+  "run": 1,
+  "ms": 245,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.79
+ },
+ {
+  "id": "t06",
+  "tier": "trivial",
+  "mode": "cheap",
+  "run": 2,
+  "ms": 301,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.8
+ },
+ {
+  "id": "t07",
+  "tier": "trivial",
+  "mode": "balanced",
+  "run": 1,
+  "ms": 240,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.91
+ },
+ {
+  "id": "t07",
+  "tier": "trivial",
+  "mode": "balanced",
+  "run": 0,
+  "ms": 258,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.91
+ },
+ {
+  "id": "t07",
+  "tier": "trivial",
+  "mode": "efficient",
+  "run": 2,
+  "ms": 265,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.79
+ },
+ {
+  "id": "t07",
+  "tier": "trivial",
+  "mode": "balanced",
+  "run": 2,
+  "ms": 243,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.92
+ },
+ {
+  "id": "t07",
+  "tier": "trivial",
+  "mode": "cheap",
+  "run": 0,
+  "ms": 254,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.85
+ },
+ {
+  "id": "t07",
+  "tier": "trivial",
+  "mode": "cheap",
+  "run": 1,
+  "ms": 245,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.88
+ },
+ {
+  "id": "t07",
+  "tier": "trivial",
+  "mode": "cheap",
+  "run": 2,
+  "ms": 260,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.84
+ },
+ {
+  "id": "t08",
+  "tier": "trivial",
+  "mode": "efficient",
+  "run": 0,
+  "ms": 277,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.83
+ },
+ {
+  "id": "t08",
+  "tier": "trivial",
+  "mode": "efficient",
+  "run": 1,
+  "ms": 257,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.85
+ },
+ {
+  "id": "t08",
+  "tier": "trivial",
+  "mode": "efficient",
+  "run": 2,
+  "ms": 253,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.88
+ },
+ {
+  "id": "t08",
+  "tier": "trivial",
+  "mode": "balanced",
+  "run": 0,
+  "ms": 234,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.97
+ },
+ {
+  "id": "t08",
+  "tier": "trivial",
+  "mode": "balanced",
+  "run": 1,
+  "ms": 221,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.97
+ },
+ {
+  "id": "t08",
+  "tier": "trivial",
+  "mode": "cheap",
+  "run": 0,
+  "ms": 210,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.85
+ },
+ {
+  "id": "t08",
+  "tier": "trivial",
+  "mode": "cheap",
+  "run": 1,
+  "ms": 224,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.84
+ },
+ {
+  "id": "t08",
+  "tier": "trivial",
+  "mode": "balanced",
+  "run": 2,
+  "ms": 245,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.96
+ },
+ {
+  "id": "t08",
+  "tier": "trivial",
+  "mode": "cheap",
+  "run": 2,
+  "ms": 248,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.87
+ },
+ {
+  "id": "t09",
+  "tier": "trivial",
+  "mode": "efficient",
+  "run": 1,
+  "ms": 203,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.59
+ },
+ {
+  "id": "t09",
+  "tier": "trivial",
+  "mode": "efficient",
+  "run": 0,
+  "ms": 222,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.57
+ },
+ {
+  "id": "t09",
+  "tier": "trivial",
+  "mode": "efficient",
+  "run": 2,
+  "ms": 285,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.59
+ },
+ {
+  "id": "t09",
+  "tier": "trivial",
+  "mode": "balanced",
+  "run": 0,
+  "ms": 273,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.79
+ },
+ {
+  "id": "t09",
+  "tier": "trivial",
+  "mode": "balanced",
+  "run": 1,
+  "ms": 237,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.76
+ },
+ {
+  "id": "t09",
+  "tier": "trivial",
+  "mode": "balanced",
+  "run": 2,
+  "ms": 347,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.8
+ },
+ {
+  "id": "t09",
+  "tier": "trivial",
+  "mode": "cheap",
+  "run": 1,
+  "ms": 250,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.75
+ },
+ {
+  "id": "t09",
+  "tier": "trivial",
+  "mode": "cheap",
+  "run": 0,
+  "ms": 284,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.73
+ },
+ {
+  "id": "t09",
+  "tier": "trivial",
+  "mode": "cheap",
+  "run": 2,
+  "ms": 203,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.76
+ },
+ {
+  "id": "t10",
+  "tier": "trivial",
+  "mode": "efficient",
+  "run": 0,
+  "ms": 269,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.68
+ },
+ {
+  "id": "t10",
+  "tier": "trivial",
+  "mode": "efficient",
+  "run": 1,
+  "ms": 268,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.64
+ },
+ {
+  "id": "t10",
+  "tier": "trivial",
+  "mode": "efficient",
+  "run": 2,
+  "ms": 235,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.63
+ },
+ {
+  "id": "t10",
+  "tier": "trivial",
+  "mode": "balanced",
+  "run": 0,
+  "ms": 244,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.87
+ },
+ {
+  "id": "t10",
+  "tier": "trivial",
+  "mode": "balanced",
+  "run": 1,
+  "ms": 218,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.85
+ },
+ {
+  "id": "t10",
+  "tier": "trivial",
+  "mode": "cheap",
+  "run": 0,
+  "ms": 235,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.79
+ },
+ {
+  "id": "t10",
+  "tier": "trivial",
+  "mode": "balanced",
+  "run": 2,
+  "ms": 238,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.84
+ },
+ {
+  "id": "t10",
+  "tier": "trivial",
+  "mode": "cheap",
+  "run": 1,
+  "ms": 230,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.81
+ },
+ {
+  "id": "t10",
+  "tier": "trivial",
+  "mode": "cheap",
+  "run": 2,
+  "ms": 310,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.83
+ },
+ {
+  "id": "s01",
+  "tier": "standard",
+  "mode": "efficient",
+  "run": 0,
+  "ms": 292,
+  "model": "sonnet",
+  "effort": "low",
+  "confidence": 0.95
+ },
+ {
+  "id": "s01",
+  "tier": "standard",
+  "mode": "efficient",
+  "run": 1,
+  "ms": 292,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.93
+ },
+ {
+  "id": "s01",
+  "tier": "standard",
+  "mode": "efficient",
+  "run": 2,
+  "ms": 238,
+  "model": "sonnet",
+  "effort": "low",
+  "confidence": 0.93
+ },
+ {
+  "id": "s01",
+  "tier": "standard",
+  "mode": "balanced",
+  "run": 1,
+  "ms": 208,
+  "model": "sonnet",
+  "effort": "low",
+  "confidence": 0.85
+ },
+ {
+  "id": "s01",
+  "tier": "standard",
+  "mode": "balanced",
+  "run": 0,
+  "ms": 226,
+  "model": "sonnet",
+  "effort": "low",
+  "confidence": 0.85
+ },
+ {
+  "id": "s01",
+  "tier": "standard",
+  "mode": "balanced",
+  "run": 2,
+  "ms": 226,
+  "model": "sonnet",
+  "effort": "low",
+  "confidence": 0.87
+ },
+ {
+  "id": "s01",
+  "tier": "standard",
+  "mode": "cheap",
+  "run": 0,
+  "ms": 228,
+  "model": "sonnet",
+  "effort": "low",
+  "confidence": 0.39
+ },
+ {
+  "id": "s01",
+  "tier": "standard",
+  "mode": "cheap",
+  "run": 1,
+  "ms": 209,
+  "model": "sonnet",
+  "effort": "low",
+  "confidence": 0.37
+ },
+ {
+  "id": "s02",
+  "tier": "standard",
+  "mode": "efficient",
+  "run": 0,
+  "ms": 287,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.99
+ },
+ {
+  "id": "s01",
+  "tier": "standard",
+  "mode": "cheap",
+  "run": 2,
+  "ms": 289,
+  "model": "sonnet",
+  "effort": "low",
+  "confidence": 0.37
+ },
+ {
+  "id": "s02",
+  "tier": "standard",
+  "mode": "efficient",
+  "run": 1,
+  "ms": 288,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.99
+ },
+ {
+  "id": "s02",
+  "tier": "standard",
+  "mode": "efficient",
+  "run": 2,
+  "ms": 232,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.99
+ },
+ {
+  "id": "s02",
+  "tier": "standard",
+  "mode": "balanced",
+  "run": 1,
+  "ms": 200,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.96
+ },
+ {
+  "id": "s02",
+  "tier": "standard",
+  "mode": "balanced",
+  "run": 2,
+  "ms": 209,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.96
+ },
+ {
+  "id": "s02",
+  "tier": "standard",
+  "mode": "balanced",
+  "run": 0,
+  "ms": 221,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.95
+ },
+ {
+  "id": "s02",
+  "tier": "standard",
+  "mode": "cheap",
+  "run": 0,
+  "ms": 214,
+  "model": "sonnet",
+  "effort": "low",
+  "confidence": 0.57
+ },
+ {
+  "id": "s02",
+  "tier": "standard",
+  "mode": "cheap",
+  "run": 1,
+  "ms": 221,
+  "model": "sonnet",
+  "effort": "low",
+  "confidence": 0.57
+ },
+ {
+  "id": "s02",
+  "tier": "standard",
+  "mode": "cheap",
+  "run": 2,
+  "ms": 316,
+  "model": "sonnet",
+  "effort": "low",
+  "confidence": 0.51
+ },
+ {
+  "id": "s03",
+  "tier": "standard",
+  "mode": "efficient",
+  "run": 0,
+  "ms": 307,
+  "model": "sonnet",
+  "effort": "high",
+  "confidence": 0.85
+ },
+ {
+  "id": "s03",
+  "tier": "standard",
+  "mode": "efficient",
+  "run": 1,
+  "ms": 219,
+  "model": "sonnet",
+  "effort": "high",
+  "confidence": 0.85
+ },
+ {
+  "id": "s03",
+  "tier": "standard",
+  "mode": "efficient",
+  "run": 2,
+  "ms": 262,
+  "model": "sonnet",
+  "effort": "high",
+  "confidence": 0.84
+ },
+ {
+  "id": "s03",
+  "tier": "standard",
+  "mode": "balanced",
+  "run": 1,
+  "ms": 245,
+  "model": "sonnet",
+  "effort": "high",
+  "confidence": 0.99
+ },
+ {
+  "id": "s03",
+  "tier": "standard",
+  "mode": "balanced",
+  "run": 0,
+  "ms": 249,
+  "model": "sonnet",
+  "effort": "high",
+  "confidence": 0.99
+ },
+ {
+  "id": "s03",
+  "tier": "standard",
+  "mode": "balanced",
+  "run": 2,
+  "ms": 211,
+  "model": "sonnet",
+  "effort": "high",
+  "confidence": 0.99
+ },
+ {
+  "id": "s03",
+  "tier": "standard",
+  "mode": "cheap",
+  "run": 0,
+  "ms": 221,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.67
+ },
+ {
+  "id": "s03",
+  "tier": "standard",
+  "mode": "cheap",
+  "run": 1,
+  "ms": 274,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.71
+ },
+ {
+  "id": "s03",
+  "tier": "standard",
+  "mode": "cheap",
+  "run": 2,
+  "ms": 273,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.65
+ },
+ {
+  "id": "s04",
+  "tier": "standard",
+  "mode": "efficient",
+  "run": 0,
+  "ms": 272,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.99
+ },
+ {
+  "id": "s04",
+  "tier": "standard",
+  "mode": "efficient",
+  "run": 1,
+  "ms": 236,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.99
+ },
+ {
+  "id": "s04",
+  "tier": "standard",
+  "mode": "balanced",
+  "run": 1,
+  "ms": 212,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.97
+ },
+ {
+  "id": "s04",
+  "tier": "standard",
+  "mode": "efficient",
+  "run": 2,
+  "ms": 214,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.99
+ },
+ {
+  "id": "s04",
+  "tier": "standard",
+  "mode": "balanced",
+  "run": 0,
+  "ms": 229,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.99
+ },
+ {
+  "id": "s04",
+  "tier": "standard",
+  "mode": "balanced",
+  "run": 2,
+  "ms": 200,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.99
+ },
+ {
+  "id": "s04",
+  "tier": "standard",
+  "mode": "cheap",
+  "run": 1,
+  "ms": 213,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.6
+ },
+ {
+  "id": "s04",
+  "tier": "standard",
+  "mode": "cheap",
+  "run": 0,
+  "ms": 305,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.61
+ },
+ {
+  "id": "s04",
+  "tier": "standard",
+  "mode": "cheap",
+  "run": 2,
+  "ms": 291,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.59
+ },
+ {
+  "id": "s05",
+  "tier": "standard",
+  "mode": "efficient",
+  "run": 0,
+  "ms": 241,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.99
+ },
+ {
+  "id": "s05",
+  "tier": "standard",
+  "mode": "efficient",
+  "run": 1,
+  "ms": 328,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.99
+ },
+ {
+  "id": "s05",
+  "tier": "standard",
+  "mode": "balanced",
+  "run": 1,
+  "ms": 225,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.97
+ },
+ {
+  "id": "s05",
+  "tier": "standard",
+  "mode": "balanced",
+  "run": 0,
+  "ms": 241,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.97
+ },
+ {
+  "id": "s05",
+  "tier": "standard",
+  "mode": "efficient",
+  "run": 2,
+  "ms": 246,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.99
+ },
+ {
+  "id": "s05",
+  "tier": "standard",
+  "mode": "cheap",
+  "run": 1,
+  "ms": 282,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.63
+ },
+ {
+  "id": "s05",
+  "tier": "standard",
+  "mode": "cheap",
+  "run": 0,
+  "ms": 284,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.61
+ },
+ {
+  "id": "s05",
+  "tier": "standard",
+  "mode": "cheap",
+  "run": 2,
+  "ms": 279,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.63
+ },
+ {
+  "id": "s05",
+  "tier": "standard",
+  "mode": "balanced",
+  "run": 2,
+  "ms": 286,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.97
+ },
+ {
+  "id": "s06",
+  "tier": "standard",
+  "mode": "balanced",
+  "run": 0,
+  "ms": 207,
+  "model": "sonnet",
+  "effort": "high",
+  "confidence": 1
+ },
+ {
+  "id": "s06",
+  "tier": "standard",
+  "mode": "efficient",
+  "run": 0,
+  "ms": 208,
+  "model": "sonnet",
+  "effort": "high",
+  "confidence": 0.83
+ },
+ {
+  "id": "s06",
+  "tier": "standard",
+  "mode": "efficient",
+  "run": 2,
+  "ms": 223,
+  "model": "sonnet",
+  "effort": "high",
+  "confidence": 0.83
+ },
+ {
+  "id": "s06",
+  "tier": "standard",
+  "mode": "efficient",
+  "run": 1,
+  "ms": 256,
+  "model": "sonnet",
+  "effort": "high",
+  "confidence": 0.8
+ },
+ {
+  "id": "s06",
+  "tier": "standard",
+  "mode": "balanced",
+  "run": 2,
+  "ms": 215,
+  "model": "sonnet",
+  "effort": "high",
+  "confidence": 1
+ },
+ {
+  "id": "s06",
+  "tier": "standard",
+  "mode": "cheap",
+  "run": 0,
+  "ms": 303,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.81
+ },
+ {
+  "id": "s06",
+  "tier": "standard",
+  "mode": "balanced",
+  "run": 1,
+  "ms": 319,
+  "model": "sonnet",
+  "effort": "high",
+  "confidence": 1
+ },
+ {
+  "id": "s06",
+  "tier": "standard",
+  "mode": "cheap",
+  "run": 1,
+  "ms": 271,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.81
+ },
+ {
+  "id": "s06",
+  "tier": "standard",
+  "mode": "cheap",
+  "run": 2,
+  "ms": 228,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.8
+ },
+ {
+  "id": "s07",
+  "tier": "standard",
+  "mode": "efficient",
+  "run": 2,
+  "ms": 208,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.95
+ },
+ {
+  "id": "s07",
+  "tier": "standard",
+  "mode": "efficient",
+  "run": 1,
+  "ms": 209,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.95
+ },
+ {
+  "id": "s07",
+  "tier": "standard",
+  "mode": "efficient",
+  "run": 0,
+  "ms": 247,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.95
+ },
+ {
+  "id": "s07",
+  "tier": "standard",
+  "mode": "balanced",
+  "run": 0,
+  "ms": 238,
+  "model": "sonnet",
+  "effort": "low",
+  "confidence": 0.85
+ },
+ {
+  "id": "s07",
+  "tier": "standard",
+  "mode": "balanced",
+  "run": 1,
+  "ms": 308,
+  "model": "sonnet",
+  "effort": "low",
+  "confidence": 0.85
+ },
+ {
+  "id": "s07",
+  "tier": "standard",
+  "mode": "balanced",
+  "run": 2,
+  "ms": 307,
+  "model": "sonnet",
+  "effort": "low",
+  "confidence": 0.85
+ },
+ {
+  "id": "s07",
+  "tier": "standard",
+  "mode": "cheap",
+  "run": 0,
+  "ms": 270,
+  "model": "sonnet",
+  "effort": "low",
+  "confidence": 0.35
+ },
+ {
+  "id": "s07",
+  "tier": "standard",
+  "mode": "cheap",
+  "run": 1,
+  "ms": 213,
+  "model": "haiku",
+  "effort": "low",
+  "confidence": 0.37
+ },
+ {
+  "id": "s08",
+  "tier": "standard",
+  "mode": "efficient",
+  "run": 0,
+  "ms": 208,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.99
+ },
+ {
+  "id": "s07",
+  "tier": "standard",
+  "mode": "cheap",
+  "run": 2,
+  "ms": 229,
+  "model": "sonnet",
+  "effort": "low",
+  "confidence": 0.35
+ },
+ {
+  "id": "s08",
+  "tier": "standard",
+  "mode": "efficient",
+  "run": 1,
+  "ms": 234,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.99
+ },
+ {
+  "id": "s08",
+  "tier": "standard",
+  "mode": "efficient",
+  "run": 2,
+  "ms": 210,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.99
+ },
+ {
+  "id": "s08",
+  "tier": "standard",
+  "mode": "balanced",
+  "run": 1,
+  "ms": 293,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.92
+ },
+ {
+  "id": "s08",
+  "tier": "standard",
+  "mode": "balanced",
+  "run": 0,
+  "ms": 314,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.88
+ },
+ {
+  "id": "s08",
+  "tier": "standard",
+  "mode": "balanced",
+  "run": 2,
+  "ms": 287,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.89
+ },
+ {
+  "id": "s08",
+  "tier": "standard",
+  "mode": "cheap",
+  "run": 0,
+  "ms": 253,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.59
+ },
+ {
+  "id": "s08",
+  "tier": "standard",
+  "mode": "cheap",
+  "run": 1,
+  "ms": 209,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.6
+ },
+ {
+  "id": "s08",
+  "tier": "standard",
+  "mode": "cheap",
+  "run": 2,
+  "ms": 210,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.55
+ },
+ {
+  "id": "s09",
+  "tier": "standard",
+  "mode": "efficient",
+  "run": 0,
+  "ms": 211,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.99
+ },
+ {
+  "id": "s09",
+  "tier": "standard",
+  "mode": "efficient",
+  "run": 1,
+  "ms": 217,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.99
+ },
+ {
+  "id": "s09",
+  "tier": "standard",
+  "mode": "efficient",
+  "run": 2,
+  "ms": 312,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.97
+ },
+ {
+  "id": "s09",
+  "tier": "standard",
+  "mode": "balanced",
+  "run": 0,
+  "ms": 311,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.99
+ },
+ {
+  "id": "s09",
+  "tier": "standard",
+  "mode": "balanced",
+  "run": 1,
+  "ms": 309,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.99
+ },
+ {
+  "id": "s09",
+  "tier": "standard",
+  "mode": "balanced",
+  "run": 2,
+  "ms": 302,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.99
+ },
+ {
+  "id": "s09",
+  "tier": "standard",
+  "mode": "cheap",
+  "run": 0,
+  "ms": 240,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.63
+ },
+ {
+  "id": "s10",
+  "tier": "standard",
+  "mode": "efficient",
+  "run": 0,
+  "ms": 252,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.95
+ },
+ {
+  "id": "s09",
+  "tier": "standard",
+  "mode": "cheap",
+  "run": 1,
+  "ms": 255,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.61
+ },
+ {
+  "id": "s09",
+  "tier": "standard",
+  "mode": "cheap",
+  "run": 2,
+  "ms": 263,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.59
+ },
+ {
+  "id": "s10",
+  "tier": "standard",
+  "mode": "efficient",
+  "run": 2,
+  "ms": 271,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.93
+ },
+ {
+  "id": "s10",
+  "tier": "standard",
+  "mode": "balanced",
+  "run": 1,
+  "ms": 260,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.89
+ },
+ {
+  "id": "s10",
+  "tier": "standard",
+  "mode": "balanced",
+  "run": 0,
+  "ms": 269,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.92
+ },
+ {
+  "id": "s10",
+  "tier": "standard",
+  "mode": "efficient",
+  "run": 1,
+  "ms": 284,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.96
+ },
+ {
+  "id": "s10",
+  "tier": "standard",
+  "mode": "cheap",
+  "run": 1,
+  "ms": 212,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.45
+ },
+ {
+  "id": "s10",
+  "tier": "standard",
+  "mode": "cheap",
+  "run": 0,
+  "ms": 214,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.51
+ },
+ {
+  "id": "s10",
+  "tier": "standard",
+  "mode": "cheap",
+  "run": 2,
+  "ms": 218,
+  "model": "sonnet",
+  "effort": "low",
+  "confidence": 0.45
+ },
+ {
+  "id": "s10",
+  "tier": "standard",
+  "mode": "balanced",
+  "run": 2,
+  "ms": 261,
+  "model": "sonnet",
+  "effort": "medium",
+  "confidence": 0.92
+ },
+ {
+  "id": "h01",
+  "tier": "hard",
+  "mode": "efficient",
+  "run": 0,
+  "ms": 310,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.76
+ },
+ {
+  "id": "h01",
+  "tier": "hard",
+  "mode": "efficient",
+  "run": 2,
+  "ms": 305,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.79
+ },
+ {
+  "id": "h01",
+  "tier": "hard",
+  "mode": "efficient",
+  "run": 1,
+  "ms": 310,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.81
+ },
+ {
+  "id": "h01",
+  "tier": "hard",
+  "mode": "balanced",
+  "run": 0,
+  "ms": 265,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.37
+ },
+ {
+  "id": "h01",
+  "tier": "hard",
+  "mode": "cheap",
+  "run": 0,
+  "ms": 202,
+  "model": "sonnet",
+  "effort": "xhigh",
+  "confidence": 0.77
+ },
+ {
+  "id": "h01",
+  "tier": "hard",
+  "mode": "balanced",
+  "run": 1,
+  "ms": 214,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.41
+ },
+ {
+  "id": "h01",
+  "tier": "hard",
+  "mode": "balanced",
+  "run": 2,
+  "ms": 215,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.43
+ },
+ {
+  "id": "h01",
+  "tier": "hard",
+  "mode": "cheap",
+  "run": 1,
+  "ms": 224,
+  "model": "sonnet",
+  "effort": "xhigh",
+  "confidence": 0.8
+ },
+ {
+  "id": "h02",
+  "tier": "hard",
+  "mode": "efficient",
+  "run": 0,
+  "ms": 306,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.85
+ },
+ {
+  "id": "h02",
+  "tier": "hard",
+  "mode": "efficient",
+  "run": 2,
+  "ms": 292,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.88
+ },
+ {
+  "id": "h01",
+  "tier": "hard",
+  "mode": "cheap",
+  "run": 2,
+  "ms": 314,
+  "model": "sonnet",
+  "effort": "xhigh",
+  "confidence": 0.79
+ },
+ {
+  "id": "h02",
+  "tier": "hard",
+  "mode": "efficient",
+  "run": 1,
+  "ms": 306,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.87
+ },
+ {
+  "id": "h02",
+  "tier": "hard",
+  "mode": "balanced",
+  "run": 1,
+  "ms": 211,
+  "model": "sonnet",
+  "effort": "xhigh",
+  "confidence": 0.36
+ },
+ {
+  "id": "h02",
+  "tier": "hard",
+  "mode": "balanced",
+  "run": 2,
+  "ms": 233,
+  "model": "sonnet",
+  "effort": "xhigh",
+  "confidence": 0.36
+ },
+ {
+  "id": "h02",
+  "tier": "hard",
+  "mode": "cheap",
+  "run": 0,
+  "ms": 235,
+  "model": "sonnet",
+  "effort": "xhigh",
+  "confidence": 0.8
+ },
+ {
+  "id": "h02",
+  "tier": "hard",
+  "mode": "balanced",
+  "run": 0,
+  "ms": 251,
+  "model": "sonnet",
+  "effort": "xhigh",
+  "confidence": 0.35
+ },
+ {
+  "id": "h02",
+  "tier": "hard",
+  "mode": "cheap",
+  "run": 1,
+  "ms": 308,
+  "model": "sonnet",
+  "effort": "xhigh",
+  "confidence": 0.8
+ },
+ {
+  "id": "h03",
+  "tier": "hard",
+  "mode": "efficient",
+  "run": 1,
+  "ms": 271,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.79
+ },
+ {
+  "id": "h03",
+  "tier": "hard",
+  "mode": "efficient",
+  "run": 0,
+  "ms": 286,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.77
+ },
+ {
+  "id": "h02",
+  "tier": "hard",
+  "mode": "cheap",
+  "run": 2,
+  "ms": 288,
+  "model": "sonnet",
+  "effort": "high",
+  "confidence": 0.81
+ },
+ {
+  "id": "h03",
+  "tier": "hard",
+  "mode": "balanced",
+  "run": 0,
+  "ms": 209,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.49
+ },
+ {
+  "id": "h03",
+  "tier": "hard",
+  "mode": "efficient",
+  "run": 2,
+  "ms": 217,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.73
+ },
+ {
+  "id": "h03",
+  "tier": "hard",
+  "mode": "balanced",
+  "run": 1,
+  "ms": 230,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.51
+ },
+ {
+  "id": "h03",
+  "tier": "hard",
+  "mode": "balanced",
+  "run": 2,
+  "ms": 233,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.47
+ },
+ {
+  "id": "h03",
+  "tier": "hard",
+  "mode": "cheap",
+  "run": 0,
+  "ms": 213,
+  "model": "sonnet",
+  "effort": "xhigh",
+  "confidence": 0.72
+ },
+ {
+  "id": "h03",
+  "tier": "hard",
+  "mode": "cheap",
+  "run": 1,
+  "ms": 305,
+  "model": "sonnet",
+  "effort": "xhigh",
+  "confidence": 0.79
+ },
+ {
+  "id": "h04",
+  "tier": "hard",
+  "mode": "efficient",
+  "run": 0,
+  "ms": 288,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.55
+ },
+ {
+  "id": "h03",
+  "tier": "hard",
+  "mode": "cheap",
+  "run": 2,
+  "ms": 292,
+  "model": "sonnet",
+  "effort": "xhigh",
+  "confidence": 0.75
+ },
+ {
+  "id": "h04",
+  "tier": "hard",
+  "mode": "efficient",
+  "run": 1,
+  "ms": 217,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.53
+ },
+ {
+  "id": "h04",
+  "tier": "hard",
+  "mode": "balanced",
+  "run": 1,
+  "ms": 203,
+  "model": "sonnet",
+  "effort": "xhigh",
+  "confidence": 0.69
+ },
+ {
+  "id": "h04",
+  "tier": "hard",
+  "mode": "efficient",
+  "run": 2,
+  "ms": 217,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.52
+ },
+ {
+  "id": "h04",
+  "tier": "hard",
+  "mode": "balanced",
+  "run": 0,
+  "ms": 233,
+  "model": "sonnet",
+  "effort": "xhigh",
+  "confidence": 0.72
+ },
+ {
+  "id": "h04",
+  "tier": "hard",
+  "mode": "balanced",
+  "run": 2,
+  "ms": 209,
+  "model": "sonnet",
+  "effort": "xhigh",
+  "confidence": 0.68
+ },
+ {
+  "id": "h04",
+  "tier": "hard",
+  "mode": "cheap",
+  "run": 1,
+  "ms": 195,
+  "model": "sonnet",
+  "effort": "high",
+  "confidence": 0.85
+ },
+ {
+  "id": "h04",
+  "tier": "hard",
+  "mode": "cheap",
+  "run": 0,
+  "ms": 221,
+  "model": "sonnet",
+  "effort": "high",
+  "confidence": 0.88
+ },
+ {
+  "id": "h04",
+  "tier": "hard",
+  "mode": "cheap",
+  "run": 2,
+  "ms": 287,
+  "model": "sonnet",
+  "effort": "high",
+  "confidence": 0.87
+ },
+ {
+  "id": "h05",
+  "tier": "hard",
+  "mode": "efficient",
+  "run": 0,
+  "ms": 217,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.71
+ },
+ {
+  "id": "h05",
+  "tier": "hard",
+  "mode": "efficient",
+  "run": 2,
+  "ms": 214,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.68
+ },
+ {
+  "id": "h05",
+  "tier": "hard",
+  "mode": "efficient",
+  "run": 1,
+  "ms": 282,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.72
+ },
+ {
+  "id": "h05",
+  "tier": "hard",
+  "mode": "balanced",
+  "run": 0,
+  "ms": 212,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.39
+ },
+ {
+  "id": "h05",
+  "tier": "hard",
+  "mode": "balanced",
+  "run": 1,
+  "ms": 222,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.37
+ },
+ {
+  "id": "h05",
+  "tier": "hard",
+  "mode": "balanced",
+  "run": 2,
+  "ms": 210,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.4
+ },
+ {
+  "id": "h05",
+  "tier": "hard",
+  "mode": "cheap",
+  "run": 0,
+  "ms": 239,
+  "model": "sonnet",
+  "effort": "xhigh",
+  "confidence": 0.77
+ },
+ {
+  "id": "h05",
+  "tier": "hard",
+  "mode": "cheap",
+  "run": 1,
+  "ms": 216,
+  "model": "sonnet",
+  "effort": "xhigh",
+  "confidence": 0.83
+ },
+ {
+  "id": "h05",
+  "tier": "hard",
+  "mode": "cheap",
+  "run": 2,
+  "ms": 279,
+  "model": "sonnet",
+  "effort": "xhigh",
+  "confidence": 0.81
+ },
+ {
+  "id": "h06",
+  "tier": "hard",
+  "mode": "efficient",
+  "run": 0,
+  "ms": 208,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.65
+ },
+ {
+  "id": "h06",
+  "tier": "hard",
+  "mode": "efficient",
+  "run": 1,
+  "ms": 258,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.63
+ },
+ {
+  "id": "h06",
+  "tier": "hard",
+  "mode": "efficient",
+  "run": 2,
+  "ms": 333,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.65
+ },
+ {
+  "id": "h06",
+  "tier": "hard",
+  "mode": "balanced",
+  "run": 1,
+  "ms": 231,
+  "model": "sonnet",
+  "effort": "xhigh",
+  "confidence": 0.45
+ },
+ {
+  "id": "h06",
+  "tier": "hard",
+  "mode": "balanced",
+  "run": 0,
+  "ms": 257,
+  "model": "sonnet",
+  "effort": "xhigh",
+  "confidence": 0.49
+ },
+ {
+  "id": "h06",
+  "tier": "hard",
+  "mode": "balanced",
+  "run": 2,
+  "ms": 266,
+  "model": "sonnet",
+  "effort": "xhigh",
+  "confidence": 0.45
+ },
+ {
+  "id": "h06",
+  "tier": "hard",
+  "mode": "cheap",
+  "run": 2,
+  "ms": 267,
+  "model": "sonnet",
+  "effort": "xhigh",
+  "confidence": 0.92
+ },
+ {
+  "id": "h06",
+  "tier": "hard",
+  "mode": "cheap",
+  "run": 1,
+  "ms": 278,
+  "model": "sonnet",
+  "effort": "xhigh",
+  "confidence": 0.95
+ },
+ {
+  "id": "h06",
+  "tier": "hard",
+  "mode": "cheap",
+  "run": 0,
+  "ms": 285,
+  "model": "sonnet",
+  "effort": "xhigh",
+  "confidence": 0.92
+ },
+ {
+  "id": "h07",
+  "tier": "hard",
+  "mode": "efficient",
+  "run": 0,
+  "ms": 241,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.87
+ },
+ {
+  "id": "h07",
+  "tier": "hard",
+  "mode": "efficient",
+  "run": 2,
+  "ms": 245,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.85
+ },
+ {
+  "id": "h07",
+  "tier": "hard",
+  "mode": "balanced",
+  "run": 0,
+  "ms": 297,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.67
+ },
+ {
+  "id": "h07",
+  "tier": "hard",
+  "mode": "balanced",
+  "run": 1,
+  "ms": 251,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.68
+ },
+ {
+  "id": "h07",
+  "tier": "hard",
+  "mode": "efficient",
+  "run": 1,
+  "ms": 397,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.88
+ },
+ {
+  "id": "h07",
+  "tier": "hard",
+  "mode": "balanced",
+  "run": 2,
+  "ms": 273,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.68
+ },
+ {
+  "id": "h07",
+  "tier": "hard",
+  "mode": "cheap",
+  "run": 0,
+  "ms": 236,
+  "model": "sonnet",
+  "effort": "xhigh",
+  "confidence": 0.56
+ },
+ {
+  "id": "h07",
+  "tier": "hard",
+  "mode": "cheap",
+  "run": 1,
+  "ms": 244,
+  "model": "sonnet",
+  "effort": "xhigh",
+  "confidence": 0.61
+ },
+ {
+  "id": "h07",
+  "tier": "hard",
+  "mode": "cheap",
+  "run": 2,
+  "ms": 243,
+  "model": "sonnet",
+  "effort": "xhigh",
+  "confidence": 0.57
+ },
+ {
+  "id": "h08",
+  "tier": "hard",
+  "mode": "efficient",
+  "run": 0,
+  "ms": 255,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.85
+ },
+ {
+  "id": "h08",
+  "tier": "hard",
+  "mode": "efficient",
+  "run": 1,
+  "ms": 241,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.87
+ },
+ {
+  "id": "h08",
+  "tier": "hard",
+  "mode": "efficient",
+  "run": 2,
+  "ms": 266,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.85
+ },
+ {
+  "id": "h08",
+  "tier": "hard",
+  "mode": "balanced",
+  "run": 0,
+  "ms": 269,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.63
+ },
+ {
+  "id": "h08",
+  "tier": "hard",
+  "mode": "balanced",
+  "run": 2,
+  "ms": 268,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.57
+ },
+ {
+  "id": "h08",
+  "tier": "hard",
+  "mode": "balanced",
+  "run": 1,
+  "ms": 284,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.55
+ },
+ {
+  "id": "h08",
+  "tier": "hard",
+  "mode": "cheap",
+  "run": 0,
+  "ms": 252,
+  "model": "sonnet",
+  "effort": "xhigh",
+  "confidence": 0.79
+ },
+ {
+  "id": "h08",
+  "tier": "hard",
+  "mode": "cheap",
+  "run": 1,
+  "ms": 241,
+  "model": "sonnet",
+  "effort": "xhigh",
+  "confidence": 0.76
+ },
+ {
+  "id": "h08",
+  "tier": "hard",
+  "mode": "cheap",
+  "run": 2,
+  "ms": 273,
+  "model": "sonnet",
+  "effort": "xhigh",
+  "confidence": 0.76
+ },
+ {
+  "id": "h09",
+  "tier": "hard",
+  "mode": "efficient",
+  "run": 0,
+  "ms": 267,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.75
+ },
+ {
+  "id": "h09",
+  "tier": "hard",
+  "mode": "efficient",
+  "run": 1,
+  "ms": 291,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.75
+ },
+ {
+  "id": "h09",
+  "tier": "hard",
+  "mode": "efficient",
+  "run": 2,
+  "ms": 284,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.75
+ },
+ {
+  "id": "h09",
+  "tier": "hard",
+  "mode": "balanced",
+  "run": 1,
+  "ms": 270,
+  "model": "sonnet",
+  "effort": "high",
+  "confidence": 0.49
+ },
+ {
+  "id": "h09",
+  "tier": "hard",
+  "mode": "balanced",
+  "run": 0,
+  "ms": 277,
+  "model": "sonnet",
+  "effort": "high",
+  "confidence": 0.45
+ },
+ {
+  "id": "h09",
+  "tier": "hard",
+  "mode": "balanced",
+  "run": 2,
+  "ms": 249,
+  "model": "sonnet",
+  "effort": "high",
+  "confidence": 0.43
+ },
+ {
+  "id": "h09",
+  "tier": "hard",
+  "mode": "cheap",
+  "run": 0,
+  "ms": 266,
+  "model": "sonnet",
+  "effort": "high",
+  "confidence": 0.87
+ },
+ {
+  "id": "h09",
+  "tier": "hard",
+  "mode": "cheap",
+  "run": 1,
+  "ms": 280,
+  "model": "sonnet",
+  "effort": "high",
+  "confidence": 0.88
+ },
+ {
+  "id": "h09",
+  "tier": "hard",
+  "mode": "cheap",
+  "run": 2,
+  "ms": 296,
+  "model": "sonnet",
+  "effort": "high",
+  "confidence": 0.88
+ },
+ {
+  "id": "h10",
+  "tier": "hard",
+  "mode": "efficient",
+  "run": 0,
+  "ms": 241,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.72
+ },
+ {
+  "id": "h10",
+  "tier": "hard",
+  "mode": "efficient",
+  "run": 1,
+  "ms": 246,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.71
+ },
+ {
+  "id": "h10",
+  "tier": "hard",
+  "mode": "efficient",
+  "run": 2,
+  "ms": 250,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.67
+ },
+ {
+  "id": "h10",
+  "tier": "hard",
+  "mode": "balanced",
+  "run": 0,
+  "ms": 252,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.41
+ },
+ {
+  "id": "h10",
+  "tier": "hard",
+  "mode": "balanced",
+  "run": 2,
+  "ms": 266,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.47
+ },
+ {
+  "id": "h10",
+  "tier": "hard",
+  "mode": "balanced",
+  "run": 1,
+  "ms": 284,
+  "model": "opus",
+  "effort": "xhigh",
+  "confidence": 0.44
+ },
+ {
+  "id": "h10",
+  "tier": "hard",
+  "mode": "cheap",
+  "run": 0,
+  "ms": 229,
+  "model": "sonnet",
+  "effort": "xhigh",
+  "confidence": 0.73
+ },
+ {
+  "id": "h10",
+  "tier": "hard",
+  "mode": "cheap",
+  "run": 1,
+  "ms": 242,
+  "model": "sonnet",
+  "effort": "xhigh",
+  "confidence": 0.76
+ },
+ {
+  "id": "h10",
+  "tier": "hard",
+  "mode": "cheap",
+  "run": 2,
+  "ms": 234,
+  "model": "sonnet",
+  "effort": "xhigh",
+  "confidence": 0.75
+ }
+]

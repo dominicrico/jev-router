@@ -3,7 +3,7 @@ import type { EngineInterface, Register } from 'claude-code'
 
 import type { Cache, Decision, Effort, Mode, Sticky } from '../types'
 
-const JEV_URL = 'https://api.typesafe.ai/v1/systemone'
+export const JEV_URL = 'https://api.typesafe.ai/v1/systemone'
 const MODES: readonly Mode[] = ['efficient', 'balanced', 'cheap']
 const STICKY: readonly Sticky[] = ['off', 'auto', 'strict']
 const EFFORTS: readonly Effort[] = ['low', 'medium', 'high', 'xhigh', 'max']
@@ -54,7 +54,7 @@ const warnedAtom = atom({ ...S, key: 'warned' } as const, false)
 type JevChoice = { choice?: string; confidence?: number }
 type JevReply = { answers?: { model?: JevChoice; effort?: JevChoice } }
 
-type Config = {
+export type Config = {
   apiKey: string
   timeoutMs: number
   pool: string[]
@@ -162,6 +162,11 @@ async function buildState($: EngineInterface, text: string, mode: Mode, cache: C
     .join('\n')
     .slice(-6000)
 
+  return composeState(text, mode, current, history, cache, now, cfg)
+}
+
+// Pure, so the benchmark sends Jev exactly what the mod sends.
+export function composeState(text: string, mode: Mode, current: string, history: string, cache: Cache | null, now: number, cfg: Config) {
   return [
     `Routing mode: ${mode}. ${MODE_RULE[mode]}`,
     `Current model: ${current}. Switching models discards the prompt cache, so prefer staying on it when the gain from switching is small.`,
@@ -186,15 +191,15 @@ async function resolveKey($: EngineInterface, cfg: Config): Promise<{ key: strin
   return null
 }
 
-async function askJev($: EngineInterface, cfg: Config, key: string, state: string, mode: Mode) {
-  const body = {
+export function jevBody(pool: string[], state: string, mode: Mode) {
+  return {
     model: 'jev-latest',
     state,
     questions: {
       model: {
         type: 'choice',
         instructions: `Which Claude model should handle the new coding task? ${MODE_RULE[mode]}`,
-        criteria: Object.fromEntries(cfg.pool.map(m => [m, CLAUDE[m]!.about])),
+        criteria: Object.fromEntries(pool.map(m => [m, CLAUDE[m]!.about])),
       },
       effort: {
         type: 'choice',
@@ -203,6 +208,10 @@ async function askJev($: EngineInterface, cfg: Config, key: string, state: strin
       },
     },
   }
+}
+
+async function askJev($: EngineInterface, cfg: Config, key: string, state: string, mode: Mode) {
+  const body = jevBody(cfg.pool, state, mode)
   const call = $.http.fetch(JEV_URL, {
     method: 'POST',
     headers: { 'content-type': 'application/json', authorization: `Bearer ${key}` },

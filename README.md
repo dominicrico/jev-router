@@ -57,6 +57,18 @@ When the cache wins, the band says so: `opus (kept 🔒 cache warm; wanted haiku
 - **Leaves subagents alone.** Only the main thread is rerouted.
 - **Keeps score.** `/jev status` shows how often each model was used this session.
 
+## Does it pay off?
+
+Benchmarked on 30 tasks across three modes, 270 calls to Jev:
+
+| | efficient | balanced | cheap |
+| --- | --- | --- | --- |
+| Picks the model that fits the task | 100% | 87% | 66% |
+| Cost per task vs always opus | **-40%** | **-45%** | **-54%** |
+| Cost per task vs always sonnet | same | -9% | -23% |
+
+Trivial tasks went to haiku and standard tasks to sonnet on every call. Asking Jev adds about 250 ms. Without the cache guard, following every pick in a long warm session cost 3x more than just using opus, which is what the guard is for. Honest limits: this measures what Jev picks, not whether the cheaper model then succeeded, and the costs are relative units. Method, per-tier tables and all caveats: [benchmarks/](benchmarks/README.md).
+
 ## How it works
 
 On each new task the mod sends Jev the routing mode, the current model, the cache state, the last few messages and the task text, and asks two choice questions: which model, and how much effort. The answer is applied to every step of that task. After each step the mod notes which model the API cached and how many tokens, so the next task knows whether a switch is worth losing the cache.
@@ -153,6 +165,8 @@ Because he is a small creature that gets very serious about picking the right tr
 claude plugin validate .
 claude plugin test .
 ```
+
+Benchmarks: see [benchmarks/](benchmarks/README.md).
 
 ## License
 

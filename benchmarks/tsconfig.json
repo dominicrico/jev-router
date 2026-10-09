@@ -1,0 +1,1 @@
+{ "compilerOptions": { "module": "esnext", "moduleResolution": "bundler", "target": "es2022", "jsx": "preserve", "paths": { "claude-code": ["./stub-claude-code.ts"] } } }
