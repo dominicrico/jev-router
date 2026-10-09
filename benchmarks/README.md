@@ -70,11 +70,31 @@ By tier, cost against always opus:
 
 `!full` (or `/jev full`) lifts the cap for one prompt when a task deserves the deeper reasoning. Whether deeper reasoning gives a better answer is not measured here.
 
+## Multi-step tasks with tools
+
+The single-prompt runs cannot say anything about re-routing every step or routing subagents, so `agentic.mts` runs six tasks on a small fixture repo (`fixture/`, a cart library with one failing test and one hidden bug): a rename, a bug fix, a feature with a coupon rule, a survey that asks for a subagent, a refactor and a root-cause hunt. Each runs under four strategies, three times each, as real headless Claude Code with tools: always opus, always sonnet, jev-router with one call per prompt (`routeSteps` and `routeSubagents` off), and jev-router with both on (the default). A script checks each task was really done (tests pass, the fix works, the files exist), so this one also measures whether the work got done. Tables: [results/AGENTIC.md](results/AGENTIC.md).
+
+| 6 tasks × 3 runs | tasks done | cost | vs always opus | vs always sonnet |
+| --- | --- | --- | --- | --- |
+| no plugin: always opus | 18/18 | $2.46 | | |
+| no plugin: always sonnet | 18/18 | $1.29 | -48% | |
+| jev-router, per prompt | 18/18 | $1.27 | -48% | -2% |
+| jev-router, every step + subagents | 18/18 | $1.15 | **-53%** | **-11%** |
+
+- **Nothing was lost on these tasks.** All four strategies finished 18 of 18.
+- **Per-step and subagent routing saved 11% more than per-prompt routing.** Most of it is the subagent task, where it ran a sonnet main thread with a haiku subagent for $0.14 over three runs, against $0.27 for per-prompt routing and $0.60 for always opus. On the other five tasks the two routing modes cost about the same.
+- **Jev chose sonnet for almost everything here,** because the tasks are small. So the saving against always-sonnet is modest, and a fixture of harder tasks might show something different. That is not measured.
+
+```
+npx tsx --tsconfig benchmarks/tsconfig.json benchmarks/agentic.mts 3   # real runs, costs money
+npx tsx --tsconfig benchmarks/tsconfig.json benchmarks/agentic-analyze.mts
+```
+
 ## Limits, said plainly
 
 - **Not measured: whether the answer was better.** The token runs are one run per task and strategy, no tools, in an empty directory, so a task that asks for "attached" files gets a plan instead of an edit. They measure how much each model and effort spends, not how good the result is.
 - **Not measured: whether the cheaper model succeeded.** This benchmark measures what Jev picks, not whether haiku or sonnet then solved the task. "Fit" is against the author's tier labels, so it checks agreement with a reasonable engineer, not task success.
-- 30 synthetic tasks, written by one person. Real work is messier.
+- 30 synthetic single-prompt tasks and 6 multi-step tasks on one tiny fixture repo, all written by one person. Real work is messier. The multi-step runs are 3 per cell, so small differences are noise.
 - The relative-unit costs come from the mod's own multipliers (haiku 1x, sonnet 3x, opus 5x). Fable has no stated multiplier, so 10x is an assumption (it does not change the numbers above, no hard task landed on fable). Every task is assumed to use the same number of tokens, and a cache re-write is priced at 1.25x against 0.1x for a read. Change `W` and the constants in `analyze.mts` to match your own bill.
 - The cache simulation sent Jev no cache info, so in real use Jev also leans toward staying on the current model. The simulation shows the mod's own guard in isolation.
 - Jev is a hosted service and may change. Re-run `collect.mts` to refresh.

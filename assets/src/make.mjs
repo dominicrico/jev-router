@@ -11,6 +11,7 @@ const { chromium } = createRequire(process.env.PW_DIR + '/')('playwright-core')
 const raw = JSON.parse(readFileSync(res('raw.json'), 'utf8'))
 const tok = Object.fromEntries(JSON.parse(readFileSync(res('tokens.json'), 'utf8')).map(r => [r.key, r]))
 const cases = JSON.parse(readFileSync(join(here, '../../benchmarks/cases.json'), 'utf8'))
+const ag = JSON.parse(readFileSync(res('agentic.json'), 'utf8'))
 const logo = 'data:image/jpeg;base64,' + readFileSync(join(here, '../logo.jpg')).toString('base64')
 
 const G = 'linear-gradient(90deg,#5eead4,#38bdf8)'
@@ -60,7 +61,7 @@ ${groups.map(([name, tier]) => `<div style="font-size:16px;font-weight:700;paddi
 <div style="display:flex;gap:22px;margin-top:24px;font-size:13px;color:#94a3b8;flex-wrap:wrap;align-items:center">
  <span><i style="display:inline-block;width:22px;height:8px;border-radius:4px;background:${G};vertical-align:0"></i> jev-router, effort capped at high (default)</span>
  <span><i style="display:inline-block;width:3px;height:14px;border-radius:2px;background:#fbbf24;vertical-align:-3px"></i> same mode, uncapped</span></div>
-<div class=foot>Cost as % of always opus at its default effort (= 100%), real runs with no tools in an empty directory. Always sonnet would be ${pctOpus(null, 'sonnet')}% overall. The cap only matters on hard tasks, where Jev asks for xhigh effort. Measures spend, not answer quality.</div></div>`
+<div class=foot>Cost as % of always opus at its default effort (= 100%), real runs with no tools in an empty directory. Always sonnet would be ${pctOpus(null, 'sonnet')}% overall. The cap only matters on hard tasks, where Jev asks for xhigh effort. Multi-step runs check the task got done. Hard-task answer quality is not measured.</div></div>`
 
 const [fE, uE] = fit('efficient'), [fB, uB] = fit('balanced'), [fC, uC] = fit('cheap')
 const fitCard = `<div class=card><div class=eye>Routing fit · 30 tasks × 3 modes × 3 runs</div>
@@ -83,7 +84,7 @@ const cacheCard = `<div class=card><div class=eye>Cache guard · simulated sessi
 <div style="display:grid;gap:15px">${results.map(([n, v]) => `<div><div style="font-size:14px;margin-bottom:6px;${/stickiness off/.test(n) ? 'color:#fbbf24' : ''}">${n}</div>${bar(v, mx, v, '', /stickiness off/.test(n) ? 'linear-gradient(90deg,#fbbf24,#fb7185)' : /always/.test(n) ? '#475569' : G, 14)}</div>`).join('')}</div>
 <div class=foot>Relative cost, lower is better. A switch re-writes the whole warm context at 1.25× instead of reading it at 0.1×. With tasks 5+ minutes apart the cache is cold, switching is free, and routing wins outright. Jev was asked without cache info here, so this isolates the mod's guard.</div></div>`
 
-const rows = [['1', 'A task arrives', 'your prompt'], ['2', 'Ask Jev: which model, which effort?', `~${q(0.5)} ms`], ['3', 'Is the prompt cache warm?', 'stay put unless Jev is sure'], ['4', 'Cap the effort at high', '!full lifts it for one prompt'], ['5', 'Run the turn on the pick', 'model + effort'], ['6', 'Show it above the prompt', 'the band']]
+const rows = [['1', 'A task arrives', 'your prompt'], ['2', 'Ask Jev: which model, which effort?', `~${q(0.5)} ms per call`], ['3', 'Is the prompt cache warm?', 'stay put unless Jev is sure'], ['4', 'Cap the effort at high', '!full lifts it for one prompt'], ['5', 'Re-ask before each step, route each subagent', 'routeSteps, routeSubagents'], ['6', 'Show it above the prompt', 'the band']]
 const howCard = `<div class=card><div class=eye>How it works</div>
 <h1>Before every task, one lever. <span class=g>Then it gets out of the way.</span></h1>
 <div style="border-top:1px solid #1e293b">${rows.map(([n, a, b], i) => `<div style="display:flex;align-items:center;padding:16px 4px;border-bottom:1px solid #1e293b;font-size:17px"><span style="width:56px;color:${i === 5 ? '#5eead4' : '#94a3b8'};font-weight:${i === 5 ? 700 : 400}">${n}</span><span style="flex:1;font-weight:${i === 5 ? 700 : 400}">${a}</span><span style="font-size:14px;color:#94a3b8">${b}</span></div>`).join('')}</div>
@@ -99,6 +100,19 @@ const bandCard = `<div class=card><div class=eye>The band</div>
 ${[['#4ade80', 'haiku', 'trivial'], ['#60a5fa', 'sonnet', 'standard'], ['#c084fc', 'opus', 'hard'], ['#fbbf24', 'fable', 'hardest']].map(([c, n, d]) => `<div style="border:1px solid #1e293b;border-radius:14px;padding:14px"><div style="color:${c};font-weight:800;font-size:16px">${n}</div><div class=muted>${d}</div></div>`).join('')}</div>
 <div class=foot>The mark spins while a task runs. <span class=mono>⤓xhigh</span> means the cap lowered Jev's effort; 🔓 means the prompt ran uncapped. Confidence turns amber under 70% and red under 50%.</div></div>`
 
+
+const AS = [['no plugin: always opus', 'always opus', '#475569'], ['no plugin: always sonnet', 'always sonnet', '#64748b'], ['jev-router: per prompt', 'jev-router, per prompt', G], ['jev-router: every step + subagents', 'jev-router, every step + subagents', G]]
+const aCost = (st, t) => ag.filter(r => r.strategy === st && (!t || r.task === t)).reduce((a, r) => a + r.usd, 0)
+const aDone = st => { const r = ag.filter(x => x.strategy === st); return `${r.filter(x => x.ok).length}/${r.length}` }
+const aBase = aCost(AS[0][0])
+const aRow = ([st, label, fill], tier) => { const c = aCost(st, tier), b = aCost(AS[0][0], tier), pc = Math.round((100 * c) / b); return `<div style="display:flex;align-items:center;gap:12px"><span class=mono style="width:${tier === undefined ? 210 : 0}px;font-size:12px;color:#94a3b8">${label}</span><div style="width:${(pc / 100) * 320}px;height:14px;border-radius:7px;background:${fill}"></div><span class=mono style="font-size:13px;font-weight:700">${pc}%</span></div>` }
+const agenticCard = `<div class=card><div class=eye>Benchmark · 6 multi-step tasks · ${ag.length} real runs with tools</div>
+<h1>Same tasks done, <span class=g>${Math.round(100 - (100 * aCost(AS[3][0])) / aBase)}% cheaper</span> than always opus.</h1>
+<div style="display:grid;gap:12px">${AS.map(a => aRow(a)).join('')}</div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:26px">
+${AS.map(([st, label]) => `<div style="border:1px solid #1e293b;background:#0e1730;border-radius:14px;padding:14px"><div class=mono style="font-size:22px;font-weight:700">$${aCost(st).toFixed(2)}</div><div class=muted style="font-size:12px;margin:3px 0 6px">${label}</div><div style="font-size:13px;color:#5eead4">${aDone(st)} done</div></div>`).join('')}</div>
+<div class=foot>Cost as % of always opus (= 100%). A script checks each task is really done: tests pass, the fix works, the files exist. 3 runs each on a small fixture repo. The extra saving from routing every step and subagent comes mostly from the subagent task, where it paired a sonnet main thread with a haiku subagent. All four strategies finished 18 of 18, so on these easy tasks nothing was lost, but they are not hard tasks.</div></div>`
+
 const lanes = [['haiku', '#4ade80', 85, ['rename usr to user', 'fix typo in README']], ['sonnet', '#60a5fa', 185, ['add /health endpoint + test']], ['opus', '#c084fc', 285, ['double-charge root cause', 'migrate auth to JWT']], ['fable', '#fbbf24', 385, []]]
 const hero = `<div style="width:880px;height:495px;position:relative;background:radial-gradient(700px 420px at 18% 40%,#16305f 0%,#0b1020 65%);overflow:hidden">
 <svg width="480" height="495" style="position:absolute;left:0;top:0">
@@ -112,10 +126,10 @@ ${lanes.map(([n, c, y, ts]) => `<div class=mono style="position:absolute;left:28
 <div style="font-size:58px;font-weight:700;line-height:1.05;margin-top:16px;letter-spacing:-.03em">jev-<span class=g>router</span></div>
 <div style="font-size:19px;margin-top:12px;color:#cbd5e1">Right model. Right effort.<br>Every task.</div>
 <div style="display:flex;gap:20px;margin-top:28px">
-${[[`-${100 - pctOpus('trivial', 'cheap', true)}%`, 'cost, trivial'], [`-${100 - pctOpus('standard', 'balanced', true)}%`, 'cost, standard'], [`${q(0.5)}ms`, 'per pick'], ['4', 'models']].map(([v, l]) => `<div><div class=mono style="font-size:24px;font-weight:700">${v}</div><div class=muted style="font-size:11.5px;margin-top:2px">${l}</div></div>`).join('')}</div>
+${[[`-${100 - pctOpus('trivial', 'cheap', true)}%`, 'cost, trivial'], [`-${100 - pctOpus('standard', 'balanced', true)}%`, 'cost, standard'], [`-${Math.round(100 - (100 * aCost(AS[3][0])) / aBase)}%`, 'multi-step tasks'], [`${q(0.5)}ms`, 'per pick']].map(([v, l]) => `<div><div class=mono style="font-size:24px;font-weight:700">${v}</div><div class=muted style="font-size:11.5px;margin-top:2px">${l}</div></div>`).join('')}</div>
 <div style="margin-top:28px;font-size:15px"><i class=muted>And yet</i> <b style="font-size:21px" class=g>hard tasks cost more.</b></div>
 <div style="font-size:12.5px;margin-top:6px" class=muted>Jev buys deeper reasoning there: +${pctOpus('hard', 'balanced', true) - 100}% to +${pctOpus('hard', 'efficient', true) - 100}% at the default cap of high.<br>Lift it for one prompt with <span class=mono style="color:#5eead4">!full</span>.</div></div>
-<div style="position:absolute;left:0;right:0;bottom:0;padding:12px 30px 16px;font-size:11px" class=muted>30 tasks, 270 Jev calls, 147 real runs. Opus 5.5, Sonnet 5.5, Haiku 5.5. Measures spend, not answer quality.</div></div>`
+<div style="position:absolute;left:0;right:0;bottom:0;padding:12px 30px 16px;font-size:11px" class=muted>30 tasks, 270 Jev calls, ${147 + ag.length} real runs. Opus 5.5, Sonnet 5.5, Haiku 5.5. Multi-step runs check the task got done. Hard-task answer quality is not measured.</div></div>`
 
 mkdirSync(join(here, '..'), { recursive: true })
 const browser = await chromium.launch({ executablePath: process.env.CHROME })
@@ -127,5 +141,5 @@ const shoot = async (html, out, w, type = 'png') => {
 }
 await shoot(hero, 'hero.jpg', 880, 'jpeg')
 await shoot(costCard, 'cost.png', 880); await shoot(fitCard, 'fit.png', 880); await shoot(cacheCard, 'cache.png', 880)
-await shoot(howCard, 'how.png', 880); await shoot(bandCard, 'band.png', 880)
+await shoot(howCard, 'how.png', 880); await shoot(agenticCard, 'agentic.png', 880); await shoot(bandCard, 'band.png', 880)
 await browser.close()

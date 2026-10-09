@@ -1,0 +1,1318 @@
+[
+ {
+  "task": "rename",
+  "tier": "easy",
+  "strategy": "no plugin: always sonnet",
+  "run": 0,
+  "ok": true,
+  "usd": 0.05996,
+  "turns": 6,
+  "ms": 13574,
+  "output": 762,
+  "input": 135983,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 762,
+    "usd": 0.06
+   }
+  }
+ },
+ {
+  "task": "rename",
+  "tier": "easy",
+  "strategy": "jev-router: per prompt",
+  "run": 0,
+  "ok": true,
+  "usd": 0.0629744,
+  "turns": 7,
+  "ms": 15991,
+  "output": 901,
+  "input": 157482,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 901,
+    "usd": 0.063
+   }
+  }
+ },
+ {
+  "task": "rename",
+  "tier": "easy",
+  "strategy": "no plugin: always opus",
+  "run": 0,
+  "ok": true,
+  "usd": 0.11412119999999998,
+  "turns": 7,
+  "ms": 18347,
+  "output": 1546,
+  "input": 137396,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 1546,
+    "usd": 0.1141
+   }
+  }
+ },
+ {
+  "task": "rename",
+  "tier": "easy",
+  "strategy": "jev-router: every step + subagents",
+  "run": 0,
+  "ok": true,
+  "usd": 0.06342600000000001,
+  "turns": 7,
+  "ms": 16775,
+  "output": 785,
+  "input": 158263,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 785,
+    "usd": 0.0634
+   }
+  }
+ },
+ {
+  "task": "bugfix",
+  "tier": "easy",
+  "strategy": "no plugin: always sonnet",
+  "run": 0,
+  "ok": true,
+  "usd": 0.0495586,
+  "turns": 6,
+  "ms": 17567,
+  "output": 692,
+  "input": 111111,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 692,
+    "usd": 0.0496
+   }
+  }
+ },
+ {
+  "task": "bugfix",
+  "tier": "easy",
+  "strategy": "jev-router: per prompt",
+  "run": 0,
+  "ok": true,
+  "usd": 0.043797,
+  "turns": 5,
+  "ms": 9774,
+  "output": 555,
+  "input": 88734,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 555,
+    "usd": 0.0438
+   }
+  }
+ },
+ {
+  "task": "bugfix",
+  "tier": "easy",
+  "strategy": "jev-router: every step + subagents",
+  "run": 0,
+  "ok": true,
+  "usd": 0.0426048,
+  "turns": 5,
+  "ms": 9845,
+  "output": 544,
+  "input": 88225,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 544,
+    "usd": 0.0426
+   }
+  }
+ },
+ {
+  "task": "bugfix",
+  "tier": "easy",
+  "strategy": "no plugin: always opus",
+  "run": 0,
+  "ok": true,
+  "usd": 0.0741678,
+  "turns": 5,
+  "ms": 39108,
+  "output": 693,
+  "input": 88876,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 693,
+    "usd": 0.0742
+   }
+  }
+ },
+ {
+  "task": "feature",
+  "tier": "standard",
+  "strategy": "no plugin: always sonnet",
+  "run": 0,
+  "ok": true,
+  "usd": 0.07693580000000001,
+  "turns": 7,
+  "ms": 20341,
+  "output": 2267,
+  "input": 139361,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2267,
+    "usd": 0.0769
+   }
+  }
+ },
+ {
+  "task": "feature",
+  "tier": "standard",
+  "strategy": "jev-router: per prompt",
+  "run": 0,
+  "ok": true,
+  "usd": 0.07318419999999999,
+  "turns": 6,
+  "ms": 20558,
+  "output": 2315,
+  "input": 115485,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2315,
+    "usd": 0.0732
+   }
+  }
+ },
+ {
+  "task": "feature",
+  "tier": "standard",
+  "strategy": "jev-router: every step + subagents",
+  "run": 0,
+  "ok": true,
+  "usd": 0.0755546,
+  "turns": 6,
+  "ms": 23574,
+  "output": 2493,
+  "input": 115644,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2493,
+    "usd": 0.0756
+   }
+  }
+ },
+ {
+  "task": "feature",
+  "tier": "standard",
+  "strategy": "no plugin: always opus",
+  "run": 0,
+  "ok": true,
+  "usd": 0.18705080000000002,
+  "turns": 6,
+  "ms": 61646,
+  "output": 4438,
+  "input": 120608,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 4438,
+    "usd": 0.1871
+   }
+  }
+ },
+ {
+  "task": "subagent",
+  "tier": "standard",
+  "strategy": "no plugin: always sonnet",
+  "run": 0,
+  "ok": true,
+  "usd": 0.0825002,
+  "turns": 2,
+  "ms": 6572,
+  "output": 2212,
+  "input": 103385,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2212,
+    "usd": 0.0825
+   }
+  }
+ },
+ {
+  "task": "subagent",
+  "tier": "standard",
+  "strategy": "no plugin: always opus",
+  "run": 0,
+  "ok": true,
+  "usd": 0.2053482,
+  "turns": 4,
+  "ms": 58411,
+  "output": 3830,
+  "input": 127206,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 3830,
+    "usd": 0.2053
+   }
+  }
+ },
+ {
+  "task": "subagent",
+  "tier": "standard",
+  "strategy": "jev-router: every step + subagents",
+  "run": 0,
+  "ok": true,
+  "usd": 0.08997060000000001,
+  "turns": 2,
+  "ms": 9103,
+  "output": 3383,
+  "input": 113283,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 3383,
+    "usd": 0.09
+   }
+  }
+ },
+ {
+  "task": "subagent",
+  "tier": "standard",
+  "strategy": "jev-router: per prompt",
+  "run": 0,
+  "ok": true,
+  "usd": 0.08513635,
+  "turns": 4,
+  "ms": 8772,
+  "output": 3849,
+  "input": 173274,
+  "models": {
+   "claude-haiku-5-5": {
+    "out": 2262,
+    "usd": 0.0042
+   },
+   "claude-opus-5-5": {
+    "out": 1587,
+    "usd": 0.0809
+   }
+  }
+ },
+ {
+  "task": "hard",
+  "tier": "hard",
+  "strategy": "no plugin: always sonnet",
+  "run": 0,
+  "ok": true,
+  "usd": 0.0739074,
+  "turns": 6,
+  "ms": 22605,
+  "output": 1950,
+  "input": 136953,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 1950,
+    "usd": 0.0739
+   }
+  }
+ },
+ {
+  "task": "hard",
+  "tier": "hard",
+  "strategy": "no plugin: always opus",
+  "run": 0,
+  "ok": true,
+  "usd": 0.1622194,
+  "turns": 9,
+  "ms": 45183,
+  "output": 3031,
+  "input": 167963,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 3031,
+    "usd": 0.1622
+   }
+  }
+ },
+ {
+  "task": "hard",
+  "tier": "hard",
+  "strategy": "jev-router: per prompt",
+  "run": 0,
+  "ok": true,
+  "usd": 0.0768388,
+  "turns": 6,
+  "ms": 23899,
+  "output": 2145,
+  "input": 139922,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2145,
+    "usd": 0.0768
+   }
+  }
+ },
+ {
+  "task": "hard",
+  "tier": "hard",
+  "strategy": "jev-router: every step + subagents",
+  "run": 0,
+  "ok": true,
+  "usd": 0.0776956,
+  "turns": 6,
+  "ms": 20844,
+  "output": 2111,
+  "input": 138192,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2111,
+    "usd": 0.0777
+   }
+  }
+ },
+ {
+  "task": "rename",
+  "tier": "easy",
+  "strategy": "no plugin: always sonnet",
+  "run": 1,
+  "ok": true,
+  "usd": 0.06460060000000001,
+  "turns": 7,
+  "ms": 14482,
+  "output": 868,
+  "input": 158333,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 868,
+    "usd": 0.0646
+   }
+  }
+ },
+ {
+  "task": "rename",
+  "tier": "easy",
+  "strategy": "no plugin: always opus",
+  "run": 1,
+  "ok": true,
+  "usd": 0.1267568,
+  "turns": 8,
+  "ms": 21651,
+  "output": 1797,
+  "input": 160928,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 1797,
+    "usd": 0.1268
+   }
+  }
+ },
+ {
+  "task": "rename",
+  "tier": "easy",
+  "strategy": "no plugin: always opus",
+  "run": 2,
+  "ok": true,
+  "usd": 0.1159698,
+  "turns": 7,
+  "ms": 26919,
+  "output": 1562,
+  "input": 138487,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 1562,
+    "usd": 0.116
+   }
+  }
+ },
+ {
+  "task": "rename",
+  "tier": "easy",
+  "strategy": "no plugin: always sonnet",
+  "run": 2,
+  "ok": true,
+  "usd": 0.0639024,
+  "turns": 7,
+  "ms": 16655,
+  "output": 934,
+  "input": 157888,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 934,
+    "usd": 0.0639
+   }
+  }
+ },
+ {
+  "task": "rename",
+  "tier": "easy",
+  "strategy": "jev-router: per prompt",
+  "run": 1,
+  "ok": true,
+  "usd": 0.06395479999999999,
+  "turns": 7,
+  "ms": 14198,
+  "output": 874,
+  "input": 158072,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 874,
+    "usd": 0.064
+   }
+  }
+ },
+ {
+  "task": "rename",
+  "tier": "easy",
+  "strategy": "jev-router: per prompt",
+  "run": 2,
+  "ok": true,
+  "usd": 0.0639198,
+  "turns": 7,
+  "ms": 16111,
+  "output": 835,
+  "input": 158270,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 835,
+    "usd": 0.0639
+   }
+  }
+ },
+ {
+  "task": "rename",
+  "tier": "easy",
+  "strategy": "jev-router: every step + subagents",
+  "run": 1,
+  "ok": true,
+  "usd": 0.0635694,
+  "turns": 7,
+  "ms": 19099,
+  "output": 820,
+  "input": 158123,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 820,
+    "usd": 0.0636
+   }
+  }
+ },
+ {
+  "task": "rename",
+  "tier": "easy",
+  "strategy": "jev-router: every step + subagents",
+  "run": 2,
+  "ok": true,
+  "usd": 0.06337860000000001,
+  "turns": 7,
+  "ms": 17852,
+  "output": 942,
+  "input": 157092,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 942,
+    "usd": 0.0634
+   }
+  }
+ },
+ {
+  "task": "bugfix",
+  "tier": "easy",
+  "strategy": "no plugin: always opus",
+  "run": 1,
+  "ok": true,
+  "usd": 0.074759,
+  "turns": 5,
+  "ms": 10382,
+  "output": 716,
+  "input": 88908,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 716,
+    "usd": 0.0748
+   }
+  }
+ },
+ {
+  "task": "bugfix",
+  "tier": "easy",
+  "strategy": "no plugin: always opus",
+  "run": 2,
+  "ok": true,
+  "usd": 0.07525299999999999,
+  "turns": 5,
+  "ms": 10134,
+  "output": 741,
+  "input": 88878,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 741,
+    "usd": 0.0753
+   }
+  }
+ },
+ {
+  "task": "bugfix",
+  "tier": "easy",
+  "strategy": "no plugin: always sonnet",
+  "run": 1,
+  "ok": true,
+  "usd": 0.042852799999999996,
+  "turns": 5,
+  "ms": 8369,
+  "output": 562,
+  "input": 88261,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 562,
+    "usd": 0.0429
+   }
+  }
+ },
+ {
+  "task": "bugfix",
+  "tier": "easy",
+  "strategy": "no plugin: always sonnet",
+  "run": 2,
+  "ok": true,
+  "usd": 0.0505342,
+  "turns": 6,
+  "ms": 9676,
+  "output": 680,
+  "input": 111858,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 680,
+    "usd": 0.0505
+   }
+  }
+ },
+ {
+  "task": "bugfix",
+  "tier": "easy",
+  "strategy": "jev-router: per prompt",
+  "run": 1,
+  "ok": true,
+  "usd": 0.0425112,
+  "turns": 5,
+  "ms": 9130,
+  "output": 535,
+  "input": 88226,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 535,
+    "usd": 0.0425
+   }
+  }
+ },
+ {
+  "task": "bugfix",
+  "tier": "easy",
+  "strategy": "jev-router: per prompt",
+  "run": 2,
+  "ok": true,
+  "usd": 0.049340999999999996,
+  "turns": 6,
+  "ms": 11734,
+  "output": 673,
+  "input": 111087,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 673,
+    "usd": 0.0493
+   }
+  }
+ },
+ {
+  "task": "bugfix",
+  "tier": "easy",
+  "strategy": "jev-router: every step + subagents",
+  "run": 1,
+  "ok": true,
+  "usd": 0.049361,
+  "turns": 6,
+  "ms": 14044,
+  "output": 675,
+  "input": 111087,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 675,
+    "usd": 0.0494
+   }
+  }
+ },
+ {
+  "task": "bugfix",
+  "tier": "easy",
+  "strategy": "jev-router: every step + subagents",
+  "run": 2,
+  "ok": true,
+  "usd": 0.042838600000000004,
+  "turns": 5,
+  "ms": 10499,
+  "output": 527,
+  "input": 88420,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 527,
+    "usd": 0.0428
+   }
+  }
+ },
+ {
+  "task": "feature",
+  "tier": "standard",
+  "strategy": "no plugin: always opus",
+  "run": 1,
+  "ok": true,
+  "usd": 0.156489,
+  "turns": 6,
+  "ms": 33734,
+  "output": 3406,
+  "input": 118072,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 3406,
+    "usd": 0.1565
+   }
+  }
+ },
+ {
+  "task": "feature",
+  "tier": "standard",
+  "strategy": "no plugin: always sonnet",
+  "run": 1,
+  "ok": true,
+  "usd": 0.11934059999999999,
+  "turns": 14,
+  "ms": 32278,
+  "output": 4581,
+  "input": 149976,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 4581,
+    "usd": 0.1193
+   }
+  }
+ },
+ {
+  "task": "feature",
+  "tier": "standard",
+  "strategy": "no plugin: always opus",
+  "run": 2,
+  "ok": true,
+  "usd": 0.1964082,
+  "turns": 9,
+  "ms": 41584,
+  "output": 4258,
+  "input": 123346,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 4258,
+    "usd": 0.1964
+   }
+  }
+ },
+ {
+  "task": "feature",
+  "tier": "standard",
+  "strategy": "no plugin: always sonnet",
+  "run": 2,
+  "ok": true,
+  "usd": 0.0795564,
+  "turns": 9,
+  "ms": 22929,
+  "output": 2720,
+  "input": 115411,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2720,
+    "usd": 0.0796
+   }
+  }
+ },
+ {
+  "task": "feature",
+  "tier": "standard",
+  "strategy": "jev-router: per prompt",
+  "run": 1,
+  "ok": true,
+  "usd": 0.0736712,
+  "turns": 8,
+  "ms": 20151,
+  "output": 2307,
+  "input": 114710,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2307,
+    "usd": 0.0737
+   }
+  }
+ },
+ {
+  "task": "feature",
+  "tier": "standard",
+  "strategy": "jev-router: per prompt",
+  "run": 2,
+  "ok": true,
+  "usd": 0.0815954,
+  "turns": 7,
+  "ms": 23048,
+  "output": 2540,
+  "input": 141485,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2540,
+    "usd": 0.0816
+   }
+  }
+ },
+ {
+  "task": "feature",
+  "tier": "standard",
+  "strategy": "jev-router: every step + subagents",
+  "run": 1,
+  "ok": true,
+  "usd": 0.0822258,
+  "turns": 7,
+  "ms": 25676,
+  "output": 2591,
+  "input": 140415,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2591,
+    "usd": 0.0822
+   }
+  }
+ },
+ {
+  "task": "feature",
+  "tier": "standard",
+  "strategy": "jev-router: every step + subagents",
+  "run": 2,
+  "ok": true,
+  "usd": 0.08747020000000001,
+  "turns": 9,
+  "ms": 26647,
+  "output": 2545,
+  "input": 166069,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2545,
+    "usd": 0.0875
+   }
+  }
+ },
+ {
+  "task": "subagent",
+  "tier": "standard",
+  "strategy": "no plugin: always sonnet",
+  "run": 1,
+  "ok": true,
+  "usd": 0.0847717,
+  "turns": 2,
+  "ms": 6951,
+  "output": 2398,
+  "input": 103612,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2398,
+    "usd": 0.0848
+   }
+  }
+ },
+ {
+  "task": "subagent",
+  "tier": "standard",
+  "strategy": "no plugin: always opus",
+  "run": 2,
+  "ok": true,
+  "usd": 0.18761960000000003,
+  "turns": 4,
+  "ms": 42535,
+  "output": 4370,
+  "input": 112862,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 4370,
+    "usd": 0.1876
+   }
+  }
+ },
+ {
+  "task": "subagent",
+  "tier": "standard",
+  "strategy": "no plugin: always opus",
+  "run": 1,
+  "ok": true,
+  "usd": 0.2072872,
+  "turns": 4,
+  "ms": 63829,
+  "output": 4009,
+  "input": 119000,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 4009,
+    "usd": 0.2073
+   }
+  }
+ },
+ {
+  "task": "subagent",
+  "tier": "standard",
+  "strategy": "no plugin: always sonnet",
+  "run": 2,
+  "ok": true,
+  "usd": 0.0833297,
+  "turns": 2,
+  "ms": 10989,
+  "output": 2889,
+  "input": 112465,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2889,
+    "usd": 0.0833
+   }
+  }
+ },
+ {
+  "task": "subagent",
+  "tier": "standard",
+  "strategy": "jev-router: per prompt",
+  "run": 1,
+  "ok": true,
+  "usd": 0.047182779999999994,
+  "turns": 3,
+  "ms": 21330,
+  "output": 2772,
+  "input": 92483,
+  "models": {
+   "claude-haiku-5-5": {
+    "out": 1446,
+    "usd": 0.0025
+   },
+   "claude-opus-5-5": {
+    "out": 1326,
+    "usd": 0.0447
+   }
+  }
+ },
+ {
+  "task": "subagent",
+  "tier": "standard",
+  "strategy": "jev-router: per prompt",
+  "run": 2,
+  "ok": true,
+  "usd": 0.14155320000000002,
+  "turns": 2,
+  "ms": 9265,
+  "output": 3230,
+  "input": 113800,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 1506,
+    "usd": 0.0585
+   },
+   "claude-opus-5-5": {
+    "out": 1724,
+    "usd": 0.0831
+   }
+  }
+ },
+ {
+  "task": "subagent",
+  "tier": "standard",
+  "strategy": "jev-router: every step + subagents",
+  "run": 1,
+  "ok": true,
+  "usd": 0.02692015,
+  "turns": 2,
+  "ms": 4676,
+  "output": 2638,
+  "input": 112259,
+  "models": {
+   "claude-haiku-5-5": {
+    "out": 1294,
+    "usd": 0.0027
+   },
+   "claude-sonnet-5-5": {
+    "out": 1344,
+    "usd": 0.0242
+   }
+  }
+ },
+ {
+  "task": "subagent",
+  "tier": "standard",
+  "strategy": "jev-router: every step + subagents",
+  "run": 2,
+  "ok": true,
+  "usd": 0.019428809999999998,
+  "turns": 2,
+  "ms": 5277,
+  "output": 2417,
+  "input": 103582,
+  "models": {
+   "claude-haiku-5-5": {
+    "out": 1483,
+    "usd": 0.0028
+   },
+   "claude-sonnet-5-5": {
+    "out": 934,
+    "usd": 0.0166
+   }
+  }
+ },
+ {
+  "task": "refactor",
+  "tier": "standard",
+  "strategy": "no plugin: always opus",
+  "run": 1,
+  "ok": true,
+  "usd": 0.11547500000000001,
+  "turns": 8,
+  "ms": 21399,
+  "output": 1996,
+  "input": 115115,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 1996,
+    "usd": 0.1155
+   }
+  }
+ },
+ {
+  "task": "refactor",
+  "tier": "standard",
+  "strategy": "no plugin: always opus",
+  "run": 2,
+  "ok": true,
+  "usd": 0.1083914,
+  "turns": 7,
+  "ms": 17489,
+  "output": 1688,
+  "input": 92361,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 1688,
+    "usd": 0.1084
+   }
+  }
+ },
+ {
+  "task": "refactor",
+  "tier": "standard",
+  "strategy": "no plugin: always opus",
+  "run": 0,
+  "ok": true,
+  "usd": 0.08664279999999999,
+  "turns": 7,
+  "ms": 29776,
+  "output": 1756,
+  "input": 116127,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 1756,
+    "usd": 0.0866
+   }
+  }
+ },
+ {
+  "task": "refactor",
+  "tier": "standard",
+  "strategy": "no plugin: always sonnet",
+  "run": 1,
+  "ok": true,
+  "usd": 0.07114100000000001,
+  "turns": 12,
+  "ms": 17433,
+  "output": 1932,
+  "input": 115280,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 1932,
+    "usd": 0.0711
+   }
+  }
+ },
+ {
+  "task": "refactor",
+  "tier": "standard",
+  "strategy": "no plugin: always sonnet",
+  "run": 2,
+  "ok": true,
+  "usd": 0.0775298,
+  "turns": 13,
+  "ms": 22093,
+  "output": 1966,
+  "input": 139958,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 1966,
+    "usd": 0.0775
+   }
+  }
+ },
+ {
+  "task": "refactor",
+  "tier": "standard",
+  "strategy": "no plugin: always sonnet",
+  "run": 0,
+  "ok": true,
+  "usd": 0.0727444,
+  "turns": 13,
+  "ms": 28531,
+  "output": 2163,
+  "input": 166488,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2163,
+    "usd": 0.0727
+   }
+  }
+ },
+ {
+  "task": "refactor",
+  "tier": "standard",
+  "strategy": "jev-router: per prompt",
+  "run": 0,
+  "ok": true,
+  "usd": 0.0578048,
+  "turns": 12,
+  "ms": 19607,
+  "output": 1956,
+  "input": 115020,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 1956,
+    "usd": 0.0578
+   }
+  }
+ },
+ {
+  "task": "refactor",
+  "tier": "standard",
+  "strategy": "jev-router: per prompt",
+  "run": 1,
+  "ok": true,
+  "usd": 0.0710906,
+  "turns": 12,
+  "ms": 21542,
+  "output": 1963,
+  "input": 115283,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 1963,
+    "usd": 0.0711
+   }
+  }
+ },
+ {
+  "task": "refactor",
+  "tier": "standard",
+  "strategy": "jev-router: per prompt",
+  "run": 2,
+  "ok": true,
+  "usd": 0.0772406,
+  "turns": 12,
+  "ms": 22048,
+  "output": 2007,
+  "input": 140015,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2007,
+    "usd": 0.0772
+   }
+  }
+ },
+ {
+  "task": "refactor",
+  "tier": "standard",
+  "strategy": "jev-router: every step + subagents",
+  "run": 0,
+  "ok": true,
+  "usd": 0.0578914,
+  "turns": 12,
+  "ms": 22253,
+  "output": 1946,
+  "input": 115060,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 1946,
+    "usd": 0.0579
+   }
+  }
+ },
+ {
+  "task": "refactor",
+  "tier": "standard",
+  "strategy": "jev-router: every step + subagents",
+  "run": 1,
+  "ok": true,
+  "usd": 0.0707168,
+  "turns": 11,
+  "ms": 19487,
+  "output": 1910,
+  "input": 115304,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 1910,
+    "usd": 0.0707
+   }
+  }
+ },
+ {
+  "task": "refactor",
+  "tier": "standard",
+  "strategy": "jev-router: every step + subagents",
+  "run": 2,
+  "ok": true,
+  "usd": 0.07065640000000001,
+  "turns": 12,
+  "ms": 18709,
+  "output": 1903,
+  "input": 115219,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 1903,
+    "usd": 0.0707
+   }
+  }
+ },
+ {
+  "task": "hard",
+  "tier": "hard",
+  "strategy": "no plugin: always sonnet",
+  "run": 1,
+  "ok": true,
+  "usd": 0.0743948,
+  "turns": 6,
+  "ms": 23673,
+  "output": 1965,
+  "input": 137367,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 1965,
+    "usd": 0.0744
+   }
+  }
+ },
+ {
+  "task": "hard",
+  "tier": "hard",
+  "strategy": "no plugin: always opus",
+  "run": 2,
+  "ok": true,
+  "usd": 0.136588,
+  "turns": 8,
+  "ms": 27048,
+  "output": 2577,
+  "input": 116404,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 2577,
+    "usd": 0.1366
+   }
+  }
+ },
+ {
+  "task": "hard",
+  "tier": "hard",
+  "strategy": "no plugin: always opus",
+  "run": 1,
+  "ok": true,
+  "usd": 0.1328888,
+  "turns": 7,
+  "ms": 38473,
+  "output": 2596,
+  "input": 116834,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 2596,
+    "usd": 0.1329
+   }
+  }
+ },
+ {
+  "task": "hard",
+  "tier": "hard",
+  "strategy": "no plugin: always sonnet",
+  "run": 2,
+  "ok": true,
+  "usd": 0.06425900000000001,
+  "turns": 5,
+  "ms": 17031,
+  "output": 1642,
+  "input": 113363,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 1642,
+    "usd": 0.0643
+   }
+  }
+ },
+ {
+  "task": "hard",
+  "tier": "hard",
+  "strategy": "jev-router: per prompt",
+  "run": 2,
+  "ok": true,
+  "usd": 0.08138060000000001,
+  "turns": 6,
+  "ms": 26402,
+  "output": 2482,
+  "input": 139549,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2482,
+    "usd": 0.0814
+   }
+  }
+ },
+ {
+  "task": "hard",
+  "tier": "hard",
+  "strategy": "jev-router: per prompt",
+  "run": 1,
+  "ok": true,
+  "usd": 0.0784696,
+  "turns": 6,
+  "ms": 34305,
+  "output": 2094,
+  "input": 139055,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2094,
+    "usd": 0.0785
+   }
+  }
+ },
+ {
+  "task": "hard",
+  "tier": "hard",
+  "strategy": "jev-router: every step + subagents",
+  "run": 1,
+  "ok": true,
+  "usd": 0.08831800000000001,
+  "turns": 9,
+  "ms": 28519,
+  "output": 2720,
+  "input": 144248,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2720,
+    "usd": 0.0883
+   }
+  }
+ },
+ {
+  "task": "hard",
+  "tier": "hard",
+  "strategy": "jev-router: every step + subagents",
+  "run": 2,
+  "ok": true,
+  "usd": 0.0777902,
+  "turns": 6,
+  "ms": 24267,
+  "output": 2213,
+  "input": 138657,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2213,
+    "usd": 0.0778
+   }
+  }
+ }
+]

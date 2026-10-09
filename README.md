@@ -61,7 +61,7 @@ When the cache wins, the band says so: `opus (kept 🔒 cache warm; wanted haiku
 
 ## Does it pay off?
 
-Benchmarked on 30 single-prompt tasks (per-step and subagent routing are newer and **not benchmarked yet**): 270 calls to Jev for the picks, then 147 real runs for token usage and cost, with the effort cap at its default (`high`) and uncapped.
+Two benchmarks. First, 30 single-prompt tasks: 270 calls to Jev for the picks, then 147 real runs for token usage and cost, with the effort cap at its default (`high`) and uncapped. Second, 6 multi-step tasks with tools on a fixture repo, 72 real runs, checking per prompt against every-step-and-subagent routing.
 
 <p align="center">
   <img src="assets/fit.png" width="880" alt="Routing fit: efficient 100%, balanced 87%, cheap 66% of picks fit the task. 253 ms added per task, 97 to 100% same pick on repeat.">
@@ -85,6 +85,21 @@ The honest read: the model switch saves a lot on easy and mid tasks, and the def
 <p align="center">
   <img src="assets/cache.png" width="880" alt="Cache guard: following every pick in a warm session costs 4735 against 1500 for always opus. With the guard it is 1500. With cold cache and tasks 400 seconds apart it is 820.">
 </p>
+
+### Multi-step tasks, with tools
+
+<p align="center">
+  <img src="assets/agentic.png" width="880" alt="Multi-step tasks with tools, cost as a percentage of always opus: always sonnet 52%, jev-router per prompt 52%, jev-router every step and subagents 47%. All strategies finished 18 of 18 tasks.">
+</p>
+
+| 6 tasks × 3 runs, real runs with tools | tasks done | cost | vs always opus | vs always sonnet |
+| --- | --- | --- | --- | --- |
+| no plugin: always opus | 18/18 | $2.46 | | |
+| no plugin: always sonnet | 18/18 | $1.29 | -48% | |
+| jev-router, per prompt | 18/18 | $1.27 | -48% | -2% |
+| jev-router, every step + subagents | 18/18 | $1.15 | **-53%** | **-11%** |
+
+Routing every step and subagent saved 11% on top of per-prompt routing. Most of that comes from one task: asked to use a subagent, it paired a sonnet main thread with a haiku subagent where per-prompt routing sometimes left the subagent on opus. On the other five tasks it matched per-prompt routing. Honest limits: these are easy tasks on a small repo, three runs each, and every strategy finished all of them, so this shows nothing was lost here, not that nothing is lost on hard work. Jev picked sonnet for nearly every one of these tasks, so against always-sonnet the gain is small.
 
 Without the cache guard, following every pick in a long warm session cost 3x more than just using opus. Inside one long warm session the guard keeps you on the first model, so the savings above show up mostly when the cache is cold or the context is small. Method, per-tier tables and all caveats: [benchmarks/](benchmarks/README.md).
 
