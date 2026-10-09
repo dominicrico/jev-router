@@ -1,0 +1,12 @@
+{
+  "name": "jev-router",
+  "owner": { "name": "Dominic Rico Gómez", "url": "https://github.com/dominicrico" },
+  "metadata": { "description": "Claude Code mod: route each task to the right Claude model and effort with TypeSafe Jev" },
+  "plugins": [
+    {
+      "name": "jev-router",
+      "source": "./",
+      "description": "Asks TypeSafe Jev before each task which Claude model and effort fit best, then runs the turn on it"
+    }
+  ]
+}
