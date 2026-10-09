@@ -375,7 +375,7 @@ test('stepUnits prices cache reads low and output high, scaled by model weight',
   const u = { input_tokens: 1000, output_tokens: 100, cache_read_input_tokens: 10_000, cache_creation_input_tokens: 0 }
   expect(stepUnits(u, "opus")).toBe(12.5)
   expect(stepUnits(u, "haiku") * 5).toBe(12.5)
-  expect(savingsLine({ actual: 60, baseline: 100, steps: 4, name: 'opus' })).toContain('40% vs always opus over 4 steps')
+  expect(savingsLine({ actual: 60, baseline: 100, steps: 4, name: 'opus', models: {} })).toContain('40% vs always opus over 4 steps')
 })
 
 test('/jev status shows savings after steps and /jev stats clear resets them', OPTS, async ($, on) => {
@@ -447,4 +447,29 @@ test('an explicit model on the Agent call is respected', OPTS, async ($, on) => 
   on('agent.spawn', async (_$, e) => ({ model: e.model ?? '', agentId: 'agent-8' }) as any)
   await $.agent.spawn({ prompt: 'x', description: 'y', subagentType: 'Explore', model: 'opus' } as any)
   expect(w.bodies.length).toBe(0)
+})
+
+test('redact catches lowercase names, JSON keys and URL credentials, and leaves type words', OPTS, async () => {
+  expect(redact('password=hunter2')).toBe('password=[redacted]')
+  expect(redact('client_secret: xyz123')).toBe('client_secret: [redacted]')
+  expect(redact('export api_key=abc123def456')).toBe('export api_key=[redacted]')
+  expect(redact('{"apiKey": "abcd1234efgh5678"}')).toBe('{"apiKey": "[redacted]"}')
+  expect(redact('postgres://admin:s3cr3t@db.internal:5432/app')).toBe('postgres://admin:[redacted]@db.internal:5432/app')
+  expect(redact('AWS_SECRET_ACCESS_KEY=abc/def+ghi')).toContain('[redacted]')
+  expect(redact('DEFAULT_KEY: 3 and token: string')).toBe('DEFAULT_KEY: 3 and token: string')
+})
+
+test('!opus works without a Jev key, and the marker does not leak to the next prompt', { options: { mode: 'balanced' } }, async ($, on) => {
+  mock.store(on)
+  mock.env(on, {})
+  const w = world(on, jev('haiku', 'low'))
+  on('prompt.submit', async (_$, e) => ({ text: e.text }))
+  await $.prompt.submit({ text: '!opus hard thing' } as any)
+  await $.turn.start({ text: 'hard thing', turnId: 't1' })
+  await step($, 't1')
+  expect(w.steps[0].model).toBe('claude-opus-5-5')
+
+  await $.turn.start({ text: 'next thing', turnId: 't2' }) // no key: warns, no pin left over
+  await step($, 't2')
+  expect(w.steps[1].model).not.toBe('claude-opus-5-5')
 })

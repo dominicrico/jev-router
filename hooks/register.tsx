@@ -53,7 +53,6 @@ const enabledAtom = atom({ ...S, key: 'enabled' } as const, true)
 const lastAtom = atom({ ...S, key: 'last' } as const, null)
 const cacheAtom = atom({ ...S, key: 'cache' } as const, null)
 const stickyAtom = atom({ ...S, key: 'sticky' } as const, null)
-const statsAtom = atom({ ...S, key: 'stats' } as const, {})
 const capAtom = atom({ ...S, key: 'cap' } as const, null)
 const pendingAtom = atom({ ...S, key: 'pending' } as const, null)
 const frameAtom = atom({ ...S, key: 'frame' } as const, 0)
@@ -175,10 +174,10 @@ export const segments = (mode: Mode, last: Decision | null, frame: number | null
   ]
 }
 
-// One row per model: tasks routed to it this session, with a share bar.
+// One row per model: steps that ran on it, with a share bar.
 const usageRows = (stats: Record<string, number>, pool: string[]): [string, string][] => {
   const total = pool.reduce((n, m) => n + (stats[m] ?? 0), 0)
-  if (!total) return [['usage', 'no tasks routed yet']]
+  if (!total) return [['usage', 'no steps yet']]
   return pool.map((m, i): [string, string] => [
     i === 0 ? 'usage' : '',
     `${m.padEnd(7)} ${bar((stats[m] ?? 0) / total, '█', '░', 10)} ${String(stats[m] ?? 0).padStart(3)}  ${Math.round(((stats[m] ?? 0) / total) * 100)}%`,
@@ -225,8 +224,11 @@ const SECRETS: RegExp[] = [
   /\b(?:AKIA|ASIA)[A-Z0-9]{16}\b/g,
   /\bBearer\s+[A-Za-z0-9._~+/=-]{16,}/gi,
 ]
+// NAME=value / "name": "value" for names that read like a secret, and user:password@ in URLs.
+const SECRET_NAME = /\b([\w.-]*(?:password|passwd|pwd|secret|token|api[_-]?key|(?:private|access|signing|encryption|deploy|ssh)[_-]?key)[\w.-]*)(["']?\s*[=:]\s*["']?)(?!(?:string|number|boolean|null|undefined|true|false|any|object)\b)[^\s"',;}]{3,}/gi
+const URL_CREDENTIALS = /\b([a-z][a-z0-9+.-]*:\/\/[^\s:/@]+):[^\s@/]+@/gi
 export const redact = (text: string) =>
-  SECRETS.reduce((t, re) => t.replace(re, '[redacted]'), text).replace(/\b([A-Z][A-Z0-9_]*(?:KEY|TOKEN|SECRET|PASSWORD)[A-Z0-9_]*)\s*[=:]\s*\S+/g, '$1=[redacted]')
+  SECRETS.reduce((t, re) => t.replace(re, '[redacted]'), text).replace(SECRET_NAME, '$1$2[redacted]').replace(URL_CREDENTIALS, '$1:[redacted]@')
 
 // Used only when Jev is down and `fallback` is 'heuristic'. ponytail: three buckets from length and a few words; real routing needs Jev.
 export function heuristic(text: string, pool: readonly string[]): Picked {
@@ -379,47 +381,42 @@ async function restep($: EngineInterface, cfg: Config, e: { turnId: string; inde
   }
 }
 
-// Routes a subagent when it is spawned, from the full task prompt the Agent call gives it, so the pick is known
-// before the subagent exists: the spawn can carry the model and the subagent list can show it.
-async function routeSpawn($: EngineInterface, cfg: Config, e: { prompt: string; description: string; subagentType: string; parentModel: string }): Promise<Picked | null> {
+// Routes one subagent from the text of its task. Called at spawn (the full prompt, so the pick is known before the
+// subagent exists and the subagent list can show it) and, for agents no spawn hook saw, from their description.
+async function routeSubagent($: EngineInterface, cfg: Config, kind: string, text: string, parentModel: string): Promise<Picked | null> {
   const auth = await resolveKey($, cfg)
   if (!auth) return null
   try {
     const now = await $.clock.now()
     const mode = await currentMode($, cfg)
     const cap = (await read($, lastAtom))?.unlocked ? 'none' : (await read($, capAtom)) ?? cfg.defaultCap
-    const text = `Subagent task (${e.subagentType}): ${e.description}\n\n${e.prompt}`
-    const state = composeState(text, mode, e.parentModel, '', null, now, cfg)
 
-    return await decideFor($, cfg, `spawn ${e.subagentType}: ${e.description}`, auth.key, text, state, mode, null, now, cap)
+    return await decideFor($, cfg, kind, auth.key, text, composeState(text, mode, parentModel, '', null, now, cfg), mode, null, now, cap)
   } catch {
     return null
   }
 }
 
-// A subagent has its own context, so it is routed once, from what the Agent call said it is for.
-async function routeAgent($: EngineInterface, cfg: Config, id: string, current: string): Promise<Picked | null> {
-  const auth = await resolveKey($, cfg)
+async function routeAgent($: EngineInterface, cfg: Config, id: string, parentModel: string): Promise<Picked | null> {
   const info = (await $.agent.list()).find(a => a.id === id)
-  if (!auth || !info?.description) return null
-  try {
-    const now = await $.clock.now()
-    const mode = await currentMode($, cfg)
-    const cap = (await read($, lastAtom))?.unlocked ? 'none' : (await read($, capAtom)) ?? cfg.defaultCap
-    const state = composeState(`Subagent task (${info.type}): ${info.description}`, mode, current, '', null, now, cfg)
 
-    return await decideFor($, cfg, `agent ${info.type}: ${info.description}`, auth.key, info.description, state, mode, null, now, cap)
-  } catch {
-    return null
-  }
+  return info?.description ? routeSubagent($, cfg, `agent ${info.type}: ${info.description}`, `Subagent task (${info.type}): ${info.description}`, parentModel) : null
+}
+
+// The running totals, loaded from the plugin store once (in session.start, so parallel steps never race on it).
+const emptyTally = (name: string): Savings => ({ actual: 0, baseline: 0, steps: 0, name, models: {} })
+async function tally($: EngineInterface, cfg: Config): Promise<Savings> {
+  const stored = (await $.store.get('savings')) as Savings | undefined
+  // a new baseline starts a new tally
+  return stored && stored.name === cfg.baseline ? { ...emptyTally(cfg.baseline), ...stored } : emptyTally(cfg.baseline)
 }
 
 // Add one step to the running totals (kept across sessions in the plugin store).
 async function record($: EngineInterface, cfg: Config, u: (StepUsage & { model: string }) | undefined) {
   const alias = u && aliasOf(u.model)
   if (!u || !alias) return
-  totals ??= ((await $.store.get('savings')) as Savings | undefined) ?? { actual: 0, baseline: 0, steps: 0, name: cfg.baseline }
-  if (totals.name !== cfg.baseline) totals = { actual: 0, baseline: 0, steps: 0, name: cfg.baseline } // a new baseline starts a new tally
+  totals ??= await tally($, cfg)
+  totals.models[alias] = (totals.models[alias] ?? 0) + 1
   totals.actual += stepUnits(u, alias)
   totals.baseline += stepUnits(u, cfg.baseline)
   totals.steps++
@@ -496,7 +493,7 @@ export const register: Register = (on, options) => {
   // Pick the subagent's model at spawn and show it in the subagent list.
   on('agent.spawn', async ($, e, next) => {
     if (!cfg.routeSubagents || !(await read($, enabledAtom)) || e.model) return next(e) // an explicit model on the Agent call wins
-    const pick = await routeSpawn($, cfg, e)
+    const pick = await routeSubagent($, cfg, `spawn ${e.subagentType}: ${e.description}`, `Subagent task (${e.subagentType}): ${e.description}\n\n${e.prompt}`, e.parentModel)
     if (!pick) return next(e)
     const res = await next({ ...e, model: pick.alias, description: `${e.description} · ${pick.alias}/${pick.effort}` })
     if (res.agentId) agents.set(res.agentId, Promise.resolve(pick)) // its steps reuse the pick (and its effort)
@@ -526,6 +523,7 @@ export const register: Register = (on, options) => {
 
   on('session.start', async ($, e, next) => {
     agents.clear()
+    totals = await tally($, cfg)
     await $.command.register({
       name: 'jev',
       description: 'Jev model routing (prompt markers: !full !haiku !sonnet !opus !fable !cheap !efficient): efficient | balanced | cheap | sticky <off|auto|strict> | cap <effort|none> | full | on | off | status | key <key>',
@@ -539,8 +537,11 @@ export const register: Register = (on, options) => {
     if (!(await read($, enabledAtom)) || e.text.trim() === '' || skipNext) return next(e)
     task = e.text
     strikes = 0
+    const pending = await read($, pendingAtom)
+    if (pending) await update($, pendingAtom, () => null) // one prompt only, even if nothing can be routed
     const auth = await resolveKey($, cfg)
-    if (!auth) {
+    if (!auth && !pending?.pin) { // a pinned model needs no Jev call, so no key either
+      await update($, lastAtom, () => null) // never run this prompt on the previous task's pick
       if (!(await read($, warnedAtom))) {
         await update($, warnedAtom, () => true)
         $.ui.toast('Jev: no TypeSafe API key. Run /jev key <key> or set TYPESAFE_API_KEY')
@@ -548,8 +549,6 @@ export const register: Register = (on, options) => {
       return next(e)
     }
 
-    const pending = await read($, pendingAtom)
-    if (pending) await update($, pendingAtom, () => null) // one prompt only
     const unlocked = pending?.full === true
     const mode = pending?.mode ?? (await currentMode($, cfg))
     try {
@@ -559,10 +558,9 @@ export const register: Register = (on, options) => {
       // A pinned model skips Jev; its effort is the cap (high by default).
       const picked = pending?.pin
         ? { alias: pending.pin, model: CLAUDE[pending.pin]!.id, effort: cap === 'none' ? 'high' : cap, confidence: 1, pinned: true }
-        : await decideFor($, cfg, 'prompt', auth.key, e.text, await buildState($, e.text, mode, cache, now, cfg), mode, cache, now, cap)
+        : await decideFor($, cfg, 'prompt', auth!.key, e.text, await buildState($, e.text, mode, cache, now, cfg), mode, cache, now, cap)
       const decision: Decision = { turnId: e.turnId, ...picked, unlocked }
       await update($, lastAtom, () => decision)
-      await update($, statsAtom, n => ({ ...n, [decision.alias]: (n[decision.alias] ?? 0) + 1 }))
     } catch (err) {
       await update($, lastAtom, () => null)
       if (!(await read($, warnedAtom))) {
@@ -678,8 +676,8 @@ export const register: Register = (on, options) => {
           ['sticky', `${(await read($, stickyAtom)) ?? cfg.defaultSticky}   cache ${warm ? '● warm' : '○ cold'}`],
           ['cap', `${(await read($, capAtom)) ?? cfg.defaultCap}${(await read($, pendingAtom)) ? '   🔓 next prompt: overrides set' : ''}`],
           ['last', last ? `${last.alias} / ${last.effort}  ${gauge(last.confidence)} ${last.confidence.toFixed(2)}${last.kept ? `  kept (wanted ${last.kept})` : ''}${last.capped ? `  capped from ${last.capped}` : ''}` : 'none yet'],
-          ...usageRows(await read($, statsAtom), cfg.pool),
-          ['saved', savingsLine(totals ?? ((await $.store.get('savings')) as Savings | undefined) ?? { actual: 0, baseline: 0, steps: 0, name: cfg.baseline })],
+          ...usageRows(totals?.models ?? {}, cfg.pool),
+          ['saved', savingsLine(totals ?? (await tally($, cfg)))],
           ['jev', isPaused(await $.clock.now()) ? `⚠ paused ${Math.ceil((pausedUntil - (await $.clock.now())) / 1000)} s` : '● ok'],
           ['key', auth ? `…${auth.key.slice(-4)}  (${auth.source})` : 'none: /jev key <key>'],
         ]),
