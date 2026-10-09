@@ -34,9 +34,9 @@ jev-router puts a switchman in front of your session. Before every task he reads
 
 A live band above your prompt shows what he picked. Colour coded, with a spinner while a task runs.
 
-```
-◆ JEV ▏balanced▕  sonnet ▂▄__  │  medium ▰▰▱▱▱  │  conf ▮▮▮▮▯ 88%  │  cache 🔒 warm 42k
-```
+<p align="center">
+  <img src="assets/band.png" width="880" alt="The band above the prompt: JEV, balanced mode, sonnet, medium effort, 88% confidence, warm cache of 42k tokens. Four colour-coded tiers below: haiku trivial, sonnet standard, opus hard, fable hardest.">
+</p>
 
 | Part | Meaning |
 | --- | --- |
@@ -61,17 +61,27 @@ When the cache wins, the band says so: `opus (kept 🔒 cache warm; wanted haiku
 
 Benchmarked on 30 tasks: 270 calls to Jev for the picks, then 131 real runs for token usage and cost.
 
-| | efficient | balanced | cheap |
-| --- | --- | --- | --- |
-| Picks the model that fits the task | 100% | 87% | 66% |
-| Cost on trivial tasks vs always opus | -97% | -97% | -97% |
-| Cost on standard tasks vs always opus | -65% | -65% | -68% |
-| Cost on hard tasks vs always opus | +242% | +207% | -39% |
-| Cost overall vs always opus | +123% | +101% | **-53%** |
+<p align="center">
+  <img src="assets/fit.png" width="880" alt="Routing fit: efficient 100%, balanced 87%, cheap 66% of picks fit the task. 253 ms added per task, 97 to 100% same pick on repeat.">
+</p>
 
-The honest read: the model switch saves a lot on easy and mid tasks. On hard tasks Jev also asks for `xhigh` effort, so `efficient` and `balanced` spend more tokens thinking than opus at its default, which is deeper reasoning rather than savings. Only `cheap` is cheaper overall. Asking Jev adds about 250 ms. Without the cache guard, following every pick in a long warm session cost 3x more than just using opus. This measures spend, not answer quality. Method, per-tier tables and all caveats: [benchmarks/](benchmarks/README.md).
+<p align="center">
+  <img src="assets/cost.png" width="880" alt="Cost as a percentage of always opus. Trivial tasks cost 3%, standard 32 to 35%, hard tasks 342%, 307% and 61% for efficient, balanced and cheap. Overall 223%, 201% and 47%.">
+</p>
+
+The honest read: the model switch saves a lot on easy and mid tasks. On hard tasks Jev also asks for `xhigh` effort, so `efficient` and `balanced` spend more tokens thinking than opus at its default, which is deeper reasoning rather than savings. Only `cheap` is cheaper overall.
+
+<p align="center">
+  <img src="assets/cache.png" width="880" alt="Cache guard: following every pick in a warm session costs 4735 against 1500 for always opus. With the guard it is 1500. With cold cache and tasks 400 seconds apart it is 820.">
+</p>
+
+Without the cache guard, following every pick in a long warm session cost 3x more than just using opus. This measures spend, not answer quality. Method, per-tier tables and all caveats: [benchmarks/](benchmarks/README.md).
 
 ## How it works
+
+<p align="center">
+  <img src="assets/how.png" width="880" alt="How it works in five steps: a task arrives, ask Jev which model and effort, check whether the prompt cache is warm, run the turn on the pick, show it above the prompt.">
+</p>
 
 On each new task the mod sends Jev the routing mode, the current model, the cache state, the last few messages and the task text, and asks two choice questions: which model, and how much effort. The answer is applied to every step of that task. After each step the mod notes which model the API cached and how many tokens, so the next task knows whether a switch is worth losing the cache.
 
