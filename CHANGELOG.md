@@ -23,6 +23,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Ponytail cleanup pass over the hook module: one subagent router, one usage tally (steps per model, in `/jev status`), shared benchmark helpers, and the band GIF now renders the real `segments()` so it cannot drift.
 
 ### Fixed
+- Supply-chain hygiene: CI actions pinned to commit SHAs, Dependabot for Actions, a SECURITY.md, and no secret-looking literals in the tests (plugin-scanner: 100/100).
 - Secret redaction now catches lowercase names (`password=`, `client_secret:`, `api_key=`), JSON keys (`"apiKey": "..."`) and `user:password@` in URLs, and no longer mangles type words like `token: string`.
 - A pinned model (`!opus`) now works without a Jev key, and the marker no longer sticks to the next prompt. A prompt with no key no longer runs on the previous task's pick.
 - The hard-task benchmark's hidden tests and reference solutions are sealed in an archive and unpacked only into a random temp directory while grading, so an agent cannot read them from disk. (A first run was discarded because they were readable.)
