@@ -68,7 +68,7 @@ When the cache wins, the band says so: `opus (kept 🔒 cache warm; wanted haiku
 
 ## Does it pay off?
 
-Two benchmarks. First, 30 single-prompt tasks: 270 calls to Jev for the picks, then 147 real runs for token usage and cost, with the effort cap at its default (`high`) and uncapped. Second, 6 multi-step tasks with tools on a fixture repo, 72 real runs, checking per prompt against every-step-and-subagent routing.
+Three benchmarks. First, 30 single-prompt tasks: 270 calls to Jev for the picks, then 147 real runs for token usage and cost, with the effort cap at its default (`high`) and uncapped. Second, 6 multi-step tasks with tools on a fixture repo, 72 real runs, checking per prompt against every-step-and-subagent routing. Third, 4 harder tasks graded by hidden tests, 100 real runs, where quality is measured.
 
 <p align="center">
   <img src="assets/fit.png" width="880" alt="Routing fit: efficient 100%, balanced 87%, cheap 66% of picks fit the task. 253 ms added per task, 97 to 100% same pick on repeat.">
@@ -107,6 +107,22 @@ The honest read: the model switch saves a lot on easy and mid tasks, and the def
 | jev-router, every step + subagents | 18/18 | $1.15 | **-53%** | **-11%** |
 
 Routing every step and subagent saved 11% on top of per-prompt routing. Most of that comes from one task: asked to use a subagent, it paired a sonnet main thread with a haiku subagent where per-prompt routing sometimes left the subagent on opus. On the other five tasks it matched per-prompt routing. Honest limits: these are easy tasks on a small repo, three runs each, and every strategy finished all of them, so this shows nothing was lost here, not that nothing is lost on hard work. Jev picked sonnet for nearly every one of these tasks, so against always-sonnet the gain is small.
+
+### Harder tasks, graded by hidden tests
+
+<p align="center">
+  <img src="assets/hard.png" width="880" alt="Harder tasks graded by hidden tests, cost as a percentage of always opus: always sonnet 39%, jev-router per prompt 86%, every step and subagents 67%, with !full 60%. Tasks done out of 20: opus 19, sonnet 19, per prompt 19, every step 18, !full 20.">
+</p>
+
+| 4 tasks × 5 runs, hidden tests | tasks done | cost | vs always opus | vs always sonnet |
+| --- | --- | --- | --- | --- |
+| no plugin: always opus | 19/20 | $3.10 | | |
+| no plugin: always sonnet | 19/20 | $1.19 | -61% | |
+| jev-router, per prompt | 19/20 | $2.65 | -14% | +122% |
+| jev-router, every step + subagents | 18/20 | $2.08 | -33% | +74% |
+| jev-router, `!full` | 20/20 | $1.87 | -40% | +57% |
+
+The honest read: **on these tasks plain sonnet did as well as opus, and was the cheapest.** The tasks (a concurrency bug, an interval merger with open and closed bounds, a refactor that must keep an invariant, a flaky test with three causes) are harder than the first set, but not hard enough to need opus. jev-router lands between the two on cost because Jev sent about half of the spend to opus. Pass counts differ by at most one run, so none of the quality differences are significant at 5 runs. If your work looks like this, routing buys you less than just using sonnet; it earns its keep when tasks vary, or when your default is opus.
 
 Without the cache guard, following every pick in a long warm session cost 3x more than just using opus. Inside one long warm session the guard keeps you on the first model, so the savings above show up mostly when the cache is cold or the context is small. Method, per-tier tables and all caveats: [benchmarks/](benchmarks/README.md).
 

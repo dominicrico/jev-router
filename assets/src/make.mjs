@@ -61,7 +61,7 @@ ${groups.map(([name, tier]) => `<div style="font-size:16px;font-weight:700;paddi
 <div style="display:flex;gap:22px;margin-top:24px;font-size:13px;color:#94a3b8;flex-wrap:wrap;align-items:center">
  <span><i style="display:inline-block;width:22px;height:8px;border-radius:4px;background:${G};vertical-align:0"></i> jev-router, effort capped at high (default)</span>
  <span><i style="display:inline-block;width:3px;height:14px;border-radius:2px;background:#fbbf24;vertical-align:-3px"></i> same mode, uncapped</span></div>
-<div class=foot>Cost as % of always opus at its default effort (= 100%), real runs with no tools in an empty directory. Always sonnet would be ${pctOpus(null, 'sonnet')}% overall. The cap only matters on hard tasks, where Jev asks for xhigh effort. Multi-step runs check the task got done. Hard-task answer quality is not measured.</div></div>`
+<div class=foot>Cost as % of always opus at its default effort (= 100%), real runs with no tools in an empty directory. Always sonnet would be ${pctOpus(null, 'sonnet')}% overall. The cap only matters on hard tasks, where Jev asks for xhigh effort. Multi-step runs check the task got done. Quality is measured on the tool-using tasks only.</div></div>`
 
 const [fE, uE] = fit('efficient'), [fB, uB] = fit('balanced'), [fC, uC] = fit('cheap')
 const fitCard = `<div class=card><div class=eye>Routing fit · 30 tasks × 3 modes × 3 runs</div>
@@ -102,16 +102,23 @@ ${[['#4ade80', 'haiku', 'trivial'], ['#60a5fa', 'sonnet', 'standard'], ['#c084fc
 
 
 const AS = [['no plugin: always opus', 'always opus', '#475569'], ['no plugin: always sonnet', 'always sonnet', '#64748b'], ['jev-router: per prompt', 'jev-router, per prompt', G], ['jev-router: every step + subagents', 'jev-router, every step + subagents', G]]
-const aCost = (st, t) => ag.filter(r => r.strategy === st && (!t || r.task === t)).reduce((a, r) => a + r.usd, 0)
-const aDone = st => { const r = ag.filter(x => x.strategy === st); return `${r.filter(x => x.ok).length}/${r.length}` }
+const AS2 = [...AS, ['jev-router: !full', 'jev-router, !full', G]]
+const ag2 = JSON.parse(readFileSync(res('agentic2.json'), 'utf8'))
+const aCost = (st, t, rows = ag) => rows.filter(r => r.strategy === st && (!t || r.task === t)).reduce((a, r) => a + r.usd, 0)
+const aDone = (st, rows = ag) => { const r = rows.filter(x => x.strategy === st); return `${r.filter(x => x.ok).length}/${r.length}` }
 const aBase = aCost(AS[0][0])
-const aRow = ([st, label, fill], tier) => { const c = aCost(st, tier), b = aCost(AS[0][0], tier), pc = Math.round((100 * c) / b); return `<div style="display:flex;align-items:center;gap:12px"><span class=mono style="width:${tier === undefined ? 210 : 0}px;font-size:12px;color:#94a3b8">${label}</span><div style="width:${(pc / 100) * 320}px;height:14px;border-radius:7px;background:${fill}"></div><span class=mono style="font-size:13px;font-weight:700">${pc}%</span></div>` }
-const agenticCard = `<div class=card><div class=eye>Benchmark · 6 multi-step tasks · ${ag.length} real runs with tools</div>
-<h1>Same tasks done, <span class=g>${Math.round(100 - (100 * aCost(AS[3][0])) / aBase)}% cheaper</span> than always opus.</h1>
-<div style="display:grid;gap:12px">${AS.map(a => aRow(a)).join('')}</div>
-<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:26px">
-${AS.map(([st, label]) => `<div style="border:1px solid #1e293b;background:#0e1730;border-radius:14px;padding:14px"><div class=mono style="font-size:22px;font-weight:700">$${aCost(st).toFixed(2)}</div><div class=muted style="font-size:12px;margin:3px 0 6px">${label}</div><div style="font-size:13px;color:#5eead4">${aDone(st)} done</div></div>`).join('')}</div>
-<div class=foot>Cost as % of always opus (= 100%). A script checks each task is really done: tests pass, the fix works, the files exist. 3 runs each on a small fixture repo. The extra saving from routing every step and subagent comes mostly from the subagent task, where it paired a sonnet main thread with a haiku subagent. All four strategies finished 18 of 18, so on these easy tasks nothing was lost, but they are not hard tasks.</div></div>`
+const strategyCard = (rows, list, eye, h1, foot) => {
+  const base = aCost(list[0][0], undefined, rows)
+  const row = ([st, label, fill]) => { const pc = Math.round((100 * aCost(st, undefined, rows)) / base); return `<div style="display:flex;align-items:center;gap:12px"><span class=mono style="width:210px;font-size:12px;color:#94a3b8">${label}</span><div style="width:${Math.min(pc, 110) / 100 * 320}px;height:14px;border-radius:7px;background:${fill}"></div><span class=mono style="font-size:13px;font-weight:700">${pc}%</span></div>` }
+  const cols = list.length
+  return `<div class=card><div class=eye>${eye}</div><h1>${h1}</h1>
+<div style="display:grid;gap:12px">${list.map(row).join('')}</div>
+<div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:12px;margin-top:26px">
+${list.map(([st, label]) => `<div style="border:1px solid #1e293b;background:#0e1730;border-radius:14px;padding:14px"><div class=mono style="font-size:20px;font-weight:700">$${aCost(st, undefined, rows).toFixed(2)}</div><div class=muted style="font-size:11.5px;margin:3px 0 6px">${label}</div><div style="font-size:13px;color:#5eead4">${aDone(st, rows)} done</div></div>`).join('')}</div>
+<div class=foot>${foot}</div></div>`
+}
+const agenticCard = strategyCard(ag, AS, `Benchmark · 6 multi-step tasks · ${ag.length} real runs with tools`, `Same tasks done, <span class=g>${Math.round(100 - (100 * aCost(AS[3][0])) / aBase)}% cheaper</span> than always opus.`, 'Cost as % of always opus (= 100%). A script checks each task is really done: tests pass, the fix works, the files exist. 3 runs each on a small fixture repo. The extra saving from routing every step and subagent comes mostly from the subagent task. All four strategies finished 18 of 18, but these are not hard tasks.')
+const hardCard = strategyCard(ag2, AS2, `Benchmark · 4 harder tasks · ${ag2.length} real runs, graded by hidden tests`, `On harder tasks sonnet alone <span class=g>did as well</span> as opus, for less.`, 'Cost as % of always opus (= 100%). Each task is graded by a hidden test the agent never saw. 5 runs each. Pass counts differ by at most one run, which is noise at this size: always sonnet is the cheapest and matched always opus. jev-router lands between the two, and !full finished 20 of 20.')
 
 const lanes = [['haiku', '#4ade80', 85, ['rename usr to user', 'fix typo in README']], ['sonnet', '#60a5fa', 185, ['add /health endpoint + test']], ['opus', '#c084fc', 285, ['double-charge root cause', 'migrate auth to JWT']], ['fable', '#fbbf24', 385, []]]
 const hero = `<div style="width:880px;height:495px;position:relative;background:radial-gradient(700px 420px at 18% 40%,#16305f 0%,#0b1020 65%);overflow:hidden">
@@ -129,7 +136,7 @@ ${lanes.map(([n, c, y, ts]) => `<div class=mono style="position:absolute;left:28
 ${[[`-${100 - pctOpus('trivial', 'cheap', true)}%`, 'cost, trivial'], [`-${100 - pctOpus('standard', 'balanced', true)}%`, 'cost, standard'], [`-${Math.round(100 - (100 * aCost(AS[3][0])) / aBase)}%`, 'multi-step tasks'], [`${q(0.5)}ms`, 'per pick']].map(([v, l]) => `<div><div class=mono style="font-size:24px;font-weight:700">${v}</div><div class=muted style="font-size:11.5px;margin-top:2px">${l}</div></div>`).join('')}</div>
 <div style="margin-top:28px;font-size:15px"><i class=muted>And yet</i> <b style="font-size:21px" class=g>hard tasks cost more.</b></div>
 <div style="font-size:12.5px;margin-top:6px" class=muted>Jev buys deeper reasoning there: +${pctOpus('hard', 'balanced', true) - 100}% to +${pctOpus('hard', 'efficient', true) - 100}% at the default cap of high.<br>Lift it for one prompt with <span class=mono style="color:#5eead4">!full</span>.</div></div>
-<div style="position:absolute;left:0;right:0;bottom:0;padding:12px 30px 16px;font-size:11px" class=muted>30 tasks, 270 Jev calls, ${147 + ag.length} real runs. Opus 5.5, Sonnet 5.5, Haiku 5.5. Multi-step runs check the task got done. Hard-task answer quality is not measured.</div></div>`
+<div style="position:absolute;left:0;right:0;bottom:0;padding:12px 30px 16px;font-size:11px" class=muted>30 tasks, 270 Jev calls, ${147 + ag.length + ag2.length} real runs. Opus 5.5, Sonnet 5.5, Haiku 5.5. Multi-step runs check the task got done. Quality is measured on the tool-using tasks only.</div></div>`
 
 mkdirSync(join(here, '..'), { recursive: true })
 const browser = await chromium.launch({ executablePath: process.env.CHROME })
@@ -141,5 +148,5 @@ const shoot = async (html, out, w, type = 'png') => {
 }
 await shoot(hero, 'hero.jpg', 880, 'jpeg')
 await shoot(costCard, 'cost.png', 880); await shoot(fitCard, 'fit.png', 880); await shoot(cacheCard, 'cache.png', 880)
-await shoot(howCard, 'how.png', 880); await shoot(agenticCard, 'agentic.png', 880); await shoot(bandCard, 'band.png', 880)
+await shoot(howCard, 'how.png', 880); await shoot(agenticCard, 'agentic.png', 880); await shoot(hardCard, 'hard.png', 880); await shoot(bandCard, 'band.png', 880)
 await browser.close()

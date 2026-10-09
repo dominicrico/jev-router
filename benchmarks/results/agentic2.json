@@ -1,0 +1,1802 @@
+[
+ {
+  "task": "queue",
+  "tier": "hard",
+  "strategy": "no plugin: always opus",
+  "run": 0,
+  "ok": true,
+  "usd": 0.1268602,
+  "turns": 5,
+  "ms": 225513,
+  "output": 3047,
+  "input": 121775,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 3047,
+    "usd": 0.1269
+   }
+  }
+ },
+ {
+  "task": "queue",
+  "tier": "hard",
+  "strategy": "no plugin: always opus",
+  "run": 1,
+  "ok": true,
+  "usd": 0.1399338,
+  "turns": 6,
+  "ms": 244223,
+  "output": 2900,
+  "input": 147556,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 2900,
+    "usd": 0.1399
+   }
+  }
+ },
+ {
+  "task": "queue",
+  "tier": "hard",
+  "strategy": "no plugin: always opus",
+  "run": 2,
+  "ok": false,
+  "usd": 0.1399636,
+  "turns": 6,
+  "ms": 244131,
+  "output": 3174,
+  "input": 147683,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 3174,
+    "usd": 0.14
+   }
+  }
+ },
+ {
+  "task": "queue",
+  "tier": "hard",
+  "strategy": "no plugin: always opus",
+  "run": 3,
+  "ok": true,
+  "usd": 0.1226006,
+  "turns": 6,
+  "ms": 32214,
+  "output": 2926,
+  "input": 144363,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 2926,
+    "usd": 0.1226
+   }
+  }
+ },
+ {
+  "task": "queue",
+  "tier": "hard",
+  "strategy": "no plugin: always opus",
+  "run": 4,
+  "ok": true,
+  "usd": 0.1265444,
+  "turns": 5,
+  "ms": 36424,
+  "output": 3255,
+  "input": 120456,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 3255,
+    "usd": 0.1265
+   }
+  }
+ },
+ {
+  "task": "queue",
+  "tier": "hard",
+  "strategy": "no plugin: always sonnet",
+  "run": 0,
+  "ok": true,
+  "usd": 0.0526452,
+  "turns": 8,
+  "ms": 35680,
+  "output": 1675,
+  "input": 115052,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 1675,
+    "usd": 0.0526
+   }
+  }
+ },
+ {
+  "task": "queue",
+  "tier": "hard",
+  "strategy": "no plugin: always sonnet",
+  "run": 1,
+  "ok": true,
+  "usd": 0.051246799999999995,
+  "turns": 8,
+  "ms": 20095,
+  "output": 1550,
+  "input": 115032,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 1550,
+    "usd": 0.0512
+   }
+  }
+ },
+ {
+  "task": "queue",
+  "tier": "hard",
+  "strategy": "no plugin: always sonnet",
+  "run": 2,
+  "ok": true,
+  "usd": 0.0352002,
+  "turns": 3,
+  "ms": 14803,
+  "output": 1325,
+  "input": 67194,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 1325,
+    "usd": 0.0352
+   }
+  }
+ },
+ {
+  "task": "queue",
+  "tier": "hard",
+  "strategy": "no plugin: always sonnet",
+  "run": 3,
+  "ok": true,
+  "usd": 0.0390786,
+  "turns": 4,
+  "ms": 19217,
+  "output": 1235,
+  "input": 90422,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 1235,
+    "usd": 0.0391
+   }
+  }
+ },
+ {
+  "task": "queue",
+  "tier": "hard",
+  "strategy": "no plugin: always sonnet",
+  "run": 4,
+  "ok": false,
+  "usd": 0.0645732,
+  "turns": 9,
+  "ms": 22909,
+  "output": 2425,
+  "input": 117394,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2425,
+    "usd": 0.0646
+   }
+  }
+ },
+ {
+  "task": "queue",
+  "tier": "hard",
+  "strategy": "jev-router: per prompt",
+  "run": 0,
+  "ok": true,
+  "usd": 0.0680856,
+  "turns": 9,
+  "ms": 34197,
+  "output": 2642,
+  "input": 118102,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2642,
+    "usd": 0.0681
+   }
+  }
+ },
+ {
+  "task": "queue",
+  "tier": "hard",
+  "strategy": "jev-router: per prompt",
+  "run": 2,
+  "ok": true,
+  "usd": 0.041926200000000004,
+  "turns": 3,
+  "ms": 19146,
+  "output": 1875,
+  "input": 67510,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 1875,
+    "usd": 0.0419
+   }
+  }
+ },
+ {
+  "task": "queue",
+  "tier": "hard",
+  "strategy": "jev-router: per prompt",
+  "run": 1,
+  "ok": false,
+  "usd": 0.10056580000000001,
+  "turns": 11,
+  "ms": 39723,
+  "output": 3720,
+  "input": 198410,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 3720,
+    "usd": 0.1006
+   }
+  }
+ },
+ {
+  "task": "queue",
+  "tier": "hard",
+  "strategy": "jev-router: per prompt",
+  "run": 3,
+  "ok": true,
+  "usd": 0.10130680000000002,
+  "turns": 12,
+  "ms": 33986,
+  "output": 3708,
+  "input": 198478,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 3708,
+    "usd": 0.1013
+   }
+  }
+ },
+ {
+  "task": "queue",
+  "tier": "hard",
+  "strategy": "jev-router: per prompt",
+  "run": 4,
+  "ok": true,
+  "usd": 0.08862799999999998,
+  "turns": 11,
+  "ms": 29789,
+  "output": 3278,
+  "input": 171099,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 3278,
+    "usd": 0.0886
+   }
+  }
+ },
+ {
+  "task": "queue",
+  "tier": "hard",
+  "strategy": "jev-router: every step + subagents",
+  "run": 0,
+  "ok": true,
+  "usd": 0.068035,
+  "turns": 9,
+  "ms": 27970,
+  "output": 2714,
+  "input": 117517,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2714,
+    "usd": 0.068
+   }
+  }
+ },
+ {
+  "task": "queue",
+  "tier": "hard",
+  "strategy": "jev-router: every step + subagents",
+  "run": 1,
+  "ok": false,
+  "usd": 0.074648,
+  "turns": 10,
+  "ms": 28687,
+  "output": 3118,
+  "input": 118298,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 3118,
+    "usd": 0.0746
+   }
+  }
+ },
+ {
+  "task": "queue",
+  "tier": "hard",
+  "strategy": "jev-router: every step + subagents",
+  "run": 2,
+  "ok": true,
+  "usd": 0.0525186,
+  "turns": 4,
+  "ms": 28344,
+  "output": 2120,
+  "input": 90534,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2120,
+    "usd": 0.0525
+   }
+  }
+ },
+ {
+  "task": "queue",
+  "tier": "hard",
+  "strategy": "jev-router: every step + subagents",
+  "run": 3,
+  "ok": true,
+  "usd": 0.06605240000000001,
+  "turns": 9,
+  "ms": 26078,
+  "output": 2519,
+  "input": 117506,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2519,
+    "usd": 0.0661
+   }
+  }
+ },
+ {
+  "task": "queue",
+  "tier": "hard",
+  "strategy": "jev-router: every step + subagents",
+  "run": 4,
+  "ok": false,
+  "usd": 0.072662,
+  "turns": 5,
+  "ms": 27150,
+  "output": 3153,
+  "input": 117752,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 3153,
+    "usd": 0.0727
+   }
+  }
+ },
+ {
+  "task": "queue",
+  "tier": "hard",
+  "strategy": "jev-router: !full",
+  "run": 0,
+  "ok": true,
+  "usd": 0.067791,
+  "turns": 9,
+  "ms": 25470,
+  "output": 2667,
+  "input": 117564,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2667,
+    "usd": 0.0678
+   }
+  }
+ },
+ {
+  "task": "queue",
+  "tier": "hard",
+  "strategy": "jev-router: !full",
+  "run": 1,
+  "ok": true,
+  "usd": 0.07635760000000001,
+  "turns": 9,
+  "ms": 28043,
+  "output": 2842,
+  "input": 143611,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2842,
+    "usd": 0.0764
+   }
+  }
+ },
+ {
+  "task": "queue",
+  "tier": "hard",
+  "strategy": "jev-router: !full",
+  "run": 3,
+  "ok": true,
+  "usd": 0.0669234,
+  "turns": 9,
+  "ms": 23818,
+  "output": 2591,
+  "input": 117634,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2591,
+    "usd": 0.0669
+   }
+  }
+ },
+ {
+  "task": "queue",
+  "tier": "hard",
+  "strategy": "jev-router: !full",
+  "run": 4,
+  "ok": true,
+  "usd": 0.05128060000000001,
+  "turns": 4,
+  "ms": 24645,
+  "output": 2057,
+  "input": 90382,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2057,
+    "usd": 0.0513
+   }
+  }
+ },
+ {
+  "task": "queue",
+  "tier": "hard",
+  "strategy": "jev-router: !full",
+  "run": 2,
+  "ok": true,
+  "usd": 0.07827780000000001,
+  "turns": 10,
+  "ms": 35757,
+  "output": 3024,
+  "input": 144473,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 3024,
+    "usd": 0.0783
+   }
+  }
+ },
+ {
+  "task": "intervals",
+  "tier": "hard",
+  "strategy": "no plugin: always opus",
+  "run": 1,
+  "ok": true,
+  "usd": 0.1216338,
+  "turns": 3,
+  "ms": 33828,
+  "output": 3751,
+  "input": 68726,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 3751,
+    "usd": 0.1216
+   }
+  }
+ },
+ {
+  "task": "intervals",
+  "tier": "hard",
+  "strategy": "no plugin: always opus",
+  "run": 0,
+  "ok": true,
+  "usd": 0.13201799999999997,
+  "turns": 3,
+  "ms": 37577,
+  "output": 4141,
+  "input": 69050,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 4141,
+    "usd": 0.132
+   }
+  }
+ },
+ {
+  "task": "intervals",
+  "tier": "hard",
+  "strategy": "no plugin: always opus",
+  "run": 2,
+  "ok": true,
+  "usd": 0.15364640000000002,
+  "turns": 4,
+  "ms": 43125,
+  "output": 4711,
+  "input": 93556,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 4711,
+    "usd": 0.1536
+   }
+  }
+ },
+ {
+  "task": "intervals",
+  "tier": "hard",
+  "strategy": "no plugin: always sonnet",
+  "run": 0,
+  "ok": true,
+  "usd": 0.0677518,
+  "turns": 7,
+  "ms": 25481,
+  "output": 3291,
+  "input": 92418,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 3291,
+    "usd": 0.0678
+   }
+  }
+ },
+ {
+  "task": "intervals",
+  "tier": "hard",
+  "strategy": "no plugin: always opus",
+  "run": 3,
+  "ok": true,
+  "usd": 0.158973,
+  "turns": 5,
+  "ms": 43205,
+  "output": 4736,
+  "input": 116949,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 4736,
+    "usd": 0.159
+   }
+  }
+ },
+ {
+  "task": "intervals",
+  "tier": "hard",
+  "strategy": "no plugin: always opus",
+  "run": 4,
+  "ok": true,
+  "usd": 0.155246,
+  "turns": 5,
+  "ms": 43587,
+  "output": 4734,
+  "input": 93599,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 4734,
+    "usd": 0.1552
+   }
+  }
+ },
+ {
+  "task": "intervals",
+  "tier": "hard",
+  "strategy": "no plugin: always sonnet",
+  "run": 2,
+  "ok": true,
+  "usd": 0.057558,
+  "turns": 6,
+  "ms": 22135,
+  "output": 2893,
+  "input": 68625,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2893,
+    "usd": 0.0576
+   }
+  }
+ },
+ {
+  "task": "intervals",
+  "tier": "hard",
+  "strategy": "no plugin: always sonnet",
+  "run": 1,
+  "ok": true,
+  "usd": 0.0649418,
+  "turns": 6,
+  "ms": 33599,
+  "output": 3094,
+  "input": 92208,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 3094,
+    "usd": 0.0649
+   }
+  }
+ },
+ {
+  "task": "intervals",
+  "tier": "hard",
+  "strategy": "no plugin: always sonnet",
+  "run": 3,
+  "ok": true,
+  "usd": 0.07258,
+  "turns": 7,
+  "ms": 33968,
+  "output": 3562,
+  "input": 94820,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 3562,
+    "usd": 0.0726
+   }
+  }
+ },
+ {
+  "task": "intervals",
+  "tier": "hard",
+  "strategy": "no plugin: always sonnet",
+  "run": 4,
+  "ok": true,
+  "usd": 0.055850000000000004,
+  "turns": 6,
+  "ms": 25855,
+  "output": 2765,
+  "input": 68518,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2765,
+    "usd": 0.0559
+   }
+  }
+ },
+ {
+  "task": "intervals",
+  "tier": "hard",
+  "strategy": "jev-router: per prompt",
+  "run": 0,
+  "ok": true,
+  "usd": 0.057117799999999996,
+  "turns": 6,
+  "ms": 22218,
+  "output": 2859,
+  "input": 68580,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2859,
+    "usd": 0.0571
+   }
+  }
+ },
+ {
+  "task": "intervals",
+  "tier": "hard",
+  "strategy": "jev-router: per prompt",
+  "run": 1,
+  "ok": true,
+  "usd": 0.0621738,
+  "turns": 6,
+  "ms": 24324,
+  "output": 3233,
+  "input": 68909,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 3233,
+    "usd": 0.0622
+   }
+  }
+ },
+ {
+  "task": "intervals",
+  "tier": "hard",
+  "strategy": "jev-router: per prompt",
+  "run": 2,
+  "ok": true,
+  "usd": 0.05841380000000001,
+  "turns": 5,
+  "ms": 22331,
+  "output": 2985,
+  "input": 68589,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2985,
+    "usd": 0.0584
+   }
+  }
+ },
+ {
+  "task": "intervals",
+  "tier": "hard",
+  "strategy": "jev-router: per prompt",
+  "run": 4,
+  "ok": true,
+  "usd": 0.0567558,
+  "turns": 5,
+  "ms": 21756,
+  "output": 2862,
+  "input": 68482,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2862,
+    "usd": 0.0568
+   }
+  }
+ },
+ {
+  "task": "intervals",
+  "tier": "hard",
+  "strategy": "jev-router: per prompt",
+  "run": 3,
+  "ok": true,
+  "usd": 0.07328380000000001,
+  "turns": 7,
+  "ms": 34526,
+  "output": 3635,
+  "input": 94784,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 3635,
+    "usd": 0.0733
+   }
+  }
+ },
+ {
+  "task": "intervals",
+  "tier": "hard",
+  "strategy": "jev-router: every step + subagents",
+  "run": 0,
+  "ok": true,
+  "usd": 0.060885800000000004,
+  "turns": 6,
+  "ms": 25356,
+  "output": 3115,
+  "input": 68882,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 3115,
+    "usd": 0.0609
+   }
+  }
+ },
+ {
+  "task": "intervals",
+  "tier": "hard",
+  "strategy": "jev-router: every step + subagents",
+  "run": 1,
+  "ok": true,
+  "usd": 0.06088380000000001,
+  "turns": 7,
+  "ms": 24435,
+  "output": 3096,
+  "input": 68929,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 3096,
+    "usd": 0.0609
+   }
+  }
+ },
+ {
+  "task": "intervals",
+  "tier": "hard",
+  "strategy": "jev-router: every step + subagents",
+  "run": 3,
+  "ok": true,
+  "usd": 0.0614938,
+  "turns": 7,
+  "ms": 23221,
+  "output": 3145,
+  "input": 68959,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 3145,
+    "usd": 0.0615
+   }
+  }
+ },
+ {
+  "task": "intervals",
+  "tier": "hard",
+  "strategy": "jev-router: every step + subagents",
+  "run": 2,
+  "ok": true,
+  "usd": 0.06276380000000001,
+  "turns": 7,
+  "ms": 33734,
+  "output": 3280,
+  "input": 68939,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 3280,
+    "usd": 0.0628
+   }
+  }
+ },
+ {
+  "task": "intervals",
+  "tier": "hard",
+  "strategy": "jev-router: every step + subagents",
+  "run": 4,
+  "ok": true,
+  "usd": 0.0601478,
+  "turns": 6,
+  "ms": 28308,
+  "output": 3084,
+  "input": 68775,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 3084,
+    "usd": 0.0601
+   }
+  }
+ },
+ {
+  "task": "intervals",
+  "tier": "hard",
+  "strategy": "jev-router: !full",
+  "run": 1,
+  "ok": true,
+  "usd": 0.06065380000000001,
+  "turns": 6,
+  "ms": 24207,
+  "output": 3115,
+  "input": 68824,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 3115,
+    "usd": 0.0607
+   }
+  }
+ },
+ {
+  "task": "intervals",
+  "tier": "hard",
+  "strategy": "jev-router: !full",
+  "run": 0,
+  "ok": true,
+  "usd": 0.0642498,
+  "turns": 5,
+  "ms": 27817,
+  "output": 3463,
+  "input": 68853,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 3463,
+    "usd": 0.0642
+   }
+  }
+ },
+ {
+  "task": "intervals",
+  "tier": "hard",
+  "strategy": "jev-router: !full",
+  "run": 2,
+  "ok": true,
+  "usd": 0.05637980000000001,
+  "turns": 6,
+  "ms": 21163,
+  "output": 2830,
+  "input": 68468,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2830,
+    "usd": 0.0564
+   }
+  }
+ },
+ {
+  "task": "intervals",
+  "tier": "hard",
+  "strategy": "jev-router: !full",
+  "run": 3,
+  "ok": true,
+  "usd": 0.0601218,
+  "turns": 6,
+  "ms": 24096,
+  "output": 3067,
+  "input": 68811,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 3067,
+    "usd": 0.0601
+   }
+  }
+ },
+ {
+  "task": "intervals",
+  "tier": "hard",
+  "strategy": "jev-router: !full",
+  "run": 4,
+  "ok": true,
+  "usd": 0.0573098,
+  "turns": 6,
+  "ms": 27055,
+  "output": 2911,
+  "input": 68498,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2911,
+    "usd": 0.0573
+   }
+  }
+ },
+ {
+  "task": "inventory",
+  "tier": "hard",
+  "strategy": "no plugin: always opus",
+  "run": 0,
+  "ok": true,
+  "usd": 0.2459744,
+  "turns": 9,
+  "ms": 64325,
+  "output": 6846,
+  "input": 167056,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 6846,
+    "usd": 0.246
+   }
+  }
+ },
+ {
+  "task": "inventory",
+  "tier": "hard",
+  "strategy": "no plugin: always opus",
+  "run": 1,
+  "ok": true,
+  "usd": 0.2444814,
+  "turns": 6,
+  "ms": 66036,
+  "output": 7106,
+  "input": 107966,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 7106,
+    "usd": 0.2445
+   }
+  }
+ },
+ {
+  "task": "inventory",
+  "tier": "hard",
+  "strategy": "no plugin: always opus",
+  "run": 2,
+  "ok": true,
+  "usd": 0.22197499999999998,
+  "turns": 7,
+  "ms": 77214,
+  "output": 6148,
+  "input": 134369,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 6148,
+    "usd": 0.222
+   }
+  }
+ },
+ {
+  "task": "inventory",
+  "tier": "hard",
+  "strategy": "no plugin: always sonnet",
+  "run": 0,
+  "ok": true,
+  "usd": 0.0795102,
+  "turns": 5,
+  "ms": 27461,
+  "output": 3240,
+  "input": 123684,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 3240,
+    "usd": 0.0795
+   }
+  }
+ },
+ {
+  "task": "inventory",
+  "tier": "hard",
+  "strategy": "no plugin: always opus",
+  "run": 3,
+  "ok": true,
+  "usd": 0.24106419999999998,
+  "turns": 5,
+  "ms": 69522,
+  "output": 7078,
+  "input": 134124,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 7078,
+    "usd": 0.2411
+   }
+  }
+ },
+ {
+  "task": "inventory",
+  "tier": "hard",
+  "strategy": "no plugin: always opus",
+  "run": 4,
+  "ok": true,
+  "usd": 0.24025019999999997,
+  "turns": 6,
+  "ms": 63788,
+  "output": 6995,
+  "input": 107309,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 6995,
+    "usd": 0.2403
+   }
+  }
+ },
+ {
+  "task": "inventory",
+  "tier": "hard",
+  "strategy": "no plugin: always sonnet",
+  "run": 1,
+  "ok": true,
+  "usd": 0.0596492,
+  "turns": 3,
+  "ms": 22184,
+  "output": 2646,
+  "input": 71101,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2646,
+    "usd": 0.0596
+   }
+  }
+ },
+ {
+  "task": "inventory",
+  "tier": "hard",
+  "strategy": "no plugin: always sonnet",
+  "run": 2,
+  "ok": true,
+  "usd": 0.0686762,
+  "turns": 4,
+  "ms": 26851,
+  "output": 2977,
+  "input": 97217,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2977,
+    "usd": 0.0687
+   }
+  }
+ },
+ {
+  "task": "inventory",
+  "tier": "hard",
+  "strategy": "no plugin: always sonnet",
+  "run": 4,
+  "ok": true,
+  "usd": 0.0598608,
+  "turns": 3,
+  "ms": 23721,
+  "output": 2890,
+  "input": 70542,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2890,
+    "usd": 0.0599
+   }
+  }
+ },
+ {
+  "task": "inventory",
+  "tier": "hard",
+  "strategy": "no plugin: always sonnet",
+  "run": 3,
+  "ok": true,
+  "usd": 0.05820720000000001,
+  "turns": 3,
+  "ms": 34870,
+  "output": 2645,
+  "input": 70743,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2645,
+    "usd": 0.0582
+   }
+  }
+ },
+ {
+  "task": "inventory",
+  "tier": "hard",
+  "strategy": "jev-router: per prompt",
+  "run": 2,
+  "ok": true,
+  "usd": 0.11323379999999998,
+  "turns": 6,
+  "ms": 69855,
+  "output": 5282,
+  "input": 154977,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 5282,
+    "usd": 0.1132
+   }
+  }
+ },
+ {
+  "task": "inventory",
+  "tier": "hard",
+  "strategy": "jev-router: per prompt",
+  "run": 1,
+  "ok": true,
+  "usd": 0.3993818,
+  "turns": 6,
+  "ms": 111979,
+  "output": 12227,
+  "input": 179465,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 12227,
+    "usd": 0.3994
+   }
+  }
+ },
+ {
+  "task": "inventory",
+  "tier": "hard",
+  "strategy": "jev-router: per prompt",
+  "run": 0,
+  "ok": true,
+  "usd": 0.4581508000000001,
+  "turns": 6,
+  "ms": 132559,
+  "output": 13474,
+  "input": 184147,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 13474,
+    "usd": 0.4582
+   }
+  }
+ },
+ {
+  "task": "inventory",
+  "tier": "hard",
+  "strategy": "jev-router: per prompt",
+  "run": 4,
+  "ok": true,
+  "usd": 0.1343324,
+  "turns": 5,
+  "ms": 51065,
+  "output": 6983,
+  "input": 129116,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 6983,
+    "usd": 0.1343
+   }
+  }
+ },
+ {
+  "task": "inventory",
+  "tier": "hard",
+  "strategy": "jev-router: per prompt",
+  "run": 3,
+  "ok": true,
+  "usd": 0.4399286,
+  "turns": 6,
+  "ms": 121893,
+  "output": 12704,
+  "input": 186845,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 12704,
+    "usd": 0.4399
+   }
+  }
+ },
+ {
+  "task": "inventory",
+  "tier": "hard",
+  "strategy": "jev-router: every step + subagents",
+  "run": 0,
+  "ok": true,
+  "usd": 0.34542660000000003,
+  "turns": 6,
+  "ms": 87545,
+  "output": 9511,
+  "input": 169316,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 9511,
+    "usd": 0.3454
+   }
+  }
+ },
+ {
+  "task": "inventory",
+  "tier": "hard",
+  "strategy": "jev-router: every step + subagents",
+  "run": 3,
+  "ok": true,
+  "usd": 0.0742956,
+  "turns": 3,
+  "ms": 27762,
+  "output": 3526,
+  "input": 73087,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 3526,
+    "usd": 0.0743
+   }
+  }
+ },
+ {
+  "task": "inventory",
+  "tier": "hard",
+  "strategy": "jev-router: every step + subagents",
+  "run": 2,
+  "ok": true,
+  "usd": 0.08942040000000001,
+  "turns": 4,
+  "ms": 36136,
+  "output": 4381,
+  "input": 98495,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 4381,
+    "usd": 0.0894
+   }
+  }
+ },
+ {
+  "task": "inventory",
+  "tier": "hard",
+  "strategy": "jev-router: !full",
+  "run": 0,
+  "ok": true,
+  "usd": 0.096106,
+  "turns": 5,
+  "ms": 38948,
+  "output": 4437,
+  "input": 126559,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 4437,
+    "usd": 0.0961
+   }
+  }
+ },
+ {
+  "task": "inventory",
+  "tier": "hard",
+  "strategy": "jev-router: every step + subagents",
+  "run": 4,
+  "ok": true,
+  "usd": 0.1064628,
+  "turns": 5,
+  "ms": 47101,
+  "output": 4925,
+  "input": 132625,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 4925,
+    "usd": 0.1065
+   }
+  }
+ },
+ {
+  "task": "inventory",
+  "tier": "hard",
+  "strategy": "jev-router: every step + subagents",
+  "run": 1,
+  "ok": true,
+  "usd": 0.46999900000000006,
+  "turns": 9,
+  "ms": 140246,
+  "output": 14085,
+  "input": 152335,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 14085,
+    "usd": 0.47
+   }
+  }
+ },
+ {
+  "task": "inventory",
+  "tier": "hard",
+  "strategy": "jev-router: !full",
+  "run": 1,
+  "ok": true,
+  "usd": 0.17332019999999998,
+  "turns": 8,
+  "ms": 59165,
+  "output": 7783,
+  "input": 193161,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 7783,
+    "usd": 0.1733
+   }
+  }
+ },
+ {
+  "task": "inventory",
+  "tier": "hard",
+  "strategy": "jev-router: !full",
+  "run": 3,
+  "ok": true,
+  "usd": 0.09780520000000001,
+  "turns": 5,
+  "ms": 36713,
+  "output": 4296,
+  "input": 126373,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 4296,
+    "usd": 0.0978
+   }
+  }
+ },
+ {
+  "task": "inventory",
+  "tier": "hard",
+  "strategy": "jev-router: !full",
+  "run": 4,
+  "ok": true,
+  "usd": 0.07693119999999999,
+  "turns": 3,
+  "ms": 33145,
+  "output": 3960,
+  "input": 72697,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 3960,
+    "usd": 0.0769
+   }
+  }
+ },
+ {
+  "task": "inventory",
+  "tier": "hard",
+  "strategy": "jev-router: !full",
+  "run": 2,
+  "ok": true,
+  "usd": 0.2646966,
+  "turns": 5,
+  "ms": 106681,
+  "output": 7876,
+  "input": 136255,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 7876,
+    "usd": 0.2647
+   }
+  }
+ },
+ {
+  "task": "flaky",
+  "tier": "hard",
+  "strategy": "no plugin: always opus",
+  "run": 0,
+  "ok": true,
+  "usd": 0.13802540000000002,
+  "turns": 5,
+  "ms": 59252,
+  "output": 3642,
+  "input": 118023,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 3642,
+    "usd": 0.138
+   }
+  }
+ },
+ {
+  "task": "flaky",
+  "tier": "hard",
+  "strategy": "no plugin: always opus",
+  "run": 1,
+  "ok": true,
+  "usd": 0.0939616,
+  "turns": 6,
+  "ms": 35220,
+  "output": 2329,
+  "input": 114609,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 2329,
+    "usd": 0.094
+   }
+  }
+ },
+ {
+  "task": "flaky",
+  "tier": "hard",
+  "strategy": "no plugin: always opus",
+  "run": 2,
+  "ok": true,
+  "usd": 0.0953602,
+  "turns": 4,
+  "ms": 34658,
+  "output": 2543,
+  "input": 91075,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 2543,
+    "usd": 0.0954
+   }
+  }
+ },
+ {
+  "task": "flaky",
+  "tier": "hard",
+  "strategy": "no plugin: always opus",
+  "run": 4,
+  "ok": true,
+  "usd": 0.0931282,
+  "turns": 4,
+  "ms": 34056,
+  "output": 2476,
+  "input": 90905,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 2476,
+    "usd": 0.0931
+   }
+  }
+ },
+ {
+  "task": "flaky",
+  "tier": "hard",
+  "strategy": "no plugin: always opus",
+  "run": 3,
+  "ok": true,
+  "usd": 0.1038408,
+  "turns": 4,
+  "ms": 46112,
+  "output": 2837,
+  "input": 92885,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 2837,
+    "usd": 0.1038
+   }
+  }
+ },
+ {
+  "task": "flaky",
+  "tier": "hard",
+  "strategy": "no plugin: always sonnet",
+  "run": 0,
+  "ok": true,
+  "usd": 0.0441026,
+  "turns": 4,
+  "ms": 24368,
+  "output": 1736,
+  "input": 90378,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 1736,
+    "usd": 0.0441
+   }
+  }
+ },
+ {
+  "task": "flaky",
+  "tier": "hard",
+  "strategy": "no plugin: always sonnet",
+  "run": 1,
+  "ok": true,
+  "usd": 0.0675238,
+  "turns": 7,
+  "ms": 22144,
+  "output": 2296,
+  "input": 92673,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2296,
+    "usd": 0.0675
+   }
+  }
+ },
+ {
+  "task": "flaky",
+  "tier": "hard",
+  "strategy": "no plugin: always sonnet",
+  "run": 3,
+  "ok": true,
+  "usd": 0.057280399999999995,
+  "turns": 4,
+  "ms": 17470,
+  "output": 1647,
+  "input": 90512,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 1647,
+    "usd": 0.0573
+   }
+  }
+ },
+ {
+  "task": "flaky",
+  "tier": "hard",
+  "strategy": "no plugin: always sonnet",
+  "run": 2,
+  "ok": true,
+  "usd": 0.0726132,
+  "turns": 8,
+  "ms": 34448,
+  "output": 2213,
+  "input": 117369,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2213,
+    "usd": 0.0726
+   }
+  }
+ },
+ {
+  "task": "flaky",
+  "tier": "hard",
+  "strategy": "no plugin: always sonnet",
+  "run": 4,
+  "ok": true,
+  "usd": 0.0640278,
+  "turns": 5,
+  "ms": 20288,
+  "output": 1676,
+  "input": 114364,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 1676,
+    "usd": 0.064
+   }
+  }
+ },
+ {
+  "task": "flaky",
+  "tier": "hard",
+  "strategy": "jev-router: per prompt",
+  "run": 0,
+  "ok": true,
+  "usd": 0.08006740000000001,
+  "turns": 5,
+  "ms": 30325,
+  "output": 2843,
+  "input": 117725,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2843,
+    "usd": 0.0801
+   }
+  }
+ },
+ {
+  "task": "flaky",
+  "tier": "hard",
+  "strategy": "jev-router: per prompt",
+  "run": 1,
+  "ok": true,
+  "usd": 0.0739314,
+  "turns": 5,
+  "ms": 41044,
+  "output": 2427,
+  "input": 116433,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2427,
+    "usd": 0.0739
+   }
+  }
+ },
+ {
+  "task": "flaky",
+  "tier": "hard",
+  "strategy": "jev-router: per prompt",
+  "run": 2,
+  "ok": true,
+  "usd": 0.08165700000000001,
+  "turns": 6,
+  "ms": 47315,
+  "output": 2675,
+  "input": 140154,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2675,
+    "usd": 0.0817
+   }
+  }
+ },
+ {
+  "task": "flaky",
+  "tier": "hard",
+  "strategy": "jev-router: per prompt",
+  "run": 3,
+  "ok": true,
+  "usd": 0.0930848,
+  "turns": 7,
+  "ms": 63419,
+  "output": 3016,
+  "input": 167039,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 3016,
+    "usd": 0.0931
+   }
+  }
+ },
+ {
+  "task": "flaky",
+  "tier": "hard",
+  "strategy": "jev-router: per prompt",
+  "run": 4,
+  "ok": true,
+  "usd": 0.069134,
+  "turns": 4,
+  "ms": 42628,
+  "output": 2429,
+  "input": 92364,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2429,
+    "usd": 0.0691
+   }
+  }
+ },
+ {
+  "task": "flaky",
+  "tier": "hard",
+  "strategy": "jev-router: every step + subagents",
+  "run": 0,
+  "ok": true,
+  "usd": 0.0788964,
+  "turns": 5,
+  "ms": 43036,
+  "output": 2806,
+  "input": 117273,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2806,
+    "usd": 0.0789
+   }
+  }
+ },
+ {
+  "task": "flaky",
+  "tier": "hard",
+  "strategy": "jev-router: every step + subagents",
+  "run": 2,
+  "ok": true,
+  "usd": 0.0591872,
+  "turns": 3,
+  "ms": 29249,
+  "output": 2164,
+  "input": 67564,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2164,
+    "usd": 0.0592
+   }
+  }
+ },
+ {
+  "task": "flaky",
+  "tier": "hard",
+  "strategy": "jev-router: every step + subagents",
+  "run": 1,
+  "ok": true,
+  "usd": 0.0660848,
+  "turns": 4,
+  "ms": 48148,
+  "output": 2288,
+  "input": 91749,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2288,
+    "usd": 0.0661
+   }
+  }
+ },
+ {
+  "task": "flaky",
+  "tier": "hard",
+  "strategy": "jev-router: every step + subagents",
+  "run": 3,
+  "ok": true,
+  "usd": 0.0794938,
+  "turns": 5,
+  "ms": 44041,
+  "output": 2744,
+  "input": 117489,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2744,
+    "usd": 0.0795
+   }
+  }
+ },
+ {
+  "task": "flaky",
+  "tier": "hard",
+  "strategy": "jev-router: every step + subagents",
+  "run": 4,
+  "ok": true,
+  "usd": 0.0700354,
+  "turns": 4,
+  "ms": 33280,
+  "output": 2513,
+  "input": 92348,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2513,
+    "usd": 0.07
+   }
+  }
+ },
+ {
+  "task": "flaky",
+  "tier": "hard",
+  "strategy": "jev-router: !full",
+  "run": 1,
+  "ok": true,
+  "usd": 0.0691572,
+  "turns": 4,
+  "ms": 38533,
+  "output": 2521,
+  "input": 91965,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2521,
+    "usd": 0.0692
+   }
+  }
+ },
+ {
+  "task": "flaky",
+  "tier": "hard",
+  "strategy": "jev-router: !full",
+  "run": 0,
+  "ok": true,
+  "usd": 0.1898466,
+  "turns": 9,
+  "ms": 56933,
+  "output": 4231,
+  "input": 168939,
+  "models": {
+   "claude-opus-5-5": {
+    "out": 4231,
+    "usd": 0.1898
+   }
+  }
+ },
+ {
+  "task": "flaky",
+  "tier": "hard",
+  "strategy": "jev-router: !full",
+  "run": 2,
+  "ok": true,
+  "usd": 0.09738619999999998,
+  "turns": 7,
+  "ms": 62646,
+  "output": 3358,
+  "input": 167266,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 3358,
+    "usd": 0.0974
+   }
+  }
+ },
+ {
+  "task": "flaky",
+  "tier": "hard",
+  "strategy": "jev-router: !full",
+  "run": 4,
+  "ok": true,
+  "usd": 0.08291340000000001,
+  "turns": 6,
+  "ms": 42454,
+  "output": 2697,
+  "input": 140643,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2697,
+    "usd": 0.0829
+   }
+  }
+ },
+ {
+  "task": "flaky",
+  "tier": "hard",
+  "strategy": "jev-router: !full",
+  "run": 3,
+  "ok": true,
+  "usd": 0.08148459999999999,
+  "turns": 5,
+  "ms": 52008,
+  "output": 2856,
+  "input": 116485,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2856,
+    "usd": 0.0815
+   }
+  }
+ }
+]

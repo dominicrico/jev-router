@@ -90,6 +90,23 @@ npx tsx --tsconfig benchmarks/tsconfig.json benchmarks/agentic.mts 3   # real ru
 npx tsx --tsconfig benchmarks/tsconfig.json benchmarks/agentic-analyze.mts
 ```
 
+## Harder tasks, graded by hidden tests
+
+`fixture2/` has four tasks that need real care, each graded by a **hidden test the agent never sees**: a lost-update bug in an async queue (also across two queues, with an erroring store, and with a concurrency limit), an interval merger with open and closed bounds and a random oracle, a refactor into one inventory module that must keep `0 <= reserved <= stock`, and a flaky test with three real defects. Five strategies, five runs each, 100 real runs, $10.89. Tables: [results/AGENTIC2.md](results/AGENTIC2.md).
+
+| 4 tasks × 5 runs | tasks done | cost | vs always opus | vs always sonnet |
+| --- | --- | --- | --- | --- |
+| no plugin: always opus | 19/20 | $3.10 | | |
+| no plugin: always sonnet | 19/20 | $1.19 | -61% | |
+| jev-router, per prompt | 19/20 | $2.65 | -14% | +122% |
+| jev-router, every step + subagents | 18/20 | $2.08 | -33% | +74% |
+| jev-router, `!full` | 20/20 | $1.87 | -40% | +57% |
+
+- **Always sonnet matched always opus and cost 61% less.** These tasks are harder than the first set but did not need opus.
+- **jev-router is cheaper than always opus but dearer than always sonnet,** because Jev put about half the spend on opus. It did not finish more tasks than sonnet alone.
+- **The quality differences are noise.** 18, 19 and 20 of 20 differ by at most two runs; at 5 runs per cell that says nothing. Note `!full` (cap lifted) finishing 20/20 is one run more than the others and not evidence that the cap hurts.
+- **How the hidden tests are protected.** A first run of this benchmark was thrown away: a headless agent could read the hidden tests from disk by path (tested, `Read` works anywhere). They and the reference solutions are now sealed in `fixture2/sealed.tgz` and unpacked into a random temp directory only while grading; `node fixture2/verify.mjs` still checks every hidden test fails on the untouched fixture and passes with the reference. Anyone can unseal them (`node fixture2/seal.mjs unseal <dir>`): this guards the runs, not secrecy.
+
 ## Verified live
 
 Headless `claude -p` runs with the mod loaded and `--debug-file`, reading the mod's own debug lines (`jev prompt|step N|agent <type>`):
@@ -101,7 +118,7 @@ Headless `claude -p` runs with the mod loaded and `--debug-file`, reading the mo
 ## Limits, said plainly
 
 - **Not measured: whether the answer was better.** The token runs are one run per task and strategy, no tools, in an empty directory, so a task that asks for "attached" files gets a plan instead of an edit. They measure how much each model and effort spends, not how good the result is.
-- **Not measured: whether the cheaper model succeeded.** This benchmark measures what Jev picks, not whether haiku or sonnet then solved the task. "Fit" is against the author's tier labels, so it checks agreement with a reasonable engineer, not task success.
+- **Quality is measured only in the two tool-using benchmarks.** The single-prompt benchmark measures what Jev picks and what it costs, not whether the answer was good; "fit" there is against the author's tier labels. Task success is measured on the fixture repos, at 3 to 5 runs per cell.
 - 30 synthetic single-prompt tasks and 6 multi-step tasks on one tiny fixture repo, all written by one person. Real work is messier. The multi-step runs are 3 per cell, so small differences are noise.
 - The relative-unit costs come from the mod's own multipliers (haiku 1x, sonnet 3x, opus 5x). Fable has no stated multiplier, so 10x is an assumption (it does not change the numbers above, no hard task landed on fable). Every task is assumed to use the same number of tokens, and a cache re-write is priced at 1.25x against 0.1x for a read. Change `W` and the constants in `analyze.mts` to match your own bill.
 - The cache simulation sent Jev no cache info, so in real use Jev also leans toward staying on the current model. The simulation shows the mod's own guard in isolation.
