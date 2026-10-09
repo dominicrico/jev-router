@@ -54,7 +54,10 @@ When the cache wins, the band says so: `opus (kept 🔒 cache warm; wanted haiku
 - **Three routing modes.** `efficient` for the best result, `balanced` for quality and cost evenly, `cheap` for the cheapest model that can plausibly succeed.
 - **Guards the prompt cache.** Switching models throws the cache away. While it is warm and big enough to matter, he stays put unless Jev confidently asks for something stronger.
 - **Caps the effort.** Jev's effort pick is limited to `high` by default, because effort drives token use far more than the model does. Start a prompt with `!full` (or run `/jev full`) to lift the cap for that one prompt.
-- **Never blocks you.** Jev slow or down? The session model keeps working.
+- **Escalates when a task struggles.** After `escalateAfter` (default 3) failed tool calls in a row, the rest of the task moves up one model. The band shows `↑`.
+- **Pins a model for one prompt.** Start a prompt with `!opus`, `!sonnet`, `!haiku` or `!fable` to skip Jev and use that model (at the effort cap). `!cheap` and `!efficient` set the routing mode for that prompt. Markers combine, like `!opus !full`.
+- **Keeps a savings tally.** `/jev status` shows an estimated saving against the model you would otherwise use (`baselineModel`, default opus), kept across sessions. It is a model-price estimate in relative units, blind to effort.
+- **Never blocks you.** After 3 failed Jev calls in a row it pauses for a minute instead of paying a timeout on every step. Optional `fallback: heuristic` guesses locally meanwhile. Jev slow or down? The session model keeps working.
 - **Routes every step.** Before each step after the first, Jev is asked again, so a task that turned out easier or harder moves to a fitting model (the cache guard still applies). Turn it off with `routeSteps`.
 - **Routes subagents.** Each subagent gets its own model and effort, picked once from what its Agent call says it is for. Turn it off with `routeSubagents`.
 - **Keeps score.** `/jev status` shows how often each model was used this session.
@@ -150,6 +153,7 @@ That was it. He'd be proud. He won't say it.
 | `/jev sticky off \| auto \| strict` | Set cache stickiness |
 | `/jev cap low \| medium \| high \| xhigh \| max \| none` | Set the effort cap |
 | `/jev full` | Lift the effort cap for the next prompt only |
+| `/jev stats clear` | Reset the savings tally |
 | `/jev on` / `/jev off` | Enable routing / use the session model |
 | `/jev key <key>` | Store the TypeSafe API key |
 
@@ -174,6 +178,13 @@ That was it. He'd be proud. He won't say it.
 | `mode` | `balanced` | Routing mode |
 | `models` | all four | Aliases Jev may choose from |
 | `effortCap` | `high` | Highest effort the router applies. `none` follows Jev. Per prompt: start with `!full` or run `/jev full` |
+| `pauseMs` | `60000` | Stop asking Jev for this long after 3 failed calls in a row |
+| `escalateAfter` | `3` | Failed tool calls in a row before the task moves up one model. `0` is off |
+| `baselineModel` | `opus` | The model the savings estimate compares against |
+| `sendHistory` | `true` | Send recent messages to Jev. Off sends only the task text |
+| `redact` | `true` | Replace API keys, tokens, private keys and `KEY=value` lines with `[redacted]` before sending |
+| `maxTaskChars` | `8000` | How much of the prompt is sent |
+| `fallback` | `session` | When Jev is down: `session` keeps the session model, `heuristic` guesses locally |
 | `routeSteps` | `true` | Ask Jev again before every step after the first. Off: one call per prompt |
 | `routeSubagents` | `true` | Pick a model and effort for each subagent from its description |
 | `stickiness` | `auto` | `off`: always follow Jev. `auto`: while the cache is warm, only upgrade on high confidence. `strict`: never switch while warm |
@@ -181,6 +192,10 @@ That was it. He'd be proud. He won't say it.
 | `minContextTokens` | `8000` | Below this a switch is free and stickiness is skipped |
 | `cacheTtlMs` | `300000` | Time after the last request when the cache counts as cold |
 | `timeoutMs` | `4000` | Keep the current model when Jev takes longer |
+
+## Privacy
+
+Sent to `api.typesafe.ai`: the prompt text (up to `maxTaskChars`), recent messages if `sendHistory` is on, and subagent descriptions. Before sending, `redact` replaces API keys, GitHub tokens, AWS keys, bearer tokens, private key blocks and `NAME_KEY=value` style lines with `[redacted]`. That is pattern matching, not a guarantee, so keep `sendHistory` off if your conversations carry things it would not catch. Your TypeSafe key is stored in the plugin store in plain text if you use `/jev key`, and the command line lands in the transcript; prefer the `TYPESAFE_API_KEY` environment variable.
 
 ## FAQ
 

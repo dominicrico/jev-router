@@ -90,6 +90,14 @@ npx tsx --tsconfig benchmarks/tsconfig.json benchmarks/agentic.mts 3   # real ru
 npx tsx --tsconfig benchmarks/tsconfig.json benchmarks/agentic-analyze.mts
 ```
 
+## Verified live
+
+Headless `claude -p` runs with the mod loaded and `--debug-file`, reading the mod's own debug lines (`jev prompt|step N|agent <type>`):
+
+- A subagent's description **is** available before its first step: the log shows `jev agent Explore: Find pricing.js importers and rounding: haiku/medium`. Subagent routing works as designed.
+- A background-task notification **does** start a turn with text. It used to cost a Jev call and overwrite the task text, so the mod now ignores turns whose prompt origin is `task-notification`.
+- A failing `Bash` call **does** come back with `isError`, so escalation fires: three failed calls logged `jev escalate: haiku -> sonnet after 3 failed tool calls`.
+
 ## Limits, said plainly
 
 - **Not measured: whether the answer was better.** The token runs are one run per task and strategy, no tools, in an empty directory, so a task that asks for "attached" files gets a plan instead of an edit. They measure how much each model and effort spends, not how good the result is.
