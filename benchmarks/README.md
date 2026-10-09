@@ -42,30 +42,33 @@ Full tables in [results/RESULTS.md](results/RESULTS.md).
 
 ## Measured tokens and cost
 
-The relative-unit costs above assume every strategy spends the same number of tokens. That is not true, so we also ran all 30 tasks headless on the model and effort each strategy uses and recorded real usage: 131 runs, 0 errors. No plugin means a fixed model at its default effort. The router runs use the model and effort Jev picked. Tables: [results/TOKENS.md](results/TOKENS.md).
+The relative-unit costs above assume every strategy spends the same number of tokens. That is not true, so we also ran all 30 tasks headless on the model and effort each strategy uses and recorded real usage: 147 runs, 0 errors. No plugin means a fixed model at its default effort. The router runs use the model Jev picked with either its effort as asked (uncapped) or capped at `high`, the default. Tables: [results/TOKENS.md](results/TOKENS.md).
 
 | Total over 30 tasks | output tokens | cost | vs always opus | vs always sonnet |
 | --- | --- | --- | --- | --- |
 | no plugin: always opus | 50.0k | $1.16 | | |
 | no plugin: always sonnet | 35.0k | $0.44 | -62% | |
-| jev-router efficient | 134.0k | $2.59 | **+123%** | +491% |
-| jev-router balanced | 125.5k | $2.34 | **+101%** | +434% |
-| jev-router cheap | 53.5k | $0.54 | **-53%** | +25% |
+| jev-router efficient, cap high (default) | 62.1k | $1.15 | **-1%** | +163% |
+| jev-router balanced, cap high (default) | 59.1k | $1.01 | **-13%** | +132% |
+| jev-router cheap, cap high (default) | 41.1k | $0.42 | **-64%** | -4% |
+| jev-router efficient, uncapped | 134.0k | $2.59 | +123% | +491% |
+| jev-router balanced, uncapped | 125.5k | $2.34 | +101% | +434% |
+| jev-router cheap, uncapped | 53.5k | $0.54 | -53% | +25% |
 
 By tier, cost against always opus:
 
-| | trivial | standard | hard |
-| --- | --- | --- | --- |
-| efficient | -97% | -65% | **+242%** |
-| balanced | -97% | -65% | **+207%** |
-| cheap | -97% | -68% | -39% |
+| | trivial | standard | hard, cap high | hard, uncapped |
+| --- | --- | --- | --- | --- |
+| efficient | -97% | -65% | +43% | +242% |
+| balanced | -97% | -65% | +24% | +207% |
+| cheap | -97% | -68% | -56% | -39% |
 
-- **Easy and mid tasks are where it saves.** Trivial tasks cost 97% less than opus and standard tasks 65% less, with about the same output tokens. That is the model switch alone.
-- **Hard tasks cost more, because of effort.** For hard tasks Jev asks for `xhigh` effort, which makes the model think longer: opus used 121k output tokens at that effort against 34k at its default. Holding effort equal, `efficient` costs the same as opus on hard tasks (it picks opus), so the extra spend is the reasoning depth, not the routing. Whether that deeper reasoning produces better answers is not measured here.
-- **So only `cheap` is cheaper overall.** `efficient` and `balanced` spend about twice what always-opus-at-default does, because they buy more reasoning on the hard tasks. `cheap` sends hard tasks to sonnet and ends 53% below opus, and 25% above plain sonnet.
-- **Sonnet at `xhigh` beat opus at `xhigh` on cost.** On hard tasks `cheap` (sonnet) used 41k output tokens against 118k for opus at the same effort.
+- **Easy and mid tasks are where it saves.** Trivial tasks cost 97% less than opus and standard tasks 65% less, with about the same output tokens. That is the model switch alone, and the cap does not touch it.
+- **Hard tasks are where the effort cap matters.** Uncapped, Jev asks for `xhigh` effort and opus used 121k output tokens at that effort against 34k at its default. Capped at `high`, `efficient` hard tasks drop from +242% to +43%, and from +207% to +24% for `balanced`.
+- **With the default cap no mode costs more than always opus overall.** `efficient` lands about level (-1%), `balanced` 13% below, `cheap` 64% below and 4% below plain sonnet.
+- **Sonnet beat opus on cost for the same effort.** On hard tasks `cheap` (sonnet) used far fewer tokens than opus at the same effort.
 
-The mod now has an `effortCap` option (default `high`) for exactly this, and `!full` to lift it for one prompt. These measurements were taken with the cap off (`none`); they have not been re-run with the cap on.
+`!full` (or `/jev full`) lifts the cap for one prompt when a task deserves the deeper reasoning. Whether deeper reasoning gives a better answer is not measured here.
 
 ## Limits, said plainly
 

@@ -5,6 +5,7 @@
 import { execFile } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { promisify } from 'node:util'
+import { capEffort } from '../hooks/register.tsx'
 
 const run = promisify(execFile)
 const IDS: Record<string, string> = { haiku: 'claude-haiku-5-5', sonnet: 'claude-sonnet-5-5', opus: 'claude-opus-5-5', fable: 'claude-fable-5-1' }
@@ -27,6 +28,7 @@ for (const c of cases) {
   for (const mode of ['efficient', 'balanced', 'cheap']) {
     const r = raw.find(x => x.id === c.id && x.mode === mode && x.run === 0)
     add(c.id, r.model, r.effort)
+    add(c.id, r.model, capEffort(r.effort, 'high').effort) // the default effortCap
     add(c.id, 'opus', r.effort) // same effort, fixed opus: isolates the model from the effort
   }
 }

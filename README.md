@@ -60,23 +60,32 @@ When the cache wins, the band says so: `opus (kept 🔒 cache warm; wanted haiku
 
 ## Does it pay off?
 
-Benchmarked on 30 tasks: 270 calls to Jev for the picks, then 131 real runs for token usage and cost.
+Benchmarked on 30 tasks: 270 calls to Jev for the picks, then 147 real runs for token usage and cost, with the effort cap at its default (`high`) and uncapped.
 
 <p align="center">
   <img src="assets/fit.png" width="880" alt="Routing fit: efficient 100%, balanced 87%, cheap 66% of picks fit the task. 253 ms added per task, 97 to 100% same pick on repeat.">
 </p>
 
 <p align="center">
-  <img src="assets/cost.png" width="880" alt="Cost as a percentage of always opus. Trivial tasks cost 3%, standard 32 to 35%, hard tasks 342%, 307% and 61% for efficient, balanced and cheap. Overall 223%, 201% and 47%.">
+  <img src="assets/cost.png" width="880" alt="Cost as a percentage of always opus with the effort capped at high. Trivial tasks 3%, standard 32 to 35%, hard 143%, 124% and 44% for efficient, balanced and cheap. Overall 99%, 87% and 36%. Uncapped hard tasks cost 342%, 307% and 61%.">
 </p>
 
-The numbers below were measured **before the effort cap existed**, with Jev's effort applied as picked (`effortCap` set to `none`). With the default cap of `high` the hard-task bars should shrink; that has not been re-measured yet. The honest read: the model switch saves a lot on easy and mid tasks. On hard tasks Jev also asks for `xhigh` effort, so `efficient` and `balanced` spend more tokens thinking than opus at its default, which is deeper reasoning rather than savings. Only `cheap` is cheaper overall.
+| Cost vs always opus (no plugin) | efficient | balanced | cheap |
+| --- | --- | --- | --- |
+| Trivial tasks | -97% | -97% | -97% |
+| Standard tasks | -65% | -65% | -68% |
+| Hard tasks, **cap high (default)** | +43% | +24% | -56% |
+| Hard tasks, uncapped | +242% | +207% | -39% |
+| **All 30, cap high (default)** | **-1%** | **-13%** | **-64%** |
+| All 30, uncapped | +123% | +101% | -53% |
+
+The honest read: the model switch saves a lot on easy and mid tasks, and the default cap of `high` brings every mode to or below always-opus overall. Hard tasks still cost 24% to 43% more in `efficient` and `balanced`, because Jev picks opus there and asks for deeper reasoning. `!full` lifts the cap for one prompt when you want that. The cap changes tokens spent, not answer quality, and that is not measured.
 
 <p align="center">
   <img src="assets/cache.png" width="880" alt="Cache guard: following every pick in a warm session costs 4735 against 1500 for always opus. With the guard it is 1500. With cold cache and tasks 400 seconds apart it is 820.">
 </p>
 
-Without the cache guard, following every pick in a long warm session cost 3x more than just using opus. This measures spend, not answer quality. Method, per-tier tables and all caveats: [benchmarks/](benchmarks/README.md).
+Without the cache guard, following every pick in a long warm session cost 3x more than just using opus. Inside one long warm session the guard keeps you on the first model, so the savings above show up mostly when the cache is cold or the context is small. Method, per-tier tables and all caveats: [benchmarks/](benchmarks/README.md).
 
 ## How it works
 

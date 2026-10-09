@@ -1,5 +1,6 @@
 // Turns results/tokens.json into results/TOKENS.md. No network.
 import { readFileSync, writeFileSync } from 'node:fs'
+import { capEffort } from '../hooks/register.tsx'
 
 const cases: any[] = JSON.parse(readFileSync(new URL('cases.json', import.meta.url), 'utf8'))
 const raw: any[] = JSON.parse(readFileSync(new URL('results/raw.json', import.meta.url), 'utf8'))
@@ -10,10 +11,16 @@ const TIERS = ['trivial', 'standard', 'hard']
 const STRATS: Record<string, (id: string) => string> = {
   'no plugin: always opus': id => `${id}|opus|null`,
   'no plugin: always sonnet': id => `${id}|sonnet|null`,
-  ...Object.fromEntries(['efficient', 'balanced', 'cheap'].map(m => [`jev-router ${m}`, (id: string) => {
-    const r = raw.find(x => x.id === id && x.mode === m && x.run === 0)
-    return `${id}|${r.model}|${r.effort}`
-  }])),
+  ...Object.fromEntries(['efficient', 'balanced', 'cheap'].flatMap(m => [
+    [`jev-router ${m} (cap high, the default)`, (id: string) => {
+      const r = raw.find(x => x.id === id && x.mode === m && x.run === 0)
+      return `${id}|${r.model}|${capEffort(r.effort, 'high').effort}`
+    }],
+    [`jev-router ${m} (uncapped)`, (id: string) => {
+      const r = raw.find(x => x.id === id && x.mode === m && x.run === 0)
+      return `${id}|${r.model}|${r.effort}`
+    }],
+  ])),
 }
 const ok = cases.filter(c => Object.values(STRATS).every(k => byKey[k(c.id)] && !byKey[k(c.id)].error))
 const skipped = cases.length - ok.length
@@ -38,7 +45,7 @@ const matched = (m: string) => (id: string) => { const r = raw.find(x => x.id ==
 const okM = ok.filter(c => ['efficient', 'balanced', 'cheap'].every(m => byKey[matched(m)(c.id)] && !byKey[matched(m)(c.id)].error))
 out.push(table(['mode', 'tier', 'router output', 'opus same effort output', 'router cost', 'opus same effort cost', 'cost saved'], ['efficient', 'balanced', 'cheap'].flatMap(m => TIERS.map(t => {
   const cs = okM.filter(c => c.tier === t)
-  const a = cs.map(c => byKey[STRATS['jev-router ' + m]!(c.id)]); const b = cs.map(c => byKey[matched(m)(c.id)])
+  const a = cs.map(c => byKey[STRATS[`jev-router ${m} (uncapped)`]!(c.id)]); const b = cs.map(c => byKey[matched(m)(c.id)])
   return [m, t, k(sum(a, 'output')), k(sum(b, 'output')), usd(sum(a, 'usd')), usd(sum(b, 'usd')), vs(sum(a, 'usd'), sum(b, 'usd'))]
 }))))
 out.push('\n## Effort alone\n', 'The same model (opus) at its default effort against opus at the effort Jev chose, hard tasks only. Shows what the effort setting costs, apart from any routing.\n')
