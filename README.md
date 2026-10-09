@@ -35,7 +35,7 @@ jev-router puts a switchman in front of your session. Before every task he reads
 A live band above your prompt shows what he picked. Colour coded, with a spinner while a task runs.
 
 <p align="center">
-  <img src="assets/band.gif" width="880" alt="The band while a task runs: the spinner turns and the JEV label glows, next to the model, effort, confidence and cache.">
+  <img src="assets/band.gif" width="880" alt="The band in all its states, one slide at a time: idle, running, haiku, sonnet, capped opus, !full unlock, cache kept, pinned, escalated, low confidence, cheap mode, paused, off.">
 </p>
 
 <p align="center">
