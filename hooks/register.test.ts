@@ -335,3 +335,15 @@ test('strict plus a warm cache makes no step calls', { options: { apiKey: 'k-tes
   }
   expect(w.bodies.length).toBe(before)
 })
+
+test('a background-task notification keeps the decision and makes no call', OPTS, async ($, on) => {
+  const w = world(on, jev('opus', 'high'))
+  on('prompt.submit', async (_$, e) => ({ text: e.text }))
+  await $.turn.start({ text: 'real task', turnId: 't1' })
+  await $.prompt.submit({ text: '<task-notification>done</task-notification>', origin: { kind: 'task-notification' } } as any)
+  await $.turn.start({ text: '<task-notification>done</task-notification>', turnId: 't2' })
+  await step($, 't2')
+
+  expect(w.bodies.length).toBe(1)
+  expect(w.steps[0].model).toBe('claude-opus-5-5')
+})

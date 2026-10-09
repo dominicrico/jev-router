@@ -1,0 +1,33 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  plugin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm i -g @anthropic-ai/claude-code
+      # Both ran offline with an empty config dir locally (no login, no API key), so no auth is needed.
+      - run: claude plugin validate .
+      - run: claude plugin test .
+
+  typecheck:
+    runs-on: ubuntu-latest
+    # Advisory: benchmarks/tsconfig.json does not type-check cleanly yet (no @types/node,
+    # .tsx import extensions, and stub-claude-code.ts does not match the real `claude-code` types).
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm i --no-save tsx typescript
+      - run: npx tsc --noEmit -p benchmarks/tsconfig.json

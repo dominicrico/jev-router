@@ -276,14 +276,17 @@ async function ask($: EngineInterface, cfg: Config, key: string, state: string, 
   }
 }
 
+let skipNext = false // the next turn is a background notification, not a task of the user's
 let task = '' // the prompt the current task started with, for re-routing its later steps
 const agents = new Map<string, Promise<Picked | null>>()
 
-async function decideFor($: EngineInterface, cfg: Config, key: string, state: string, mode: Mode, cache: Cache | null, now: number, cap: EffortCap) {
+async function decideFor($: EngineInterface, cfg: Config, kind: string, key: string, state: string, mode: Mode, cache: Cache | null, now: number, cap: EffortCap) {
   const asked = await ask($, cfg, key, state, mode)
   const picked = decide(asked, cache, now, cfg, (await read($, stickyAtom)) ?? cfg.defaultSticky)
+  const d = { ...picked, ...capEffort(picked.effort, cap) }
+  $.ui.log(`jev ${kind}: ${d.alias}/${d.effort}${d.kept ? ` (kept, wanted ${d.kept})` : ''}${d.capped ? ` (capped from ${d.capped})` : ''} conf ${d.confidence.toFixed(2)} ${(await $.clock.now()) - now} ms`, { to: 'debug' })
 
-  return { ...picked, ...capEffort(picked.effort, cap) }
+  return d
 }
 
 // Before every step after the first, ask again: the task may have turned easier or harder.
@@ -299,7 +302,7 @@ async function restep($: EngineInterface, cfg: Config, e: { turnId: string; inde
     if (((await read($, stickyAtom)) ?? cfg.defaultSticky) === 'strict' && isWarm(cache, now, cfg)) return last
     const text = `${task}\n\n[Routing step ${e.index + 1} of this task. The recent messages above show its progress.]`
     const cap = last.unlocked ? 'none' : (await read($, capAtom)) ?? cfg.defaultCap
-    const d = await decideFor($, cfg, auth.key, await buildState($, text, mode, cache, now, cfg), mode, cache, now, cap)
+    const d = await decideFor($, cfg, `step ${e.index + 1}`, auth.key, await buildState($, text, mode, cache, now, cfg), mode, cache, now, cap)
     const next: Decision = { ...d, turnId: last.turnId, unlocked: last.unlocked }
     await update($, lastAtom, () => next)
 
@@ -320,7 +323,7 @@ async function routeAgent($: EngineInterface, cfg: Config, id: string, current: 
     const cap = (await read($, lastAtom))?.unlocked ? 'none' : (await read($, capAtom)) ?? cfg.defaultCap
     const state = composeState(`Subagent task (${info.type}): ${info.description}`, mode, current, '', null, now, cfg)
 
-    return await decideFor($, cfg, auth.key, state, mode, null, now, cap)
+    return await decideFor($, cfg, `agent ${info.type}: ${info.description}`, auth.key, state, mode, null, now, cap)
   } catch {
     return null
   }
@@ -369,6 +372,7 @@ export const register: Register = (on, options) => {
     let ticks = 0 // self-cancel: a prompt that never reaches turn.complete must not tick forever
     const t = $.clock.every(120, () => (++ticks > 5000 ? t.cancel() : update($, frameAtom, n => n + 1)))
     ticker = t
+    skipNext = e.origin?.kind === 'task-notification'
     const m = UNLOCK.exec(e.text)
     if (!m || e.text.length === m[0].length) return next(e)
     await update($, unlockAtom, () => true)
@@ -417,8 +421,8 @@ export const register: Register = (on, options) => {
   })
 
   on('turn.start', async ($, e, next) => {
-    // A continuation keeps the decision of the task it continues.
-    if (!(await read($, enabledAtom)) || e.text.trim() === '') return next(e)
+    // A continuation, or a background notification, keeps the decision of the task it continues.
+    if (!(await read($, enabledAtom)) || e.text.trim() === '' || skipNext) return next(e)
     task = e.text
     const auth = await resolveKey($, cfg)
     if (!auth) {
@@ -436,7 +440,7 @@ export const register: Register = (on, options) => {
       const cache = await read($, cacheAtom)
       const now = await $.clock.now()
       const cap = unlocked ? 'none' : (await read($, capAtom)) ?? cfg.defaultCap
-      const picked = await decideFor($, cfg, auth.key, await buildState($, e.text, mode, cache, now, cfg), mode, cache, now, cap)
+      const picked = await decideFor($, cfg, 'prompt', auth.key, await buildState($, e.text, mode, cache, now, cfg), mode, cache, now, cap)
       const decision: Decision = { turnId: e.turnId, ...picked, unlocked }
       await update($, lastAtom, () => decision)
       await update($, statsAtom, n => ({ ...n, [decision.alias]: (n[decision.alias] ?? 0) + 1 }))
