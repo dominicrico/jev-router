@@ -388,3 +388,13 @@ test('/jev status shows savings after steps and /jev stats clear resets them', O
   await $.command.run({ command: 'jev', args: 'stats clear' } as any)
   expect(JSON.stringify(await $.command.run({ command: 'jev', args: 'status' } as any))).toContain('no steps measured yet')
 })
+
+test('three failed tool calls in a row move the task up one model', OPTS, async ($, on) => {
+  const w = world(on, jev('haiku', 'low'))
+  on('tool.call', async () => ({ result: { stdout: '', stderr: 'boom' }, isError: true }) as any)
+  await $.turn.start({ text: 'fix the build', turnId: 't1' })
+  for (let i = 0; i < 3; i++) await $.tool.call({ tool: 'Bash', command: 'false' } as any)
+  await step($, 't1')
+
+  expect(w.steps[0].model).toBe('claude-sonnet-5-5')
+})

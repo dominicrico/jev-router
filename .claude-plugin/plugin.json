@@ -112,6 +112,12 @@
         "fable"
       ],
       "default": "opus"
+    },
+    "escalateAfter": {
+      "type": "number",
+      "title": "Escalate after failures",
+      "description": "After this many failed tool calls in a row, move the rest of the task up one model. 0 turns it off",
+      "default": 3
     }
   }
 }

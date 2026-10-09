@@ -73,6 +73,7 @@ export type Config = {
   routeSteps: boolean
   routeSubagents: boolean
   baseline: string
+  escalateAfter: number
   minConfidence: number
   minContextTokens: number
   cacheTtlMs: number
@@ -156,7 +157,7 @@ export const segments = (mode: Mode, last: Decision | null, frame: number | null
   if (!last) return [...head, ...warn, { text: 'waiting for the first task', color: '#64748b' }]
   const model: Seg = last.kept
     ? { text: `${last.alias} (kept 🔒 cache warm; wanted ${last.kept})`, color: '#fbbf24' }
-    : { text: `${tier(last.alias)}${last.pinned ? ' 📌' : ''}`, color: TIER_COLOR[last.alias], bold: true }
+    : { text: `${tier(last.alias)}${last.pinned ? ' 📌' : ''}${last.escalated ? ' ↑' : ''}`, color: TIER_COLOR[last.alias], bold: true }
   const sep: Seg = { text: '  │  ', color: '#475569' }
   return [
     ...head,
@@ -306,6 +307,7 @@ async function ask($: EngineInterface, cfg: Config, key: string, state: string, 
   }
 }
 
+let strikes = 0 // consecutive failed tool calls of the current task
 let skipNext = false // the next turn is a background notification, not a task of the user's
 let task = '' // the prompt the current task started with, for re-routing its later steps
 const agents = new Map<string, Promise<Picked | null>>()
@@ -333,6 +335,7 @@ async function restep($: EngineInterface, cfg: Config, e: { turnId: string; inde
     const text = `${task}\n\n[Routing step ${e.index + 1} of this task. The recent messages above show its progress.]`
     const cap = last.unlocked ? 'none' : (await read($, capAtom)) ?? cfg.defaultCap
     const d = await decideFor($, cfg, `step ${e.index + 1}`, auth.key, await buildState($, text, mode, cache, now, cfg), mode, cache, now, cap)
+    if (last.escalated && RANK.indexOf(d.alias) <= RANK.indexOf(last.alias)) return last // never de-escalate within a task
     const next: Decision = { ...d, turnId: last.turnId, unlocked: last.unlocked }
     await update($, lastAtom, () => next)
 
@@ -397,6 +400,7 @@ export const register: Register = (on, options) => {
     pauseMs: num(options.pauseMs, 60_000),
     routeSteps: flag(options.routeSteps, true),
     routeSubagents: flag(options.routeSubagents, true),
+    escalateAfter: num(options.escalateAfter, 3),
     baseline: String(options.baselineModel ?? 'opus') in CLAUDE ? String(options.baselineModel ?? 'opus') : 'opus',
     minConfidence: num(options.minConfidence, 0.7),
     minContextTokens: num(options.minContextTokens, 8000),
@@ -467,6 +471,7 @@ export const register: Register = (on, options) => {
     // A continuation, or a background notification, keeps the decision of the task it continues.
     if (!(await read($, enabledAtom)) || e.text.trim() === '' || skipNext) return next(e)
     task = e.text
+    strikes = 0
     const auth = await resolveKey($, cfg)
     if (!auth) {
       if (!(await read($, warnedAtom))) {
@@ -500,6 +505,23 @@ export const register: Register = (on, options) => {
     }
 
     return next(e)
+  })
+
+  // A task that keeps failing moves up one model for the rest of the task, whatever the cache guard says.
+  on('tool.call', async ($, e, next) => {
+    const res = await next(e)
+    if (e.agentId !== undefined || !cfg.escalateAfter) return res
+    strikes = 'isError' in res && res.isError ? strikes + 1 : 0
+    const last = await read($, lastAtom)
+    if (strikes >= cfg.escalateAfter && last && !last.escalated && !last.pinned) {
+      const to = RANK[Math.min(RANK.indexOf(last.alias) + 1, RANK.length - 1)]!
+      if (cfg.pool.includes(to) && to !== last.alias) {
+        await update($, lastAtom, () => ({ ...last, alias: to, model: CLAUDE[to]!.id, escalated: true }))
+        $.ui.log(`jev escalate: ${last.alias} -> ${to} after ${strikes} failed tool calls`, { to: 'debug' })
+      }
+    }
+
+    return res
   })
 
   on('turn.step', async function* ($, e, next) {

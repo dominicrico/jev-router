@@ -14,6 +14,7 @@ export type Decision = {
   kept?: string
   capped?: Effort
   pinned?: boolean
+  escalated?: boolean
   unlocked?: boolean
 }
 
