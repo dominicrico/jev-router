@@ -64,6 +64,7 @@ export type Config = {
   defaultMode: Mode
   defaultSticky: Sticky
   defaultCap: EffortCap
+  pauseMs: number
   routeSteps: boolean
   routeSubagents: boolean
   minConfidence: number
@@ -115,19 +116,21 @@ const SPIN = '⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
 const GLOW = ['#c084fc', '#a78bfa', '#818cf8', '#60a5fa', '#38bdf8', '#60a5fa', '#818cf8', '#a78bfa']
 
 // frame is null while idle: static. While a task runs the mark spins and the label glows.
-export const segments = (mode: Mode, last: Decision | null, frame: number | null = null, cache: string | null = null): Seg[] => {
+export const segments = (mode: Mode, last: Decision | null, frame: number | null = null, cache: string | null = null, paused = false): Seg[] => {
   const head: Seg[] = [
     frame === null
       ? { text: '◆ JEV ', color: '#c084fc', bold: true }
       : { text: `${SPIN[frame % SPIN.length]} JEV `, color: GLOW[frame % GLOW.length], bold: true }, { text: `▏${mode}▕  `, color: '#94a3b8' },
   ]
-  if (!last) return [...head, { text: 'waiting for the first task', color: '#64748b' }]
+  const warn: Seg[] = paused ? [{ text: '⚠ Jev paused  ', color: '#fbbf24', bold: true }] : []
+  if (!last) return [...head, ...warn, { text: 'waiting for the first task', color: '#64748b' }]
   const model: Seg = last.kept
     ? { text: `${last.alias} (kept 🔒 cache warm; wanted ${last.kept})`, color: '#fbbf24' }
     : { text: tier(last.alias), color: TIER_COLOR[last.alias], bold: true }
   const sep: Seg = { text: '  │  ', color: '#475569' }
   return [
     ...head,
+    ...warn,
     model,
     sep,
     { text: `${last.effort} ${effortBar(last.effort)}${last.capped ? ` ⤓${last.capped}` : ''}${last.unlocked ? ' 🔓' : ''}`, color: last.unlocked ? '#fbbf24' : '#38bdf8' },
@@ -249,11 +252,35 @@ async function askJev($: EngineInterface, cfg: Config, key: string, state: strin
   }
 }
 
+// Circuit breaker: with a call per step, a slow Jev would cost timeoutMs on every step.
+// Three failures in a row pause Jev for pauseMs; the last pick keeps running meanwhile.
+let fails = 0
+let pausedUntil = 0
+export const isPaused = (now: number) => now < pausedUntil
+
+async function ask($: EngineInterface, cfg: Config, key: string, state: string, mode: Mode) {
+  const now = await $.clock.now()
+  if (isPaused(now)) throw new Error(`paused for ${Math.ceil((pausedUntil - now) / 1000)} s after repeated failures`)
+  try {
+    const picked = await askJev($, cfg, key, state, mode)
+    fails = 0
+
+    return picked
+  } catch (err) {
+    if (++fails >= 3) {
+      fails = 0
+      pausedUntil = now + cfg.pauseMs
+      $.ui.toast(`Jev failed 3 times in a row (${(err as Error).message}); paused for ${cfg.pauseMs / 1000} s, using the current model`)
+    }
+    throw err
+  }
+}
+
 let task = '' // the prompt the current task started with, for re-routing its later steps
 const agents = new Map<string, Promise<Picked | null>>()
 
 async function decideFor($: EngineInterface, cfg: Config, key: string, state: string, mode: Mode, cache: Cache | null, now: number, cap: EffortCap) {
-  const asked = await askJev($, cfg, key, state, mode)
+  const asked = await ask($, cfg, key, state, mode)
   const picked = decide(asked, cache, now, cfg, (await read($, stickyAtom)) ?? cfg.defaultSticky)
 
   return { ...picked, ...capEffort(picked.effort, cap) }
@@ -268,6 +295,8 @@ async function restep($: EngineInterface, cfg: Config, e: { turnId: string; inde
     const mode = await currentMode($, cfg)
     const now = await $.clock.now()
     const cache = await read($, cacheAtom)
+    // strict never switches while the cache is warm, so asking could not change the pick
+    if (((await read($, stickyAtom)) ?? cfg.defaultSticky) === 'strict' && isWarm(cache, now, cfg)) return last
     const text = `${task}\n\n[Routing step ${e.index + 1} of this task. The recent messages above show its progress.]`
     const cap = last.unlocked ? 'none' : (await read($, capAtom)) ?? cfg.defaultCap
     const d = await decideFor($, cfg, auth.key, await buildState($, text, mode, cache, now, cfg), mode, cache, now, cap)
@@ -320,6 +349,7 @@ export const register: Register = (on, options) => {
     defaultMode,
     defaultSticky,
     defaultCap,
+    pauseMs: num(options.pauseMs, 60_000),
     routeSteps: flag(options.routeSteps, true),
     routeSubagents: flag(options.routeSubagents, true),
     minConfidence: num(options.minConfidence, 0.7),
@@ -360,7 +390,7 @@ export const register: Register = (on, options) => {
     if (e.props.hasSurvey) return next(e)
     const { Box, Text } = $.ui.resolve(e)
     const segs: Seg[] = (await read($, enabledAtom))
-      ? segments(await currentMode($, cfg), await read($, lastAtom), e.props.isWorking ? await read($, frameAtom) : null, await cacheLabel($, cfg))
+      ? segments(await currentMode($, cfg), await read($, lastAtom), e.props.isWorking ? await read($, frameAtom) : null, await cacheLabel($, cfg), isPaused(await $.clock.now()))
       : [{ text: 'JEV ▏off▕', color: '#64748b' }]
 
     return (
@@ -500,6 +530,7 @@ export const register: Register = (on, options) => {
           ['cap', `${(await read($, capAtom)) ?? cfg.defaultCap}${(await read($, unlockAtom)) ? '   🔓 next prompt uncapped' : ''}`],
           ['last', last ? `${last.alias} / ${last.effort}  ${gauge(last.confidence)} ${last.confidence.toFixed(2)}${last.kept ? `  kept (wanted ${last.kept})` : ''}${last.capped ? `  capped from ${last.capped}` : ''}` : 'none yet'],
           ...usageRows(await read($, statsAtom), cfg.pool),
+          ['jev', isPaused(await $.clock.now()) ? `⚠ paused ${Math.ceil((pausedUntil - (await $.clock.now())) / 1000)} s` : '● ok'],
           ['key', auth ? `…${auth.key.slice(-4)}  (${auth.source})` : 'none: /jev key <key>'],
         ]),
       }

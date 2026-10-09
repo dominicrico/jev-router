@@ -311,3 +311,27 @@ test('a subagent is routed once from its description', OPTS, async ($, on) => {
   expect(w.bodies[0].state).toContain('Subagent task (Explore): find where parseDuration')
   expect(w.steps.map(x => x.model)).toEqual(['claude-haiku-5-5', 'claude-haiku-5-5'])
 })
+
+test('three failures pause Jev, then it recovers', OPTS, async ($, on) => {
+  let ok = false
+  const w = world(on, () => (ok ? jev('sonnet', 'low')() : { ok: false, status: 500, text: 'boom' }))
+  for (const n of [1, 2, 3, 4]) await $.turn.start({ text: `task ${n}`, turnId: `t${n}` })
+  expect(w.bodies.length).toBe(3) // the 4th prompt never reached the API
+  expect(w.toasts.some(t => t.includes('paused'))).toBe(true)
+
+  ok = true
+  await w.clock.advance(61_000)
+  await $.turn.start({ text: 'task 5', turnId: 't5' })
+  expect(w.bodies.length).toBe(4)
+})
+
+test('strict plus a warm cache makes no step calls', { options: { apiKey: 'k-test', stickiness: 'strict' } }, async ($, on) => {
+  const w = world(on, jev('opus', 'high'))
+  await warmUp(w, $, 'claude-sonnet-5-5', 50_000)
+  await $.turn.start({ text: 'build it', turnId: 't1' })
+  const before = w.bodies.length
+  const s = $.turn.step({ turnId: 't1', index: 1, model: 'claude-sonnet-5-5', effort: 'medium', messageCount: 3 })
+  for await (const _ of s) {
+  }
+  expect(w.bodies.length).toBe(before)
+})

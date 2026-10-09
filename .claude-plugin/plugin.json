@@ -94,6 +94,12 @@
       "title": "Route subagents",
       "description": "Pick a model and effort for each subagent from its task description",
       "default": true
+    },
+    "pauseMs": {
+      "type": "number",
+      "title": "Pause after failures (ms)",
+      "description": "After 3 failed Jev calls in a row, stop asking for this long and keep the current model",
+      "default": 60000
     }
   }
 }
