@@ -59,15 +59,17 @@ When the cache wins, the band says so: `opus (kept 🔒 cache warm; wanted haiku
 
 ## Does it pay off?
 
-Benchmarked on 30 tasks across three modes, 270 calls to Jev:
+Benchmarked on 30 tasks: 270 calls to Jev for the picks, then 131 real runs for token usage and cost.
 
 | | efficient | balanced | cheap |
 | --- | --- | --- | --- |
 | Picks the model that fits the task | 100% | 87% | 66% |
-| Cost per task vs always opus | **-40%** | **-45%** | **-54%** |
-| Cost per task vs always sonnet | same | -9% | -23% |
+| Cost on trivial tasks vs always opus | -97% | -97% | -97% |
+| Cost on standard tasks vs always opus | -65% | -65% | -68% |
+| Cost on hard tasks vs always opus | +242% | +207% | -39% |
+| Cost overall vs always opus | +123% | +101% | **-53%** |
 
-Trivial tasks went to haiku and standard tasks to sonnet on every call. Asking Jev adds about 250 ms. Without the cache guard, following every pick in a long warm session cost 3x more than just using opus, which is what the guard is for. Honest limits: this measures what Jev picks, not whether the cheaper model then succeeded, and the costs are relative units. Method, per-tier tables and all caveats: [benchmarks/](benchmarks/README.md).
+The honest read: the model switch saves a lot on easy and mid tasks. On hard tasks Jev also asks for `xhigh` effort, so `efficient` and `balanced` spend more tokens thinking than opus at its default, which is deeper reasoning rather than savings. Only `cheap` is cheaper overall. Asking Jev adds about 250 ms. Without the cache guard, following every pick in a long warm session cost 3x more than just using opus. This measures spend, not answer quality. Method, per-tier tables and all caveats: [benchmarks/](benchmarks/README.md).
 
 ## How it works
 
