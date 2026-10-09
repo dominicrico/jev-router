@@ -1,7 +1,7 @@
 import { expect, mock, test } from 'claude-code/testing'
 import type { On } from 'claude-code'
 import type { Engine } from 'claude-code/testing'
-import { capEffort, markers, segments } from './register'
+import { capEffort, markers, savingsLine, segments, stepUnits } from './register'
 
 const OPTS = { options: { apiKey: 'k-test', mode: 'balanced' } }
 
@@ -369,4 +369,22 @@ test('markers strips known markers and leaves unknown ones', OPTS, async () => {
   expect(markers('!full !opus go', ['haiku', 'opus'])).toEqual({ text: 'go', pending: { full: true, pin: 'opus' } })
   expect(markers('!nope go', ['opus'])).toEqual({ text: '!nope go', pending: null })
   expect(markers('plain', ['opus']).pending).toBeNull()
+})
+
+test('stepUnits prices cache reads low and output high, scaled by model weight', OPTS, async () => {
+  const u = { input_tokens: 1000, output_tokens: 100, cache_read_input_tokens: 10_000, cache_creation_input_tokens: 0 }
+  expect(stepUnits(u, "opus")).toBe(12.5)
+  expect(stepUnits(u, "haiku") * 5).toBe(12.5)
+  expect(savingsLine({ actual: 60, baseline: 100, steps: 4, name: 'opus' })).toContain('40% vs always opus over 4 steps')
+})
+
+test('/jev status shows savings after steps and /jev stats clear resets them', OPTS, async ($, on) => {
+  mock.store(on)
+  const w = world(on, jev('sonnet', 'medium'))
+  w.usage = usage('claude-sonnet-5-5', 20_000)
+  await $.turn.start({ text: 'task', turnId: 't1' })
+  await step($, 't1')
+  expect(JSON.stringify(await $.command.run({ command: 'jev', args: 'status' } as any))).toContain('vs always opus over 1 steps')
+  await $.command.run({ command: 'jev', args: 'stats clear' } as any)
+  expect(JSON.stringify(await $.command.run({ command: 'jev', args: 'status' } as any))).toContain('no steps measured yet')
 })

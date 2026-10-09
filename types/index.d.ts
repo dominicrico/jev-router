@@ -3,6 +3,7 @@ export type Sticky = 'off' | 'auto' | 'strict'
 export type Cache = { model: string; at: number; contextTokens: number }
 export type Effort = 'low' | 'medium' | 'high' | 'xhigh' | 'max'
 export type EffortCap = Effort | 'none'
+export type Savings = { actual: number; baseline: number; steps: number; name: string }
 export type Pending = { full?: true; pin?: string; mode?: Mode }
 export type Decision = {
   turnId: string

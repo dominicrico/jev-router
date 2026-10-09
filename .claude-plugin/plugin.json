@@ -100,6 +100,18 @@
       "title": "Pause after failures (ms)",
       "description": "After 3 failed Jev calls in a row, stop asking for this long and keep the current model",
       "default": 60000
+    },
+    "baselineModel": {
+      "type": "string",
+      "title": "Savings baseline",
+      "description": "The model the savings estimate compares against (what you would use without the router)",
+      "options": [
+        "haiku",
+        "sonnet",
+        "opus",
+        "fable"
+      ],
+      "default": "opus"
     }
   }
 }

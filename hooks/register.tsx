@@ -1,7 +1,7 @@
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
-import type { Cache, Decision, Effort, EffortCap, Mode, Pending, Sticky } from '../types'
+import type { Cache, Decision, Effort, EffortCap, Mode, Pending, Savings, Sticky } from '../types'
 
 export const JEV_URL = 'https://api.typesafe.ai/v1/systemone'
 const MODES: readonly Mode[] = ['efficient', 'balanced', 'cheap']
@@ -9,21 +9,26 @@ const STICKY: readonly Sticky[] = ['off', 'auto', 'strict']
 const EFFORTS: readonly Effort[] = ['low', 'medium', 'high', 'xhigh', 'max']
 const CAPS: readonly EffortCap[] = [...EFFORTS, 'none']
 
-const CLAUDE: Record<string, { id: string; about: string }> = {
+// weight: relative price per token, the multipliers the `about` lines state (fable has none, 10 is an assumption).
+const CLAUDE: Record<string, { id: string; about: string; weight: number }> = {
   haiku: {
     id: 'claude-haiku-5-5',
+    weight: 1,
     about: 'Claude Haiku: fastest and cheapest (~1x). Simple edits, renames, lookups, short answers, boilerplate.',
   },
   sonnet: {
     id: 'claude-sonnet-5-5',
+    weight: 3,
     about: 'Claude Sonnet: strong general coding at mid cost (~3x). Features, refactors, tests, normal debugging.',
   },
   opus: {
     id: 'claude-opus-5-5',
+    weight: 5,
     about: 'Claude Opus: top reasoning at high cost (~5x). Hard debugging, architecture, large multi-file changes.',
   },
   fable: {
     id: 'claude-fable-5-1',
+    weight: 10,
     about: 'Claude Fable: most capable, highest cost. The hardest, longest, most ambiguous tasks.',
   },
 }
@@ -67,11 +72,23 @@ export type Config = {
   pauseMs: number
   routeSteps: boolean
   routeSubagents: boolean
+  baseline: string
   minConfidence: number
   minContextTokens: number
   cacheTtlMs: number
 }
 type Picked = Omit<Decision, 'turnId'>
+
+// Estimated model-price units of one step: tokens as Anthropic bills them (cache reads 0.1x, cache writes 1.25x,
+// output 5x input) times the model's weight. Relative, not dollars, and blind to effort.
+type StepUsage = { input_tokens: number; output_tokens: number; cache_read_input_tokens: number; cache_creation_input_tokens: number }
+export const stepUnits = (u: StepUsage, alias: string) =>
+  ((u.input_tokens + 1.25 * u.cache_creation_input_tokens + 0.1 * u.cache_read_input_tokens + 5 * u.output_tokens) * CLAUDE[alias]!.weight) / 1000
+
+export const savingsLine = (t: Savings) =>
+  t.actual === 0 ? 'no steps measured yet' : `est. ${Math.round((1 - t.actual / t.baseline) * 100)}% vs always ${t.name} over ${t.steps} steps (model price only; effort not compared)`
+
+let totals: Savings | null = null // loaded from the store once, then kept in memory
 
 // Cheapest to dearest (CLAUDE's key order); a switch up this ladder is an upgrade.
 const RANK = Object.keys(CLAUDE)
@@ -342,6 +359,18 @@ async function routeAgent($: EngineInterface, cfg: Config, id: string, current: 
   }
 }
 
+// Add one step to the running totals (kept across sessions in the plugin store).
+async function record($: EngineInterface, cfg: Config, u: (StepUsage & { model: string }) | undefined) {
+  const alias = u && aliasOf(u.model)
+  if (!u || !alias) return
+  totals ??= ((await $.store.get('savings')) as Savings | undefined) ?? { actual: 0, baseline: 0, steps: 0, name: cfg.baseline }
+  if (totals.name !== cfg.baseline) totals = { actual: 0, baseline: 0, steps: 0, name: cfg.baseline } // a new baseline starts a new tally
+  totals.actual += stepUnits(u, alias)
+  totals.baseline += stepUnits(u, cfg.baseline)
+  totals.steps++
+  await $.store.set('savings', totals)
+}
+
 const usage = (cmd: string, list: readonly string[]) => ({ text: `Usage: /jev ${cmd} ${list.join(' | ')}` })
 const applied = (name: string, v: string) => ({ text: `Jev ${name}: ${v}. Applies from the next task.` })
 
@@ -368,6 +397,7 @@ export const register: Register = (on, options) => {
     pauseMs: num(options.pauseMs, 60_000),
     routeSteps: flag(options.routeSteps, true),
     routeSubagents: flag(options.routeSubagents, true),
+    baseline: String(options.baselineModel ?? 'opus') in CLAUDE ? String(options.baselineModel ?? 'opus') : 'opus',
     minConfidence: num(options.minConfidence, 0.7),
     minContextTokens: num(options.minContextTokens, 8000),
     cacheTtlMs: num(options.cacheTtlMs, 300_000),
@@ -479,7 +509,10 @@ export const register: Register = (on, options) => {
       const id = e.agentId
       const pick = await (agents.get(id) ?? agents.set(id, routeAgent($, cfg, id, e.model)).get(id)!)
 
-      return yield* next(pick ? { ...e, model: pick.model, effort: pick.effort } : e)
+      const res = yield* next(pick ? { ...e, model: pick.model, effort: pick.effort } : e)
+      await record($, cfg, res.usage)
+
+      return res
     }
     const prev = await read($, lastAtom)
     const last = cfg.routeSteps && e.index > 0 && prev ? await restep($, cfg, e, prev) : prev
@@ -494,6 +527,7 @@ export const register: Register = (on, options) => {
       const at = await $.clock.now()
       await update($, cacheAtom, () => ({ model: u.model, at, contextTokens }))
     }
+    await record($, cfg, res.usage)
     return res
   })
 
@@ -510,6 +544,11 @@ export const register: Register = (on, options) => {
       if (!STICKY.includes(v as Sticky)) return usage('sticky', STICKY)
       await update($, stickyAtom, () => v as Sticky)
       return applied('cache stickiness', v)
+    }
+    if (arg === 'stats clear') {
+      totals = null
+      await $.store.delete('savings')
+      return { text: 'Jev savings tally cleared.' }
     }
     if (arg === 'full') {
       await update($, pendingAtom, p => ({ ...p, full: true }))
@@ -551,6 +590,7 @@ export const register: Register = (on, options) => {
           ['cap', `${(await read($, capAtom)) ?? cfg.defaultCap}${(await read($, pendingAtom)) ? '   🔓 next prompt: overrides set' : ''}`],
           ['last', last ? `${last.alias} / ${last.effort}  ${gauge(last.confidence)} ${last.confidence.toFixed(2)}${last.kept ? `  kept (wanted ${last.kept})` : ''}${last.capped ? `  capped from ${last.capped}` : ''}` : 'none yet'],
           ...usageRows(await read($, statsAtom), cfg.pool),
+          ['saved', savingsLine(totals ?? ((await $.store.get('savings')) as Savings | undefined) ?? { actual: 0, baseline: 0, steps: 0, name: cfg.baseline })],
           ['jev', isPaused(await $.clock.now()) ? `⚠ paused ${Math.ceil((pausedUntil - (await $.clock.now())) / 1000)} s` : '● ok'],
           ['key', auth ? `…${auth.key.slice(-4)}  (${auth.source})` : 'none: /jev key <key>'],
         ]),
