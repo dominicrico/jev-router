@@ -75,6 +75,7 @@ for (const [name, stick] of [['sticky-auto', 'auto'], ['sticky-off', 'off']] as 
   for (const p of ['hooks', 'types', '.claude-plugin/plugin.json']) { mkdirSync(dirname(join(dst, p)), { recursive: true }); cpSync(join(here, '..', p), join(dst, p), { recursive: true }) }
   const pj = JSON.parse(readFileSync(join(dst, '.claude-plugin/plugin.json'), 'utf8'))
   pj.userConfig.stickiness.default = stick
+  pj.userConfig.ceiling.default = 'none'; pj.userConfig.effortCap.default = 'high' // keep the benchmark's meaning now that lean is the default
   if (MODE) pj.userConfig.mode.default = MODE
   writeFileSync(join(dst, '.claude-plugin/plugin.json'), JSON.stringify(pj, null, 2))
   rmSync(join(dst, 'hooks/register.test.ts'), { force: true })

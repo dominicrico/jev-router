@@ -3,6 +3,15 @@
 All notable changes to jev-router are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project uses [Semantic Versioning](https://semver.org/).
 
+## [0.4.0] - 2026-10-10
+
+### Changed (behaviour change)
+- **The default is now the `lean` preset: a Sonnet ceiling and effort capped at `medium`.** Chosen by a pre-registered rule on 100 more graded runs: 39/40 hard tasks done against 38/40 for always-Opus and always-Sonnet, at $0.064 per run against $0.163 (Opus) and $0.062 (Sonnet); 18/18 on the multi-step set at $0.061 per run. Opus is still used when Jev is at least 90% sure (`ceilingBreak`). To keep the old behaviour set `preset: balanced` (or `/jev preset balanced`).
+
+### Added
+- `/jev preset lean|balanced|max` and a `preset` option; `/jev status` shows the active preset.
+- Benchmark harness: `ONLY=` strategy filter, a lean strategy, and an opt-in Wilson interval for pass rates (`CI=1`). CI checks that the shipped defaults match the lean preset.
+
 ## [0.3.0] - 2026-10-09
 
 ### Added
@@ -50,6 +59,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Benchmarks: routing fit, cost, stability, overhead and cache stickiness over 30 tasks, plus real token usage and cost per mode against no plugin.
 - Ponytail-style README with logo, hero art and benchmark charts.
 
+[0.4.0]: https://github.com/dominicrico/jev-router/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/dominicrico/jev-router/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/dominicrico/jev-router/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/dominicrico/jev-router/releases/tag/v0.1.0

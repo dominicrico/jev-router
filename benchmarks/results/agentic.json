@@ -1314,5 +1314,329 @@
     "usd": 0.0778
    }
   }
+ },
+ {
+  "task": "rename",
+  "tier": "easy",
+  "strategy": "jev-router: lean (sonnet ceiling, cap medium)",
+  "run": 0,
+  "ok": true,
+  "usd": 0.0454212,
+  "turns": 6,
+  "ms": 14291,
+  "output": 924,
+  "input": 134565,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 924,
+    "usd": 0.0454
+   }
+  }
+ },
+ {
+  "task": "rename",
+  "tier": "easy",
+  "strategy": "jev-router: lean (sonnet ceiling, cap medium)",
+  "run": 1,
+  "ok": true,
+  "usd": 0.04854730000000001,
+  "turns": 7,
+  "ms": 14324,
+  "output": 825,
+  "input": 158723,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 825,
+    "usd": 0.0485
+   }
+  }
+ },
+ {
+  "task": "rename",
+  "tier": "easy",
+  "strategy": "jev-router: lean (sonnet ceiling, cap medium)",
+  "run": 2,
+  "ok": true,
+  "usd": 0.0489543,
+  "turns": 7,
+  "ms": 17005,
+  "output": 861,
+  "input": 158881,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 861,
+    "usd": 0.049
+   }
+  }
+ },
+ {
+  "task": "bugfix",
+  "tier": "easy",
+  "strategy": "jev-router: lean (sonnet ceiling, cap medium)",
+  "run": 1,
+  "ok": true,
+  "usd": 0.0344546,
+  "turns": 5,
+  "ms": 8662,
+  "output": 552,
+  "input": 88656,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 552,
+    "usd": 0.0345
+   }
+  }
+ },
+ {
+  "task": "bugfix",
+  "tier": "easy",
+  "strategy": "jev-router: lean (sonnet ceiling, cap medium)",
+  "run": 2,
+  "ok": true,
+  "usd": 0.0343406,
+  "turns": 5,
+  "ms": 8542,
+  "output": 543,
+  "input": 88650,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 543,
+    "usd": 0.0343
+   }
+  }
+ },
+ {
+  "task": "bugfix",
+  "tier": "easy",
+  "strategy": "jev-router: lean (sonnet ceiling, cap medium)",
+  "run": 0,
+  "ok": true,
+  "usd": 0.0388352,
+  "turns": 6,
+  "ms": 24462,
+  "output": 674,
+  "input": 111605,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 674,
+    "usd": 0.0388
+   }
+  }
+ },
+ {
+  "task": "feature",
+  "tier": "standard",
+  "strategy": "jev-router: lean (sonnet ceiling, cap medium)",
+  "run": 1,
+  "ok": true,
+  "usd": 0.0759842,
+  "turns": 9,
+  "ms": 25544,
+  "output": 2821,
+  "input": 166568,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2821,
+    "usd": 0.076
+   }
+  }
+ },
+ {
+  "task": "feature",
+  "tier": "standard",
+  "strategy": "jev-router: lean (sonnet ceiling, cap medium)",
+  "run": 0,
+  "ok": true,
+  "usd": 0.08577370000000001,
+  "turns": 11,
+  "ms": 29207,
+  "output": 2985,
+  "input": 242138,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2985,
+    "usd": 0.0858
+   }
+  }
+ },
+ {
+  "task": "feature",
+  "tier": "standard",
+  "strategy": "jev-router: lean (sonnet ceiling, cap medium)",
+  "run": 2,
+  "ok": true,
+  "usd": 0.0633369,
+  "turns": 8,
+  "ms": 19167,
+  "output": 2332,
+  "input": 116176,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2332,
+    "usd": 0.0633
+   }
+  }
+ },
+ {
+  "task": "subagent",
+  "tier": "standard",
+  "strategy": "jev-router: lean (sonnet ceiling, cap medium)",
+  "run": 0,
+  "ok": true,
+  "usd": 0.08717180000000001,
+  "turns": 2,
+  "ms": 7937,
+  "output": 2951,
+  "input": 113392,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2951,
+    "usd": 0.0872
+   }
+  }
+ },
+ {
+  "task": "subagent",
+  "tier": "standard",
+  "strategy": "jev-router: lean (sonnet ceiling, cap medium)",
+  "run": 1,
+  "ok": true,
+  "usd": 0.08099390000000001,
+  "turns": 2,
+  "ms": 8911,
+  "output": 3304,
+  "input": 114974,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 3304,
+    "usd": 0.081
+   }
+  }
+ },
+ {
+  "task": "subagent",
+  "tier": "standard",
+  "strategy": "jev-router: lean (sonnet ceiling, cap medium)",
+  "run": 2,
+  "ok": true,
+  "usd": 0.07865230000000001,
+  "turns": 2,
+  "ms": 7743,
+  "output": 3272,
+  "input": 114273,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 3272,
+    "usd": 0.0787
+   }
+  }
+ },
+ {
+  "task": "refactor",
+  "tier": "standard",
+  "strategy": "jev-router: lean (sonnet ceiling, cap medium)",
+  "run": 0,
+  "ok": true,
+  "usd": 0.0684254,
+  "turns": 13,
+  "ms": 20033,
+  "output": 2107,
+  "input": 165032,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2107,
+    "usd": 0.0684
+   }
+  }
+ },
+ {
+  "task": "refactor",
+  "tier": "standard",
+  "strategy": "jev-router: lean (sonnet ceiling, cap medium)",
+  "run": 2,
+  "ok": true,
+  "usd": 0.05881159999999999,
+  "turns": 11,
+  "ms": 16865,
+  "output": 1875,
+  "input": 115180,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 1875,
+    "usd": 0.0588
+   }
+  }
+ },
+ {
+  "task": "refactor",
+  "tier": "standard",
+  "strategy": "jev-router: lean (sonnet ceiling, cap medium)",
+  "run": 1,
+  "ok": true,
+  "usd": 0.0673687,
+  "turns": 13,
+  "ms": 22192,
+  "output": 2137,
+  "input": 141519,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2137,
+    "usd": 0.0674
+   }
+  }
+ },
+ {
+  "task": "hard",
+  "tier": "hard",
+  "strategy": "jev-router: lean (sonnet ceiling, cap medium)",
+  "run": 0,
+  "ok": true,
+  "usd": 0.06294949999999999,
+  "turns": 7,
+  "ms": 21274,
+  "output": 2035,
+  "input": 139117,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 2035,
+    "usd": 0.0629
+   }
+  }
+ },
+ {
+  "task": "hard",
+  "tier": "hard",
+  "strategy": "jev-router: lean (sonnet ceiling, cap medium)",
+  "run": 1,
+  "ok": true,
+  "usd": 0.05509989999999999,
+  "turns": 5,
+  "ms": 17695,
+  "output": 1732,
+  "input": 114203,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 1732,
+    "usd": 0.0551
+   }
+  }
+ },
+ {
+  "task": "hard",
+  "tier": "hard",
+  "strategy": "jev-router: lean (sonnet ceiling, cap medium)",
+  "run": 2,
+  "ok": true,
+  "usd": 0.05894740000000001,
+  "turns": 6,
+  "ms": 17965,
+  "output": 1793,
+  "input": 137726,
+  "models": {
+   "claude-sonnet-5-5": {
+    "out": 1793,
+    "usd": 0.0589
+   }
+  }
  }
 ]

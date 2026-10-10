@@ -67,7 +67,7 @@ for (const [name, on, ceiling, cap] of [['prompt', false, 'none', undefined], ['
   rmSync(dst, { recursive: true, force: true }); mkdirSync(dst, { recursive: true })
   for (const p of ['hooks', 'types', '.claude-plugin/plugin.json']) { mkdirSync(dirname(join(dst, p)), { recursive: true }); cpSync(join(here, '..', p), join(dst, p), { recursive: true }) }
   const pj = JSON.parse(readFileSync(join(dst, '.claude-plugin/plugin.json'), 'utf8'))
-  pj.userConfig.routeSteps.default = on; pj.userConfig.routeSubagents.default = on; pj.userConfig.ceiling.default = ceiling
+  pj.userConfig.routeSteps.default = on; pj.userConfig.routeSubagents.default = on; pj.userConfig.ceiling.default = ceiling; pj.userConfig.effortCap.default = cap ?? 'high'
   if (cap) pj.userConfig.effortCap.default = cap
   writeFileSync(join(dst, '.claude-plugin/plugin.json'), JSON.stringify(pj, null, 2))
   rmSync(join(dst, 'hooks/register.test.ts'), { force: true })

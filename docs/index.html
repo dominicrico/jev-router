@@ -16,7 +16,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://dominicrico.github.io/jev-router/assets/hero.jpg">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"SoftwareApplication","name":"jev-router","applicationCategory":"DeveloperApplication","operatingSystem":"macOS, Linux, Windows (Claude Code)","description":"A Claude Code plugin that routes each prompt, step and subagent to the right Claude model and reasoning effort using TypeSafe Jev.","softwareVersion":"0.3.0","license":"https://opensource.org/licenses/MIT","url":"https://dominicrico.github.io/jev-router/","downloadUrl":"https://github.com/dominicrico/jev-router","codeRepository":"https://github.com/dominicrico/jev-router","author":{"@type":"Person","name":"Dominic Rico Gómez","url":"https://github.com/dominicrico"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"jev-router","applicationCategory":"DeveloperApplication","operatingSystem":"macOS, Linux, Windows (Claude Code)","description":"A Claude Code plugin that routes each prompt, step and subagent to the right Claude model and reasoning effort using TypeSafe Jev.","softwareVersion":"0.4.0","license":"https://opensource.org/licenses/MIT","url":"https://dominicrico.github.io/jev-router/","downloadUrl":"https://github.com/dominicrico/jev-router","codeRepository":"https://github.com/dominicrico/jev-router","author":{"@type":"Person","name":"Dominic Rico Gómez","url":"https://github.com/dominicrico"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
 </script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
@@ -79,9 +79,10 @@ footer{padding:40px 20px 60px;color:var(--mute);font-size:14px;text-align:center
 <tr><td>Small tasks: renames, typos, lookups</td><td>Haiku, low effort</td><td><strong>−97% cost</strong></td></tr>
 <tr><td>Everyday features, tests, refactors</td><td>Sonnet</td><td><strong>−65% cost</strong></td></tr>
 <tr><td>Multi-step agent runs with tools and subagents</td><td>Routes each step and subagent</td><td><strong>18/18 done at 47% of the cost</strong></td></tr>
-<tr><td>Hard tasks with <code>ceiling: sonnet</code></td><td>Sonnet unless Jev is 90% sure</td><td><strong>20/20 done, −50% cost</strong></td></tr>
-<tr><td>30 mixed tasks, default settings</td><td>Effort capped at high</td><td><strong>−1% to −64%</strong>, never above Opus</td></tr>
+<tr><td>Hard tasks graded by hidden tests (the default <code>lean</code> preset)</td><td>Sonnet, medium effort, Opus only when Jev is 90% sure</td><td><strong>39/40 done at −61% cost</strong></td></tr>
+<tr><td>30 mixed single prompts (<code>balanced</code> preset)</td><td>Effort capped at high</td><td><strong>−1% to −64%</strong>, never above Opus</td></tr>
 </table>
+<p>Out of the box (0.4.0) jev-router runs the <code>lean</code> preset: a Sonnet ceiling and effort capped at medium. <code>/jev preset balanced</code> restores the earlier behaviour.</p>
 <p><strong>Best for:</strong> Opus-by-default users, workloads full of small prompts, agent runs with subagents, and anyone who wants to see and steer which model runs. <strong>Not for:</strong> long sessions on one big warm context (routing cost +24% against Opus even with the cache guard), or work where plain Sonnet is already enough.</p>
 
 <h2 id="install">Install</h2>
@@ -94,7 +95,7 @@ footer{padding:40px 20px 60px;color:var(--mute);font-size:14px;text-align:center
 <div class="grid">
 <div class="card"><b>Right model per prompt</b>Haiku for renames, Sonnet for features, Opus for hard debugging. Three modes: efficient, balanced, cheap.</div>
 <div class="card"><b>Per step and per subagent</b>Long tasks are re-routed before each step. Each subagent gets its own model, shown in the subagent list.</div>
-<div class="card"><b>Effort cap</b>Limits Jev's effort to <code>high</code> by default, because extra reasoning is what makes hard tasks expensive. <code>!full</code> lifts it for one prompt.</div>
+<div class="card"><b>Effort cap</b>Limits Jev's effort to <code>medium</code> by default, because extra reasoning is what makes hard tasks expensive. <code>!full</code> lifts it for one prompt.</div>
 <div class="card"><b>Prompt cache guard</b>Switching models discards a warm cache. jev-router stays put unless Jev is confident a stronger model is needed. Measured: 6 switches become 1 in long sessions.</div>
 <div class="card"><b>Model ceiling</b><code>/jev ceiling sonnet</code> keeps tasks off Opus unless Jev is 90% sure. A sonnet ceiling finished 20/20 hard tasks at half the cost of Opus.</div>
 <div class="card"><b>Shows what really runs</b>The band follows the model that ran the last step and flags a mismatch with the pick, for example after a /model switch.</div>
@@ -116,7 +117,7 @@ footer{padding:40px 20px 60px;color:var(--mute);font-size:14px;text-align:center
 <tr><td><strong>All 30 tasks</strong></td><td><strong>−1%</strong></td><td><strong>−13%</strong></td><td><strong>−64%</strong></td></tr>
 </table>
 <img class="shot" src="assets/agentic.png" alt="Multi-step tasks with tools: jev-router finished 18 of 18 tasks at 47% of the cost of always opus" width="1760" height="1114">
-<img class="shot" src="assets/hard.png" alt="Harder tasks graded by hidden tests: always sonnet cheapest, jev-router with a sonnet ceiling 20 of 20 at half the cost of opus" width="1760" height="1114">
+<img class="shot" src="assets/hard.png" alt="Harder tasks graded by hidden tests: lean finished 39 of 40 at 39 percent of the cost of opus, close to always sonnet" width="1760" height="1114">
 <p>On the harder, hidden-test-graded tasks plain Sonnet did as well as Opus and cost 61% less. A <code>sonnet</code> ceiling finished 20 of 20 for half of Opus's cost. In long warm sessions, routing cost more than staying on one model (the cache guard cut the penalty from +38% to +24% against Opus), so routing helps most when your tasks vary, your context is small or cold, or your default is Opus. Method, limits and raw results are in the <a href="https://github.com/dominicrico/jev-router/tree/main/benchmarks">benchmarks folder</a>.</p>
 
 <h2 id="faq">FAQ</h2>

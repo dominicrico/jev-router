@@ -126,6 +126,19 @@ Long contexts (`results/SESSION-LONG.md`, 3 sessions per strategy, 12 complete s
 - **But routing lost to staying on one model** in a long warm session, in both strategies. The savings in the other benchmarks come from easy tasks and cold or small contexts.
 - **Caveats:** tools off, 8 short tasks, 3 sessions per strategy, one fixture of context. A real session has tool results growing the context, which would make switches dearer still.
 
+## The lean preset (the default since 0.4.0)
+
+Decision rule, written before running: `lean` (Sonnet ceiling, effort cap `medium`) becomes the default only if its pass rate on the hard fixture is within one run in 20 of always-Opus's and at least always-Sonnet's, and its cost is below the ceiling alone (cap `high`). 100 more runs ($8.7) brought opus, sonnet, ceiling and lean to 40 runs each:
+
+| 4 hard tasks | runs | done | mean per run | vs opus |
+| --- | --- | --- | --- | --- |
+| always opus | 40 | 38/40 (Wilson 83-99%) | $0.163 | |
+| always sonnet | 40 | 38/40 (83-99%) | $0.062 | -62% |
+| ceiling sonnet, cap high | 40 | 39/40 (87-100%) | $0.075 | -54% |
+| **lean (ceiling sonnet, cap medium)** | 40 | **39/40 (87-100%)** | **$0.064** | **-61%** |
+
+All three checks pass (39 vs 38 done, $0.064 vs $0.075). On the 6 multi-step tasks (3 runs): lean 18/18 at $0.061 per run, always opus $0.137, always sonnet $0.072. Honest reading: on these tasks lean spent 100% of its money on Sonnet, so it matches always-Sonnet (+3%); the pass-rate intervals overlap completely, so nothing here shows lean is *better* than Sonnet at quality. Its advantage is that it can still use Haiku for small tasks and Opus when Jev is 90% sure. The earlier strategies (per prompt, every step, `!full`) keep their 20 runs, so compare mean cost per run, not totals.
+
 ## Ceiling
 
 `ceiling: sonnet` was added after the hard-task result and run on the same four sealed tasks, 5 runs: 20/20 done for $1.56 (-50% against opus, +31% against always-sonnet), spend 100% sonnet. It finished the most tasks of any strategy, but 20 against 19 is one run and not evidence of anything. Its cost is above always-sonnet's $1.19 because Jev still asks for a higher effort than sonnet's default (capped at `high`).
