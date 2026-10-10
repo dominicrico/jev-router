@@ -39,6 +39,7 @@ const STRATS: Record<string, string[]> = {
   'no plugin: always sonnet': ['--model', 'claude-sonnet-5-5'],
   'jev-router: stickiness auto': ['--plugin-dir', `${PLUGINS}/sticky-auto`],
   'jev-router: stickiness off': ['--plugin-dir', `${PLUGINS}/sticky-off`],
+  'jev-router: lean (the default)': ['--plugin-dir', `${PLUGINS}/lean`],
 }
 
 // Seeded shuffle (mulberry32), so a session has the same order under every strategy.
@@ -69,13 +70,13 @@ if (DRY) {
 }
 
 // Two copies of the mod, differing only in the default of `stickiness` (and the optional mode).
-for (const [name, stick] of [['sticky-auto', 'auto'], ['sticky-off', 'off']] as const) {
+for (const [name, stick, ceiling, cap] of [['sticky-auto', 'auto', 'none', 'high'], ['sticky-off', 'off', 'none', 'high'], ['lean', 'auto', 'sonnet', 'medium']] as const) {
   const dst = `${PLUGINS}/${name}`
   rmSync(dst, { recursive: true, force: true }); mkdirSync(dst, { recursive: true })
   for (const p of ['hooks', 'types', '.claude-plugin/plugin.json']) { mkdirSync(dirname(join(dst, p)), { recursive: true }); cpSync(join(here, '..', p), join(dst, p), { recursive: true }) }
   const pj = JSON.parse(readFileSync(join(dst, '.claude-plugin/plugin.json'), 'utf8'))
   pj.userConfig.stickiness.default = stick
-  pj.userConfig.ceiling.default = 'none'; pj.userConfig.effortCap.default = 'high' // keep the benchmark's meaning now that lean is the default
+  pj.userConfig.ceiling.default = ceiling; pj.userConfig.effortCap.default = cap // the first two keep their pre-0.4 meaning, lean is the new default
   if (MODE) pj.userConfig.mode.default = MODE
   writeFileSync(join(dst, '.claude-plugin/plugin.json'), JSON.stringify(pj, null, 2))
   rmSync(join(dst, 'hooks/register.test.ts'), { force: true })

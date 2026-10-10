@@ -3,7 +3,7 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { table, vs, sum, k } from './lib.mts'
 const all: any[] = JSON.parse(readFileSync(new URL(process.env.CONTEXT === 'repo' ? 'results/session-long.json' : 'results/session.json', import.meta.url), 'utf8'))
 const rows = all.filter(s => s.complete)
-const S = ['no plugin: always opus', 'no plugin: always sonnet', 'jev-router: stickiness auto', 'jev-router: stickiness off'].filter(s => rows.some(r => r.strategy === s))
+const S = ['no plugin: always opus', 'no plugin: always sonnet', 'jev-router: stickiness auto', 'jev-router: stickiness off', 'jev-router: lean (the default)'].filter(s => rows.some(r => r.strategy === s))
 const of = (s: string) => rows.filter(r => r.strategy === s)
 const short = (m?: string) => (m ?? '?').replace('claude-', '').replace(/-\d.*$/, '')
 const base = sum(of(S[0]!), s => s.totalUsd) / Math.max(1, of(S[0]!).length)

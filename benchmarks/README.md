@@ -37,7 +37,7 @@ Full tables in [results/RESULTS.md](results/RESULTS.md).
 - **The modes are a real dial.** `balanced` sends some hard tasks (40%) to sonnet to save money; `cheap` sends all of them there, which is why a third of its picks are under-served. Use `cheap` for work where a miss is cheap.
 - **It is stable.** The same task got the same model on 97% to 100% of repeats.
 - **It is fast.** Asking Jev adds about 250 ms before a task (p95 314 ms, max 397 ms; the mod's timeout is 4000 ms).
-- **Cache stickiness, simulated first, then measured.** A simulation said following every pick in a long warm session would cost 3x more than opus; the real long-session run below says +38%, so treat the simulation as an upper bound.
+- **Cache stickiness, simulated first, then measured.** A simulation said following every pick in a long warm session would cost 3x more than opus; the real long-session run below says +42%, so treat the simulation as an upper bound.
 
 ## Measured tokens and cost
 
@@ -113,18 +113,20 @@ Finding the right way to measure it took two probes. `claude -p --resume` per tu
 
 Short contexts first (5 to 10k tokens, `results/SESSION.md`): always opus $0.225 per session, always sonnet $0.093, guard on $0.216 (4.7 switches), guard off $0.193 (6.3 switches). The guard is below its 8,000-token threshold for much of these, switches cost little, and keeping the guard on actually cost slightly more because it held the session on opus.
 
-Long contexts (`results/SESSION-LONG.md`, 3 sessions per strategy, 12 complete sessions, $6.32):
+Long contexts (`results/SESSION-LONG.md`, 5 sessions per strategy, 25 complete sessions, about $13 in total across two rounds):
 
-| Mean per session | cost | vs always opus | model switches | cache write tokens | cache read tokens |
+| Mean per session (5 sessions each) | cost | range | vs always opus | switches | cache tokens re-written |
 | --- | --- | --- | --- | --- | --- |
-| always opus | $0.506 | | 0 | 41.7k | 285.6k |
-| always sonnet | $0.273 | -46% | 0 | 41.0k | 283.0k |
-| jev-router, guard on (`auto`) | $0.627 | +24% | 1.0 | 78.4k | 247.9k |
-| jev-router, guard off | $0.699 | +38% | 6.3 | 193.8k | 131.6k |
+| always opus | $0.48 | $0.29-$0.57 | | 0 | 36k |
+| always sonnet | $0.27 | $0.26-$0.28 | -43% | 0 | 42k |
+| jev-router `balanced`, cache guard on (`auto`) | $0.67 | $0.60-$0.77 | +42% | 1.0 | 81k |
+| jev-router `balanced`, cache guard off | $0.68 | $0.58-$0.79 | +42% | 6.4 | 168k |
+| **jev-router `lean` (the default)** | **$0.48** | $0.26-$0.63 | **0%** | 0.8 | 53k |
 
-- **The guard does what it says:** switches 6.3 to 1.0, cache re-writes 194k to 78k tokens, cost +38% to +24% against opus.
-- **But routing lost to staying on one model** in a long warm session, in both strategies. The savings in the other benchmarks come from easy tasks and cold or small contexts.
-- **Caveats:** tools off, 8 short tasks, 3 sessions per strategy, one fixture of context. A real session has tool results growing the context, which would make switches dearer still.
+- **The guard cuts switches and cache writes, not the bill.** Switches 6 to 7 become 1 and cache writes roughly halve, but guard on and off both cost +42% against Opus. The first 3-session round showed +24% against +38%; the 5-session re-measurement shows that difference was noise, so I retracted it.
+- **`lean` is bimodal.** Mean +0% against Opus, per-session range $0.26 to $0.63 (sd $0.13 against $0.006 for Sonnet). In 3 sessions Jev stayed under 90% confidence and the session stayed on Sonnet; in 2 it was confident about a hard task, Opus was allowed, and the guard then kept Opus until the end.
+- **Routing still lost to staying on one model** in long warm sessions: always-Sonnet cost -43% against Opus, every time.
+- **Caveats:** tools off, 8 short tasks, one fixture of context, 5 sessions per strategy (the Opus runs alone ranged $0.29 to $0.57). A real session with tool results growing the context would make switches dearer.
 
 ## The lean preset (the default since 0.4.0)
 
