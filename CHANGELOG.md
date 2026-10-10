@@ -3,6 +3,11 @@
 All notable changes to jev-router are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project uses [Semantic Versioning](https://semver.org/).
 
+## [0.4.1] - 2026-10-10
+
+### Fixed (documentation, corrected measurements)
+- Re-measured the long-session benchmark with 5 sessions per strategy and the new `lean` default. The guard still cuts model switches (6 to 7 down to 1) and halves cache re-writes, but it does **not** lower cost: guard on and off both cost +42% against Opus. The earlier "+24% vs +38%" (3 sessions) was noise and is retracted. `lean` averaged the same cost as Opus in long warm sessions (range $0.26 to $0.63 per session); plain Sonnet was 43% cheaper. README, benchmarks, site and charts updated.
+
 ## [0.4.0] - 2026-10-10
 
 ### Changed (behaviour change)
@@ -59,6 +64,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Benchmarks: routing fit, cost, stability, overhead and cache stickiness over 30 tasks, plus real token usage and cost per mode against no plugin.
 - Ponytail-style README with logo, hero art and benchmark charts.
 
+[0.4.1]: https://github.com/dominicrico/jev-router/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/dominicrico/jev-router/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/dominicrico/jev-router/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/dominicrico/jev-router/compare/v0.1.0...v0.2.0

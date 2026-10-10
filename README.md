@@ -47,7 +47,7 @@ If your default is Opus, most of your prompts pay for more model than they need.
 
 **Best for:** Opus-by-default users, mixed workloads full of small prompts, agent runs with subagents, and anyone who wants to *see and steer* which model runs (the band, `!opus`, `!full`, `/jev ceiling`).
 
-**Not for:** long sessions on one big warm context. There, routing cost +24% against Opus even with the cache guard, because switching models re-writes the cache; the default `lean` preset already holds Jev to Sonnet, and plain Sonnet is the other safe choice (the +24% was measured with the older `balanced` settings). And if plain Sonnet already does all your work, it is cheaper than routing. Every figure above comes from the [benchmarks](#does-it-reduce-claude-code-costs), including the ones that went against it.
+**Not for:** long sessions on one big warm context. There, `lean` averaged the same cost as Opus (some sessions as cheap as Sonnet, some as dear as Opus), and plain Sonnet was 43% cheaper than both; switching models re-writes the cache and the guard only halves that. And if plain Sonnet already does all your work, it is cheaper than routing. Every figure above comes from the [benchmarks](#does-it-reduce-claude-code-costs), including the ones that went against it.
 
 ### Install in 30 seconds
 
@@ -116,7 +116,7 @@ Three benchmarks. First, 30 single-prompt tasks: 270 calls to Jev for the picks,
 | --- | --- | --- | --- |
 | Trivial tasks | -97% | -97% | -97% |
 | Standard tasks | -65% | -65% | -68% |
-| Hard tasks, **cap high (default)** | +43% | +24% | -56% |
+| Hard tasks, cap high (the `balanced` preset) | +43% | +24% | -56% |
 | Hard tasks, uncapped | +242% | +207% | -39% |
 | **All 30, cap high (default)** | **-1%** | **-13%** | **-64%** |
 | All 30, uncapped | +123% | +101% | -53% |
@@ -164,16 +164,26 @@ The tasks (a concurrency bug, an interval merger with open and closed bounds, a 
 
 ### Long sessions: the cache guard, measured
 
-Switching models throws away the warm prompt cache, so the mod holds the current model while the cache is warm and large. I measured this with real long sessions: one Claude Code process per session, about 20k tokens of source pasted first, then 8 mixed tasks, 3 sessions per strategy.
+Switching models throws away the warm prompt cache, so the mod holds the current model while the cache is warm and large. I measured this with real long sessions: one Claude Code process per session, about 20k tokens of source pasted first, then 8 mixed tasks, 5 sessions per strategy (re-measured in 0.4.1 with more sessions and the new `lean` default).
 
-| Mean per session | cost | vs always opus | model switches | cache tokens re-written |
-| --- | --- | --- | --- | --- |
-| always opus | $0.51 | | 0 | 42k |
-| always sonnet | $0.27 | -46% | 0 | 41k |
-| jev-router, cache guard on (`auto`) | $0.63 | +24% | 1.0 | 78k |
-| jev-router, cache guard off | $0.70 | +38% | 6.3 | 194k |
+<p align="center">
+  <img src="assets/cache.png" width="880" alt="Measured long sessions, 5 per strategy: always opus 48 cents, always sonnet 27, jev-router balanced with the cache guard 67 and without 68, lean 48 with a range from 26 to 63 cents.">
+</p>
 
-The guard works (6 switches become 1, cache re-writes fall by 60%, cost falls from +38% to +24% against opus), but **in a long warm session routing still cost more than just staying on opus**, and always-sonnet was half the price. (My earlier simulation said "3x more"; the measurement says +38%, so the simulation exaggerated.) In short sessions with small contexts (5 to 10k tokens, below the guard's threshold) the guard barely matters and the picture is the same: routing saved 14% against opus with the guard off and 4% with it on, always-sonnet saved 59%. Routing earns its keep when the cache is cold or the context is small, and when your habit is to run everything on opus. If you work in long warm sessions, set a ceiling (below) or just use sonnet.
+| Mean per session (5 sessions each) | cost | range | vs always opus | switches | cache tokens re-written |
+| --- | --- | --- | --- | --- | --- |
+| always opus | $0.48 | $0.29-$0.57 | | 0 | 36k |
+| always sonnet | $0.27 | $0.26-$0.28 | -43% | 0 | 42k |
+| jev-router `balanced`, cache guard on (`auto`) | $0.67 | $0.60-$0.77 | +42% | 1.0 | 81k |
+| jev-router `balanced`, cache guard off | $0.68 | $0.58-$0.79 | +42% | 6.4 | 168k |
+| **jev-router `lean` (the default)** | **$0.48** | $0.26-$0.63 | **0%** | 0.8 | 53k |
+
+What the 5-session numbers say, including what changed from my first 3-session run:
+
+- **The guard does what it says on switches and cache writes**: 6 to 7 model switches become 1, and cache re-writes halve (168k to 81k tokens). **It did not lower the bill**: guard on and off both cost +42% against Opus. My first run (3 sessions) showed +24% against +38% and I read that as a guard benefit; with more sessions it was noise. Corrected.
+- **`lean` averaged the same as Opus (+0%), but the average hides two kinds of session.** In 3 of 5 it stayed on Sonnet and cost $0.26 to $0.45. In 2 of 5 Jev was at least 90% sure about a hard task, the ceiling let Opus through, the guard then held Opus for the rest of the session, and the session cost about $0.60. Always-Sonnet cost $0.27 every time.
+- **So in a long warm session `lean` does not beat staying on one model.** If you work like this, plain Sonnet is the cheapest safe choice, or raise `ceilingBreak` to 1.0 so the ceiling is never broken (not measured).
+- Short sessions with small contexts and the cold-cache case look different (see the table above and the benchmarks folder); routing's wins there come from easy tasks.
 
 ### Presets
 
