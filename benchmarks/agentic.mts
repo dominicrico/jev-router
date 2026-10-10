@@ -5,7 +5,7 @@
 // Records real tokens, cost and turns, and checks whether the task was actually done.
 // FIXTURE=fixture2 (or --fixture fixture2) switches to the harder fixture2: four tasks graded by hidden tests,
 // one more strategy ('!full'), results in results/agentic2.json. Stops launching runs once the total cost passes
-// BUDGET_USD (default 25).
+// BUDGET_USD (default 25). ONLY=name1,name2 (exact strategy names) plans just those strategies; other results stay untouched.
 // usage: TYPESAFE_API_KEY=... [FIXTURE=fixture2] npx tsx --tsconfig benchmarks/tsconfig.json benchmarks/agentic.mts [runs]
 import { execFile, execFileSync } from 'node:child_process'
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
@@ -52,22 +52,31 @@ const STRATS: Record<string, string[]> = {
   'jev-router: every step + subagents': ['--plugin-dir', `${PLUGINS}/full`],
   ...(F2 ? { 'jev-router: !full': ['--plugin-dir', `${PLUGINS}/full`] } : {}), // the default plugin, effort cap lifted by a "!full " prefix
   ...(F2 ? { 'jev-router: ceiling sonnet': ['--plugin-dir', `${PLUGINS}/ceiling`] } : {}), // every step and subagent routed, never above sonnet unless Jev is 90% sure
+  'jev-router: lean (sonnet ceiling, cap medium)': ['--plugin-dir', `${PLUGINS}/lean`], // like ceiling, plus the effort cap lowered to medium
 }
 const PREFIX: Record<string, string> = { 'jev-router: !full': '!full ' }
 
-// Copies of the mod, differing only in the defaults of the new options (the ceiling copy routes everything, like full).
-for (const [name, on, ceiling] of [['prompt', false, 'none'], ['full', true, 'none'], ['ceiling', true, 'sonnet']] as const) {
+// Strategy names may contain commas (the lean one does), so match known names first and only then split on commas.
+const parseOnly = (v: string) => { const out: string[] = []; for (let rest = v.trim(); rest; ) { const hit = Object.keys(STRATS).filter(n => rest === n || rest.startsWith(n + ',')).sort((a, b) => b.length - a.length)[0] ?? rest.split(',')[0]!; out.push(hit.trim()); rest = rest.slice(hit.length).replace(/^\s*,\s*/, '') } return out.filter(Boolean) }
+const ONLY = process.env.ONLY ? parseOnly(process.env.ONLY) : undefined
+if (ONLY) { const bad = ONLY.filter(n => !(n in STRATS)); if (bad.length) throw new Error(`ONLY: unknown strategy ${bad.map(b => JSON.stringify(b)).join(', ')}; known: ${Object.keys(STRATS).join(' | ')}`) }
+
+// Copies of the mod, differing only in the defaults of the new options (the ceiling and lean copies route everything, like full).
+for (const [name, on, ceiling, cap] of [['prompt', false, 'none', undefined], ['full', true, 'none', undefined], ['ceiling', true, 'sonnet', undefined], ['lean', true, 'sonnet', 'medium']] as const) {
   const dst = `${PLUGINS}/${name}`
   rmSync(dst, { recursive: true, force: true }); mkdirSync(dst, { recursive: true })
   for (const p of ['hooks', 'types', '.claude-plugin/plugin.json']) { mkdirSync(dirname(join(dst, p)), { recursive: true }); cpSync(join(here, '..', p), join(dst, p), { recursive: true }) }
   const pj = JSON.parse(readFileSync(join(dst, '.claude-plugin/plugin.json'), 'utf8'))
   pj.userConfig.routeSteps.default = on; pj.userConfig.routeSubagents.default = on; pj.userConfig.ceiling.default = ceiling
+  if (cap) pj.userConfig.effortCap.default = cap
   writeFileSync(join(dst, '.claude-plugin/plugin.json'), JSON.stringify(pj, null, 2))
   rmSync(join(dst, 'hooks/register.test.ts'), { force: true })
 }
 
 const done: any[] = existsSync(OUT) ? JSON.parse(readFileSync(OUT, 'utf8')) : []
-const jobs = TASKS.flatMap(t => Object.keys(STRATS).flatMap(s => Array.from({ length: RUNS }, (_, r) => ({ t, s, r })))).filter(j => !done.some(d => d.task === j.t.id && d.strategy === j.s && d.run === j.r))
+const jobs = TASKS.flatMap(t => Object.keys(STRATS).filter(s => !ONLY || ONLY.includes(s)).flatMap(s => Array.from({ length: RUNS }, (_, r) => ({ t, s, r })))).filter(j => !done.some(d => d.task === j.t.id && d.strategy === j.s && d.run === j.r))
+
+if (ONLY) console.log(`ONLY: ${ONLY.join(', ')} -> ${jobs.length} runs planned`)
 
 async function one({ t, s, r }: any) {
   const dir = `${WORK}/${t.id}-${Object.keys(STRATS).indexOf(s)}-${r}`
