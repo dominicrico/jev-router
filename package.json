@@ -3,7 +3,8 @@
   "private": true,
   "description": "Dev tooling only: the plugin itself needs no install step.",
   "scripts": {
-    "typecheck": "tsc --noEmit -p benchmarks/tsconfig.json"
+    "typecheck": "tsc --noEmit -p benchmarks/tsconfig.json",
+    "check:defaults": "tsx --tsconfig benchmarks/tsconfig.json benchmarks/check-defaults.mts"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

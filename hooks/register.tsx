@@ -55,6 +55,7 @@ const cacheAtom = atom({ ...S, key: 'cache' } as const, null)
 const stickyAtom = atom({ ...S, key: 'sticky' } as const, null)
 const capAtom = atom({ ...S, key: 'cap' } as const, null)
 const ranAtom = atom({ ...S, key: 'ran' } as const, null)
+const presetAtom = atom({ ...S, key: 'preset' } as const, null)
 const ceilingAtom = atom({ ...S, key: 'ceiling' } as const, null)
 const floorAtom = atom({ ...S, key: 'floor' } as const, null)
 const pendingAtom = atom({ ...S, key: 'pending' } as const, null)
@@ -103,6 +104,13 @@ let totals: Savings | null = null // loaded from the store once, then kept in me
 // Cheapest to dearest (CLAUDE's key order); a switch up this ladder is an upgrade.
 const RANK = Object.keys(CLAUDE)
 const aliasOf = (model: string) => Object.keys(CLAUDE).find(a => CLAUDE[a]!.id === model)
+
+// Named bundles of the settings that decide how much a task may cost. `balanced` is the router's plain behaviour.
+export const PRESETS: Record<string, { ceiling: string; cap: EffortCap; mode: Mode }> = {
+  lean: { ceiling: 'sonnet', cap: 'medium', mode: 'balanced' },
+  balanced: { ceiling: 'none', cap: 'high', mode: 'balanced' },
+  max: { ceiling: 'none', cap: 'none', mode: 'efficient' },
+}
 
 // Jev's effort drives token use more than its model pick does, so it is capped.
 // `capped` is what Jev wanted when the cap lowered it.
@@ -461,10 +469,11 @@ export const register: Register = (on, options) => {
   const allowed = (Array.isArray(options.models) ? options.models : Object.keys(CLAUDE))
     .map(m => String(m).toLowerCase())
     .filter(m => m in CLAUDE)
-  const defaultMode: Mode = MODES.includes(options.mode as Mode) ? (options.mode as Mode) : 'balanced'
+  const defaultMode: Mode = PRESETS[String(options.preset)]?.mode ?? (MODES.includes(options.mode as Mode) ? (options.mode as Mode) : 'balanced')
 
   const defaultSticky: Sticky = STICKY.includes(options.stickiness as Sticky) ? (options.stickiness as Sticky) : 'auto'
-  const defaultCap: EffortCap = CAPS.includes(options.effortCap as EffortCap) ? (options.effortCap as EffortCap) : 'high'
+  const preset = PRESETS[String(options.preset)]
+  const defaultCap: EffortCap = preset?.cap ?? (CAPS.includes(options.effortCap as EffortCap) ? (options.effortCap as EffortCap) : 'high')
   const alias = (v: unknown) => (String(v) in CLAUDE ? String(v) : 'none')
   const flag = (v: unknown, d: boolean) => (v === undefined || v === '' ? d : String(v) !== 'false')
   const num = (v: unknown, d: number) => (v !== undefined && v !== '' && Number.isFinite(Number(v)) ? Number(v) : d)
@@ -480,7 +489,7 @@ export const register: Register = (on, options) => {
     routeSteps: flag(options.routeSteps, true),
     routeSubagents: flag(options.routeSubagents, true),
     escalateAfter: num(options.escalateAfter, 3),
-    ceiling: alias(options.ceiling),
+    ceiling: PRESETS[String(options.preset)]?.ceiling ?? alias(options.ceiling),
     floor: alias(options.floor),
     ceilingBreak: num(options.ceilingBreak, 0.9),
     sendHistory: flag(options.sendHistory, true),
@@ -559,7 +568,7 @@ export const register: Register = (on, options) => {
     totals = await tally($, cfg)
     await $.command.register({
       name: 'jev',
-      description: 'Jev model routing (prompt markers: !full !haiku !sonnet !opus !fable !cheap !efficient): efficient | balanced | cheap | sticky <off|auto|strict> | cap <effort|none> | ceiling <model|none> | floor <model|none> | full | on | off | status | key <key>',
+      description: 'Jev model routing (prompt markers: !full !haiku !sonnet !opus !fable !cheap !efficient): efficient | balanced | cheap | sticky <off|auto|strict> | cap <effort|none> | ceiling <model|none> | floor <model|none> | full | preset <lean|balanced|max> | on | off | status | key <key>',
     })
 
     return next(e)
@@ -669,6 +678,17 @@ export const register: Register = (on, options) => {
       await update($, stickyAtom, () => v as Sticky)
       return applied('cache stickiness', v)
     }
+    if (arg.startsWith('preset')) {
+      const v = arg.slice(6).trim()
+      const p = PRESETS[v]
+      if (!p) return usage('preset', Object.keys(PRESETS))
+      await update($, presetAtom, () => v)
+      await update($, ceilingAtom, () => p.ceiling)
+      await update($, capAtom, () => p.cap)
+      await update($, modeAtom, () => p.mode)
+      await update($, floorAtom, () => 'none')
+      return applied(`preset (ceiling ${p.ceiling}, effort cap ${p.cap}, mode ${p.mode})`, v)
+    }
     if (arg.startsWith('ceiling')) {
       const v = arg.slice(7).trim()
       if (v !== 'none' && !(v in CLAUDE)) return usage('ceiling', [...Object.keys(CLAUDE), 'none'])
@@ -724,6 +744,7 @@ export const register: Register = (on, options) => {
           ['pool', cfg.pool.join(' · ')],
           ['sticky', `${(await read($, stickyAtom)) ?? cfg.defaultSticky}   cache ${warm ? '● warm' : '○ cold'}`],
           ['cap', `${(await read($, capAtom)) ?? cfg.defaultCap}${(await read($, pendingAtom)) ? '   🔓 next prompt: overrides set' : ''}`],
+          ['preset', (await read($, presetAtom)) ?? (PRESETS[String(options.preset)] ? String(options.preset) : 'custom')],
           ['limits', `ceiling ${(await read($, ceilingAtom)) ?? cfg.ceiling} (break at ${cfg.ceilingBreak})   floor ${(await read($, floorAtom)) ?? cfg.floor}`],
           ['last', last ? `${last.alias} / ${last.effort}  ${gauge(last.confidence)} ${last.confidence.toFixed(2)}${last.kept ? `  kept (wanted ${last.kept})` : ''}${last.capped ? `  capped from ${last.capped}` : ''}${last.clamped ? `  clamped from ${last.clamped}` : ''}` : 'none yet'],
           ...usageRows(totals?.models ?? {}, cfg.pool),

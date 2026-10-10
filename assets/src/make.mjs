@@ -105,10 +105,12 @@ ${[['#4ade80', 'haiku', 'trivial'], ['#60a5fa', 'sonnet', 'standard'], ['#c084fc
 <div class=foot>The mark spins while a task runs. <span class=mono>⤓xhigh</span> means the cap lowered Jev's effort; 🔓 means the prompt ran uncapped. Confidence turns amber under 70% and red under 50%.</div></div>`
 
 
-const AS = [['no plugin: always opus', 'always opus', '#475569'], ['no plugin: always sonnet', 'always sonnet', '#64748b'], ['jev-router: per prompt', 'jev-router, per prompt', G], ['jev-router: every step + subagents', 'jev-router, every step + subagents', G]]
-const AS2 = [...AS, ['jev-router: !full', 'jev-router, !full', G], ['jev-router: ceiling sonnet', 'jev-router, ceiling sonnet', G]]
+const LEAN = ['jev-router: lean (sonnet ceiling, cap medium)', 'jev-router, lean (the default)', G]
+const AS = [['no plugin: always opus', 'always opus', '#475569'], ['no plugin: always sonnet', 'always sonnet', '#64748b'], ['jev-router: per prompt', 'jev-router, per prompt', G], ['jev-router: every step + subagents', 'jev-router, every step + subagents', G], LEAN]
+const AS2 = [...AS.slice(0, 4), ['jev-router: !full', 'jev-router, !full', G], ['jev-router: ceiling sonnet', 'jev-router, ceiling sonnet', G], LEAN]
 const ag2 = JSON.parse(readFileSync(res('agentic2.json'), 'utf8'))
-const aCost = (st, t, rows = ag) => rows.filter(r => r.strategy === st && (!t || r.task === t)).reduce((a, r) => a + r.usd, 0)
+// mean cost per run, so strategies with different run counts compare fairly
+const aCost = (st, t, rows = ag) => { const r = rows.filter(x => x.strategy === st && (!t || x.task === t)); return r.reduce((a, x) => a + x.usd, 0) / (r.length || 1) }
 const aDone = (st, rows = ag) => { const r = rows.filter(x => x.strategy === st); return `${r.filter(x => x.ok).length}/${r.length}` }
 const aBase = aCost(AS[0][0])
 const strategyCard = (rows, list, eye, h1, foot) => {
@@ -118,11 +120,11 @@ const strategyCard = (rows, list, eye, h1, foot) => {
   return `<div class=card><div class=eye>${eye}</div><h1>${h1}</h1>
 <div style="display:grid;gap:12px">${list.map(row).join('')}</div>
 <div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:12px;margin-top:26px">
-${list.map(([st, label]) => `<div style="border:1px solid #1e293b;background:#0e1730;border-radius:14px;padding:14px"><div class=mono style="font-size:20px;font-weight:700">$${aCost(st, undefined, rows).toFixed(2)}</div><div class=muted style="font-size:11.5px;margin:3px 0 6px">${label}</div><div style="font-size:13px;color:#5eead4">${aDone(st, rows)} done</div></div>`).join('')}</div>
+${list.map(([st, label]) => `<div style="border:1px solid #1e293b;background:#0e1730;border-radius:14px;padding:14px"><div class=mono style="font-size:20px;font-weight:700">$${aCost(st, undefined, rows).toFixed(3)}</div><div class=muted style="font-size:11.5px;margin:3px 0 6px">${label} · per run</div><div style="font-size:13px;color:#5eead4">${aDone(st, rows)} done</div></div>`).join('')}</div>
 <div class=foot>${foot}</div></div>`
 }
-const agenticCard = strategyCard(ag, AS, `Benchmark · 6 multi-step tasks · ${ag.length} real runs with tools`, `Same tasks done, <span class=g>${Math.round(100 - (100 * aCost(AS[3][0])) / aBase)}% cheaper</span> than always opus.`, 'Cost as % of always opus (= 100%). A script checks each task is really done: tests pass, the fix works, the files exist. 3 runs each on a small fixture repo. The extra saving from routing every step and subagent comes mostly from the subagent task. All four strategies finished 18 of 18, but these are not hard tasks.')
-const hardCard = strategyCard(ag2, AS2, `Benchmark · 4 harder tasks · ${ag2.length} real runs, graded by hidden tests`, `A sonnet ceiling finished <span class=g>20 of 20</span> hard tasks for half of opus's cost.`, 'Cost as % of always opus (= 100%). Each task is graded by a hidden test the agent never saw. 5 runs each. Pass counts differ by at most two runs, which is noise at this size. Always sonnet is still the cheapest; the ceiling keeps jev-router close to it while Jev can still pick opus when it is 90% sure.')
+const agenticCard = strategyCard(ag, AS, `Benchmark · 6 multi-step tasks · ${ag.length} real runs with tools`, `Lean did all 18 tasks for <span class=g>${Math.round(100 - (100 * aCost(LEAN[0])) / aBase)}% less</span> than always opus.`, 'Cost as % of always opus (= 100%). A script checks each task is really done: tests pass, the fix works, the files exist. 3 runs each on a small fixture repo. The saving from routing steps and subagents comes mostly from the subagent task. All strategies finished 18 of 18, but these are not hard tasks.')
+const hardCard = strategyCard(ag2, AS2, `Benchmark · 4 harder tasks · ${ag2.length} real runs, graded by hidden tests`, `On hard tasks lean finished <span class=g>39 of 40</span> at Sonnet's price: ${Math.round(100 - (100 * aCost(LEAN[0], undefined, ag2)) / aCost(AS2[0][0], undefined, ag2))}% below Opus.`, 'Mean cost per run as % of always opus (= 100%). Each task is graded by a hidden test the agent never saw. 40 runs for opus, sonnet, ceiling and lean; 20 for the others. Pass counts differ by at most one run in 40. On these tasks lean spent everything on Sonnet, so it matches always-Sonnet; its edge shows on small tasks and with subagents.')
 
 const lanes = [['haiku', '#4ade80', 85, ['rename usr to user', 'fix typo in README']], ['sonnet', '#60a5fa', 185, ['add /health endpoint + test']], ['opus', '#c084fc', 285, ['double-charge root cause', 'migrate auth to JWT']], ['fable', '#fbbf24', 385, []]]
 const hero = `<div style="width:880px;height:495px;position:relative;background:radial-gradient(700px 420px at 18% 40%,#16305f 0%,#0b1020 65%);overflow:hidden">
@@ -137,7 +139,7 @@ ${lanes.map(([n, c, y, ts]) => `<div class=mono style="position:absolute;left:28
 <div style="font-size:58px;font-weight:700;line-height:1.05;margin-top:16px;letter-spacing:-.03em">jev-<span class=g>router</span></div>
 <div style="font-size:19px;margin-top:12px;color:#cbd5e1">Right model. Right effort.<br>Every task.</div>
 <div style="display:flex;gap:20px;margin-top:28px">
-${[[`-${100 - pctOpus('trivial', 'cheap', true)}%`, 'cost, trivial'], [`-${100 - pctOpus('standard', 'balanced', true)}%`, 'cost, standard'], [`-${Math.round(100 - (100 * aCost(AS[3][0])) / aBase)}%`, 'multi-step tasks'], [`${q(0.5)}ms`, 'per pick']].map(([v, l]) => `<div><div class=mono style="font-size:24px;font-weight:700">${v}</div><div class=muted style="font-size:11.5px;margin-top:2px">${l}</div></div>`).join('')}</div>
+${[[`-${100 - pctOpus('trivial', 'cheap', true)}%`, 'cost, trivial'], [`-${100 - pctOpus('standard', 'balanced', true)}%`, 'cost, standard'], [`-${Math.round(100 - (100 * aCost(LEAN[0])) / aBase)}%`, 'multi-step tasks'], [`${q(0.5)}ms`, 'per pick']].map(([v, l]) => `<div><div class=mono style="font-size:24px;font-weight:700">${v}</div><div class=muted style="font-size:11.5px;margin-top:2px">${l}</div></div>`).join('')}</div>
 <div style="margin-top:28px;font-size:15px"><i class=muted>And yet</i> <b style="font-size:21px" class=g>hard tasks cost more.</b></div>
 <div style="font-size:12.5px;margin-top:6px" class=muted>Jev buys deeper reasoning there: +${pctOpus('hard', 'balanced', true) - 100}% to +${pctOpus('hard', 'efficient', true) - 100}% at the default cap of high.<br>Lift it for one prompt with <span class=mono style="color:#5eead4">!full</span>.</div></div>
 <div style="position:absolute;left:0;right:0;bottom:0;padding:12px 30px 16px;font-size:11px" class=muted>30 tasks, 270 Jev calls, ${147 + ag.length + ag2.length} real runs. Opus 5.5, Sonnet 5.5, Haiku 5.5. Multi-step runs check the task got done. Quality is measured on the tool-using tasks only.</div></div>`

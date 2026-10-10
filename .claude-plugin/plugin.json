@@ -1,6 +1,6 @@
 {
   "name": "jev-router",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Asks TypeSafe Jev before each task which Claude model and effort fit best, then runs the turn on it",
   "types": "./types/index.d.ts",
   "userConfig": {
@@ -72,7 +72,7 @@
     "effortCap": {
       "type": "string",
       "title": "Effort cap",
-      "description": "Highest reasoning effort the router applies. Start a prompt with !full, or run /jev full, to lift it for one prompt",
+      "description": "Highest reasoning effort the router applies. medium is the default (the lean preset). Start a prompt with !full, or run /jev full, to lift it for one promptHighest reasoning effort the router applies. medium is the default (the lean preset). Start a prompt with !full, or run /jev full, to lift it for one prompt",
       "options": [
         "low",
         "medium",
@@ -81,7 +81,7 @@
         "max",
         "none"
       ],
-      "default": "high"
+      "default": "medium"
     },
     "routeSteps": {
       "type": "boolean",
@@ -150,7 +150,7 @@
     "ceiling": {
       "type": "string",
       "title": "Model ceiling",
-      "description": "The most expensive model Jev may pick unless it is very sure (see ceilingBreak). none: no ceiling. sonnet is a good lean setting",
+      "description": "The most expensive model Jev may pick unless it is very sure (see ceilingBreak). sonnet is the default (the lean preset); none lifts it",
       "options": [
         "none",
         "haiku",
@@ -158,7 +158,7 @@
         "opus",
         "fable"
       ],
-      "default": "none"
+      "default": "sonnet"
     },
     "floor": {
       "type": "string",
@@ -178,6 +178,18 @@
       "title": "Confidence to break the ceiling",
       "description": "Jev may exceed the ceiling only at or above this confidence (0 to 1)",
       "default": 0.9
+    },
+    "preset": {
+      "type": "string",
+      "title": "Preset",
+      "description": "lean (the default settings): sonnet ceiling, effort capped at medium. balanced: no ceiling, cap high. max: no limits, efficient mode. none: use mode, ceiling and effortCap as set",
+      "options": [
+        "none",
+        "lean",
+        "balanced",
+        "max"
+      ],
+      "default": "none"
     }
   }
 }
