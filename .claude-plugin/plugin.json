@@ -178,6 +178,18 @@
       "title": "Confidence to break the ceiling",
       "description": "Jev may exceed the ceiling only at or above this confidence (0 to 1)",
       "default": 0.9
+    },
+    "preset": {
+      "type": "string",
+      "title": "Preset",
+      "description": "lean: sonnet ceiling, effort capped at medium. balanced: no ceiling, cap high. max: no limits, efficient mode. none: set mode, ceiling and effortCap individually. When set, a preset overrides them",
+      "options": [
+        "none",
+        "lean",
+        "balanced",
+        "max"
+      ],
+      "default": "none"
     }
   }
 }

@@ -1,7 +1,7 @@
 import { expect, mock, test } from 'claude-code/testing'
 import type { On } from 'claude-code'
 import type { Engine } from 'claude-code/testing'
-import { capEffort, heuristic, limit, markers, redact, savingsLine, segments, stepUnits } from './register'
+import { PRESETS, capEffort, heuristic, limit, markers, redact, savingsLine, segments, stepUnits } from './register'
 
 // Fake secrets, assembled at runtime so secret scanners do not flag this file.
 const SK = ['sk', '-abcdefghijklmnop1234'].join('')
@@ -538,4 +538,29 @@ test('segments: with no pick the band shows the session model that ran, not "wai
   const ran = { alias: 'sonnet', model: 'claude-sonnet-5-5', turnId: 't9', at: 0 }
   expect(text(segments('balanced', null, null, null, false, ran))).toContain('sonnet (session model)')
   expect(text(segments('balanced', null))).toContain('waiting for the first task')
+})
+
+test('/jev preset lean sets ceiling, effort cap and mode; later commands still win', { options: { apiKey: 'k-test', ceilingBreak: 0.95 } }, async ($, on) => {
+  mock.store(on)
+  const w = world(on, jev('opus', 'xhigh'))
+  expect(JSON.stringify(await $.command.run({ command: 'jev', args: 'preset nope' } as any))).toContain('Usage')
+  await $.command.run({ command: 'jev', args: 'preset lean' } as any)
+  await $.turn.start({ text: 'redesign the queue', turnId: 't1' })
+  await step($, 't1')
+  expect(w.steps[0].model).toBe('claude-sonnet-5-5') // ceiling
+  expect(w.steps[0].effort).toBe('medium') // cap
+  await $.command.run({ command: 'jev', args: 'cap high' } as any)
+  await $.turn.start({ text: 'again', turnId: 't2' })
+  await step($, 't2')
+  expect(w.steps[1].effort).toBe('high')
+  expect(JSON.stringify(await $.command.run({ command: 'jev', args: 'status' } as any))).toContain('preset')
+  expect(Object.keys(PRESETS)).toEqual(['lean', 'balanced', 'max'])
+})
+
+test('the preset option sets the starting limits', { options: { apiKey: 'k-test', preset: 'lean', ceilingBreak: 0.95 } }, async ($, on) => {
+  const w = world(on, jev('opus', 'xhigh'))
+  await $.turn.start({ text: 'redesign the queue', turnId: 't1' })
+  await step($, 't1')
+  expect(w.steps[0].model).toBe('claude-sonnet-5-5')
+  expect(w.steps[0].effort).toBe('medium')
 })

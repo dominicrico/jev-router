@@ -31,6 +31,7 @@ declare module 'claude-code' {
       cap: EffortCap | null
       pending: Pending | null
       ran: Ran | null
+      preset: string | null
       ceiling: string | null
       floor: string | null
       frame: number
