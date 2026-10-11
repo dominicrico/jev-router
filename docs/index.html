@@ -68,66 +68,40 @@ footer{padding:40px 20px 60px;color:var(--mute);font-size:14px;text-align:center
   <img class="shot" src="assets/hero.jpg" alt="jev-router sends each Claude Code task down the right track: haiku, sonnet, opus or fable" width="1760" height="990">
 </header>
 <main>
-<h2 id="what">What is jev-router?</h2>
-<p>Using one model for everything wastes money: an expensive model renames a variable, a cheap one stalls on a hard refactor. <strong>jev-router</strong> is a Claude Code plugin (a "mod") that asks <a href="https://typesafe.ai">TypeSafe Jev</a> which Claude model and effort a task needs, then runs the turn on that choice. It works per prompt, again before each step of a long task, and once for every subagent.</p>
-<img class="shot" src="assets/band.gif" alt="The jev-router band above the Claude Code prompt, stepping through its states: idle, running, haiku, sonnet, capped opus, pinned, escalated, paused" width="880" height="141">
-
-<h2 id="shines">Where jev-router shines</h2>
-<p>If your default is Opus, most prompts pay for more model than they need. Measured with real Claude Code runs, against always using Opus:</p>
-<table>
-<tr><th>Your work</th><th>What it does</th><th>Result</th></tr>
-<tr><td>Small tasks: renames, typos, lookups</td><td>Haiku, low effort</td><td><strong>−97% cost</strong></td></tr>
-<tr><td>Everyday features, tests, refactors</td><td>Sonnet</td><td><strong>−65% cost</strong></td></tr>
-<tr><td>Multi-step agent runs with tools and subagents</td><td>Routes each step and subagent</td><td><strong>18/18 done at 47% of the cost</strong></td></tr>
-<tr><td>Hard tasks graded by hidden tests (the default <code>lean</code> preset)</td><td>Sonnet, medium effort, Opus only when Jev is 90% sure</td><td><strong>39/40 done at −61% cost</strong></td></tr>
-<tr><td>30 mixed single prompts (<code>balanced</code> preset)</td><td>Effort capped at high</td><td><strong>−1% to −64%</strong>, never above Opus</td></tr>
-</table>
-<p>Out of the box (0.4.0) jev-router runs the <code>lean</code> preset: a Sonnet ceiling and effort capped at medium. <code>/jev preset balanced</code> restores the earlier behaviour.</p>
-<p><strong>Best for:</strong> Opus-by-default users, workloads full of small prompts, agent runs with subagents, and anyone who wants to see and steer which model runs. <strong>Not for:</strong> long sessions on one big warm context (there <code>lean</code> averaged the same cost as Opus), or work where plain Sonnet is already enough.</p>
-
-<h2 id="install">Install</h2>
-<p>You need Claude Code with plugin support and a TypeSafe API key.</p>
+<h2 id="install">Install the Claude Code plugin</h2>
 <pre><code>/plugin marketplace add dominicrico/jev-router
 /plugin install jev-router@jev-router</code></pre>
-<p>Then give it your key with <code>/jev key &lt;key&gt;</code> or the <code>TYPESAFE_API_KEY</code> environment variable, and run <code>/jev status</code>.</p>
+<p>Then <code>/jev key &lt;your TypeSafe key&gt;</code> (or set <code>TYPESAFE_API_KEY</code>) and run <code>/jev status</code>. That is the whole setup: the <code>lean</code> preset is on by default.</p>
 
-<h2 id="features">Features</h2>
-<div class="grid">
-<div class="card"><b>Right model per prompt</b>Haiku for renames, Sonnet for features, Opus for hard debugging. Three modes: efficient, balanced, cheap.</div>
-<div class="card"><b>Per step and per subagent</b>Long tasks are re-routed before each step. Each subagent gets its own model, shown in the subagent list.</div>
-<div class="card"><b>Effort cap</b>Limits Jev's effort to <code>medium</code> by default, because extra reasoning is what makes hard tasks expensive. <code>!full</code> lifts it for one prompt.</div>
-<div class="card"><b>Prompt cache guard</b>Switching models discards a warm cache. jev-router stays put unless Jev is confident a stronger model is needed. Measured: 6 to 7 switches become 1 in long sessions, and cache re-writes halve.</div>
-<div class="card"><b>Model ceiling</b><code>/jev ceiling sonnet</code> keeps tasks off Opus unless Jev is 90% sure. A sonnet ceiling finished 20/20 hard tasks at half the cost of Opus.</div>
-<div class="card"><b>Shows what really runs</b>The band follows the model that ran the last step and flags a mismatch with the pick, for example after a /model switch.</div>
-<div class="card"><b>Per-prompt markers</b><code>!opus</code>, <code>!sonnet</code>, <code>!haiku</code> pin a model with no Jev call; <code>!cheap</code> and <code>!efficient</code> set the mode.</div>
-<div class="card"><b>Escalation</b>After three failed tool calls in a row the task moves up one model.</div>
-<div class="card"><b>Live status band</b>Model, effort, confidence and cache state above the prompt, with a spinner while a task runs.</div>
-<div class="card"><b>Savings tally</b><code>/jev status</code> estimates your saving against the model you would otherwise use.</div>
-<div class="card"><b>Privacy controls</b>Secrets are redacted before anything is sent; history can be switched off; Jev down? Optional local fallback.</div>
-</div>
+<img class="shot" src="assets/benefits.png" alt="Measured against always using Opus: minus 97 percent on small tasks, minus 65 percent on everyday work, minus 61 percent on hard tasks with 39 of 40 done, minus 56 percent on agent runs with subagents with 18 of 18 done." width="1760" height="1278" loading="lazy">
 
-<h2 id="benchmarks">Does it save money? The benchmarks</h2>
-<p>Everything is measured with real Claude Code runs and reproducible scripts. The honest summary: it saves a lot on easy and medium work, costs more than plain Sonnet on harder work, and with the default effort cap no mode costs more than always using Opus.</p>
-<img class="shot" src="assets/cost.png" alt="Cost as a percentage of always opus for trivial, standard and hard tasks in each routing mode" width="1760" height="1588">
-<table>
-<tr><th>Cost vs always Opus</th><th>efficient</th><th>balanced</th><th>cheap</th></tr>
-<tr><td>Trivial tasks</td><td>−97%</td><td>−97%</td><td>−97%</td></tr>
-<tr><td>Standard tasks</td><td>−65%</td><td>−65%</td><td>−68%</td></tr>
-<tr><td>Hard tasks (effort capped at high)</td><td>+43%</td><td>+24%</td><td>−56%</td></tr>
-<tr><td><strong>All 30 tasks</strong></td><td><strong>−1%</strong></td><td><strong>−13%</strong></td><td><strong>−64%</strong></td></tr>
-</table>
-<img class="shot" src="assets/agentic.png" alt="Multi-step tasks with tools: jev-router finished 18 of 18 tasks at 47% of the cost of always opus" width="1760" height="1114">
-<img class="shot" src="assets/hard.png" alt="Harder tasks graded by hidden tests: lean finished 39 of 40 at 39 percent of the cost of opus, close to always sonnet" width="1760" height="1114">
-<p>On the harder, hidden-test-graded tasks plain Sonnet did as well as Opus and cost 61% less. The default <code>lean</code> preset finished 39 of 40 at 61% below Opus. In long warm sessions routing did not beat staying on one model (the cache guard halves cache re-writes but not the bill), so routing helps most when your tasks vary, your context is small or cold, or your default is Opus. Method, limits and raw results are in the <a href="https://github.com/dominicrico/jev-router/tree/main/benchmarks">benchmarks folder</a>.</p>
+<h2 id="band">See every pick, live</h2>
+<img class="shot" src="assets/band.gif" alt="The band above the prompt stepping through its states: idle, running, haiku, sonnet, capped opus, ceiling, pinned, escalated, paused, off." width="880" height="138" loading="lazy">
+
+<h2 id="features">What you get</h2>
+<img class="shot" src="assets/features.png" alt="Nine features: right model per prompt, re-routes every step, routes subagents, effort cap, Sonnet ceiling, cache guard, live band, per-prompt control, privacy controls." width="1760" height="1198" loading="lazy">
+<img class="shot" src="assets/how.png" alt="How it works in six steps: a task arrives, ask Jev, check the cache, cap the effort, re-ask each step and route subagents, show it above the prompt." width="1760" height="1104" loading="lazy">
+
+<h2 id="benchmarks">Does it reduce Claude Code costs?</h2>
+<p>Yes, on most work, and the benchmarks say where it does not. Every number is a real Claude Code run (hard tasks are graded by hidden tests the agent never sees), and the raw runs are in the <a href="https://github.com/dominicrico/jev-router/tree/main/benchmarks">benchmarks folder</a>.</p>
+<img class="shot" src="assets/hard.png" alt="Harder tasks graded by hidden tests, mean cost per run as a percentage of always opus: always sonnet 38 percent, jev-router lean 39 percent with 39 of 40 done." width="1760" height="1388" loading="lazy">
+
+<h2 id="fit">Is it for you?</h2>
+<img class="shot" src="assets/fitfor.png" alt="Great for Opus-by-default users, many small tasks, agent runs with subagents and anyone who wants to see which model runs. Skip it if plain Sonnet already does all your work or you live in one huge warm session." width="1760" height="960" loading="lazy">
+<p>Long warm sessions are the honest weak spot: the cache guard cuts model switches from 6 to 1 and halves cache re-writes, but the bill stayed the same, and <code>lean</code> averaged Opus cost there while plain Sonnet was 43% cheaper.</p>
+<img class="shot" src="assets/cache.png" alt="Measured long sessions, 5 per strategy: always opus 48 cents, always sonnet 27, jev-router balanced with and without the cache guard 67 and 68, lean 48 with a range of 26 to 63 cents." width="1760" height="1148" loading="lazy">
+
+<h2 id="commands">Commands</h2>
+<img class="shot" src="assets/commands.png" alt="Cheat sheet: /jev status, /jev preset, /jev ceiling, /jev cap, /jev full, /jev key, and the prompt markers !opus, !sonnet, !haiku, !full, !cheap." width="1760" height="1074" loading="lazy">
+<p>Every option, preset and the privacy details are in the <a href="https://github.com/dominicrico/jev-router/blob/main/OPTIONS.md">reference</a>.</p>
 
 <h2 id="faq">FAQ</h2>
-<details><summary>How do I switch between Opus, Sonnet and Haiku automatically in Claude Code?</summary><p>Install jev-router. It picks the model per prompt, and you can override one prompt with <code>!opus</code>, <code>!sonnet</code> or <code>!haiku</code>.</p></details>
-<details><summary>How do I reduce Claude Code token cost?</summary><p>Route easy tasks to cheaper models and cap reasoning effort. jev-router does both, and shows an estimated saving in <code>/jev status</code>. The benchmarks above show where it helps and where it does not.</p></details>
-<details><summary>Does the prompt cache guard work?</summary><p>It does what it says on switches: in real long sessions with a large warm cache it cut model switches from 6 to 7 down to 1 and halved cache re-writes. It did not lower the bill: with and without the guard routing cost +42% against Opus. The default <code>lean</code> preset averaged the same as Opus there (+0%), cheap in some sessions and dear in others, while plain Sonnet was -43%. For long warm sessions on one big context, plain Sonnet is the cheapest safe choice.</p></details>
-<details><summary>What is the effort cap?</summary><p>Jev often asks for <code>xhigh</code> effort on hard tasks, which can use several times the tokens. The cap limits it to <code>high</code> by default. Start a prompt with <code>!full</code> to lift it once.</p></details>
-<details><summary>Does it send my code anywhere?</summary><p>It sends the prompt text, optionally recent messages, and subagent task descriptions to api.typesafe.ai. API keys, tokens, private keys and <code>password=</code> style values are redacted first, and <code>sendHistory</code> turns the history off. Pattern redaction is not a guarantee.</p></details>
+<details><summary>How do I switch between Opus, Sonnet and Haiku automatically in Claude Code?</summary><p>Install jev-router. It picks per prompt, again before each step, and once per subagent. Pin one prompt with <code>!opus</code>, <code>!sonnet</code> or <code>!haiku</code>.</p></details>
+<details><summary>How do I reduce Claude Code token cost?</summary><p>Send easy tasks to cheaper models and cap the reasoning effort. jev-router does both: small tasks −97%, everyday work −65% against always Opus. If plain Sonnet already does your work, use that; it was cheapest on the hard set.</p></details>
+<details><summary>What is the effort cap?</summary><p>Jev often asks for <code>xhigh</code> reasoning on hard tasks, which can triple the tokens. The default <code>lean</code> preset limits effort to <code>medium</code>; <code>!full</code> lifts it for one prompt.</p></details>
+<details><summary>Does the prompt cache guard work?</summary><p>On switches, yes: 6 to 7 down to 1, and cache re-writes halve. It did not lower the bill in long warm sessions, where plain Sonnet is the cheapest safe choice.</p></details>
+<details><summary>Does it send my code anywhere?</summary><p>The prompt, optionally recent messages, and subagent task text go to api.typesafe.ai. Keys, tokens, private keys and <code>password=</code> style values are redacted first, and <code>sendHistory</code> turns the history off. Pattern redaction is not a guarantee.</p></details>
 <details><summary>Will it slow Claude Code down?</summary><p>Each Jev call adds about 250 ms. After three failed calls in a row it pauses for a minute and keeps the current model.</p></details>
-<details><summary>Which models does it use?</summary><p>Claude Haiku, Sonnet, Opus and Fable, narrowed by the <code>models</code> option.</p></details>
 </main>
 <footer>
   jev-router is MIT licensed. <a href="https://github.com/dominicrico/jev-router">GitHub</a> · <a href="https://github.com/dominicrico/jev-router/releases">Releases</a> · <a href="https://github.com/dominicrico/jev-router/blob/main/CHANGELOG.md">Changelog</a><br>
