@@ -144,6 +144,56 @@ ${[[`-${100 - pctOpus('trivial', 'cheap', true)}%`, 'cost, trivial'], [`-${100 -
 <div style="font-size:12.5px;margin-top:6px" class=muted>Jev buys deeper reasoning there: +${pctOpus('hard', 'balanced', true) - 100}% to +${pctOpus('hard', 'efficient', true) - 100}% at the default cap of high.<br>Lift it for one prompt with <span class=mono style="color:#5eead4">!full</span>.</div></div>
 <div style="position:absolute;left:0;right:0;bottom:0;padding:12px 30px 16px;font-size:11px" class=muted>30 tasks, 270 Jev calls, ${147 + ag.length + ag2.length} real runs. Opus 5.5, Sonnet 5.5, Haiku 5.5. Multi-step runs check the task got done. Quality is measured on the tool-using tasks only.</div></div>`
 
+
+// ---- compact README cards -------------------------------------------------
+const sav = (a, b) => Math.round(100 - (100 * a) / b)
+const leanHard = sav(aCost(LEAN[0], undefined, ag2), aCost(AS2[0][0], undefined, ag2))
+const leanMulti = sav(aCost(LEAN[0]), aCost(AS[0][0]))
+const tile = (big, label, sub, color) => `<div style="border:1px solid #1e293b;background:#0e1730;border-radius:18px;padding:22px 20px"><div class="mono g" style="font-size:54px;font-weight:700;line-height:1;${color ? `background:${color};-webkit-background-clip:text;background-clip:text;color:transparent` : ''}">${big}</div><div style="font-size:17px;font-weight:700;margin:10px 0 4px">${label}</div><div class=muted style="font-size:13px;line-height:1.45">${sub}</div></div>`
+const benefitsCard = `<div class=card><div class=eye>Measured with real Claude Code runs · against always using Opus</div>
+<h1>Pay for the model each task <span class=g>actually needs</span>.</h1>
+<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px">
+${tile(`-${pctOpus('trivial', 'cheap', true) < 50 ? 100 - pctOpus('trivial', 'cheap', true) : 0}%`, 'Small tasks', 'Renames, typos, lookups, version bumps. Haiku at low effort does them.')}
+${tile(`-${100 - pctOpus('standard', 'balanced', true)}%`, 'Everyday work', 'Features, tests, refactors. Sonnet does them.')}
+${tile(`-${leanHard}%`, 'Hard tasks, still 39/40 done', 'Graded by hidden tests. Sonnet with a safety valve to Opus.')}
+${tile(`-${leanMulti}%`, 'Agent runs with subagents, 18/18 done', 'Every step and every subagent gets its own model.')}
+</div>
+<div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;font-size:14px">${['Zero config: the lean preset is the default', 'Live band shows every pick', 'Override any prompt with !opus or !full', 'Free, MIT'].map(t => `<span style="border:1px solid #1d3157;background:#13203d;color:#7dd3fc;border-radius:999px;padding:6px 14px">${t}</span>`).join('')}</div>
+</div>`
+
+const feat = (icon, t, d) => `<div style="border:1px solid #1e293b;background:#0e1730;border-radius:16px;padding:16px 16px 14px"><div style="font-size:26px;line-height:1">${icon}</div><div style="font-size:15.5px;font-weight:700;margin:8px 0 3px">${t}</div><div class=muted style="font-size:12.5px;line-height:1.45">${d}</div></div>`
+const featuresCard = `<div class=card><div class=eye>What it does</div>
+<h1>One lever per task. <span class=g>Nine things you get.</span></h1>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+${feat('🎯', 'Right model per prompt', 'Haiku, Sonnet, Opus or Fable, picked by TypeSafe Jev before the task runs.')}
+${feat('🔁', 'Re-routes every step', 'A task that turns out easier or harder moves to a fitting model.')}
+${feat('🤖', 'Routes subagents', 'Each subagent gets its own model, tagged right in the subagent list.')}
+${feat('🧠', 'Effort cap', 'Stops xhigh reasoning from quietly tripling a bill. !full lifts it once.')}
+${feat('🛡️', 'Sonnet ceiling', 'Opus only when Jev is 90% sure. Floor and presets included.')}
+${feat('🔒', 'Cache guard', 'Holds the model while your prompt cache is warm: switches 6 to 1.')}
+${feat('📟', 'Live band', 'Model, effort, confidence and cache above the prompt. Shows what really runs.')}
+${feat('⌨️', 'Per-prompt control', '!opus, !sonnet, !haiku, !cheap, !full. One prompt, your call.')}
+${feat('🔐', 'Privacy controls', 'Secrets redacted before anything leaves; history can be switched off.')}
+</div></div>`
+
+const fitCol = (title, color, items) => `<div style="border:1px solid #1e293b;background:#0e1730;border-radius:18px;padding:20px 22px"><div style="font-size:18px;font-weight:800;color:${color};margin-bottom:10px">${title}</div>${items.map(t => `<div style="display:flex;gap:10px;margin:9px 0;font-size:15px;line-height:1.4"><span style="color:${color};font-weight:800">${title.startsWith('Great') ? '✓' : '✗'}</span><span>${t}</span></div>`).join('')}</div>`
+const fitForCard = `<div class=card><div class=eye>Is it for you?</div>
+<h1>Built for people who <span class=g>default to Opus</span>.</h1>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+${fitCol('Great for', '#4ade80', ['Opus by default, mixed prompts', 'Lots of small tasks and quick questions', 'Agent runs with subagents', 'Seeing and steering which model runs', 'A cheap safety net before you reach for Opus'])}
+${fitCol('Skip it if', '#fbbf24', ['Plain Sonnet already does all your work: it is cheaper still', 'You live in one huge warm session: routing averaged Opus cost there', 'You need every answer on the strongest model'])}
+</div>
+<div class=foot>Every claim on this page is a measured result, including the two on the right. Details and raw runs are in the benchmarks folder.</div></div>`
+
+const cmd = (c, d) => `<div style="display:flex;gap:12px;align-items:baseline;border-bottom:1px solid #1e293b;padding:9px 2px"><code class=mono style="min-width:210px;color:#5eead4;font-size:13.5px">${c}</code><span class=muted style="font-size:14px">${d}</span></div>`
+const commandsCard = `<div class=card><div class=eye>Cheat sheet</div>
+<h1>Everything is <span class=g>one command</span> away.</h1>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 28px">
+<div>${[['/jev status', 'Settings, last pick, savings'], ['/jev preset lean|balanced|max', 'Switch the whole setup'], ['/jev ceiling sonnet', 'Never above this model'], ['/jev cap medium', 'Highest reasoning effort'], ['/jev full', 'Lift the cap for one prompt'], ['/jev key <key>', 'Store your TypeSafe key']].map(([c, d]) => cmd(c, d)).join('')}</div>
+<div>${[['!opus  !sonnet  !haiku', 'Pin a model for one prompt'], ['!full', 'Lift the effort cap once'], ['!cheap  !efficient', 'Set the mode for one prompt'], ['/jev off  /  /jev on', 'Use the session model'], ['/jev stats clear', 'Reset the savings tally'], ['/jev sticky auto|strict|off', 'Cache guard strength']].map(([c, d]) => cmd(c, d)).join('')}</div>
+</div>
+<div class=foot>Full option and command reference: OPTIONS.md in the repository.</div></div>`
+
 mkdirSync(join(here, '..'), { recursive: true })
 const browser = await chromium.launch({ executablePath: process.env.CHROME })
 const shoot = async (html, out, w, type = 'png') => {
@@ -154,7 +204,7 @@ const shoot = async (html, out, w, type = 'png') => {
 }
 await shoot(hero, 'hero.jpg', 880, 'jpeg')
 await shoot(costCard, 'cost.png', 880); await shoot(fitCard, 'fit.png', 880); await shoot(cacheCard, 'cache.png', 880)
-await shoot(howCard, 'how.png', 880); await shoot(agenticCard, 'agentic.png', 880); await shoot(hardCard, 'hard.png', 880); await shoot(bandCard, 'band.png', 880)
+await shoot(howCard, 'how.png', 880); await shoot(benefitsCard, 'benefits.png', 880); await shoot(featuresCard, 'features.png', 880); await shoot(fitForCard, 'fitfor.png', 880); await shoot(commandsCard, 'commands.png', 880); await shoot(agenticCard, 'agentic.png', 880); await shoot(hardCard, 'hard.png', 880); await shoot(bandCard, 'band.png', 880)
 await browser.close()
 // the GitHub Pages site serves its own copies
-for (const f of ['hero.jpg', 'band.gif', 'cost.png', 'fit.png', 'hard.png', 'agentic.png', 'cache.png', 'how.png', 'logo.jpg']) cpSync(join(here, '..', f), join(here, '../../docs/assets', f))
+for (const f of ['hero.jpg', 'band.gif', 'cost.png', 'fit.png', 'hard.png', 'agentic.png', 'cache.png', 'how.png', 'benefits.png', 'features.png', 'fitfor.png', 'commands.png', 'logo.jpg']) cpSync(join(here, '..', f), join(here, '../../docs/assets', f))
