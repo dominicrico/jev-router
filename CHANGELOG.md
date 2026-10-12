@@ -3,6 +3,12 @@
 All notable changes to jev-router are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project uses [Semantic Versioning](https://semver.org/).
 
+## [0.4.2] - 2026-10-12
+
+### Fixed
+- An explicit model on a subagent's Agent call is now kept for its whole life. Before, the subagent's first step asked Jev and replaced it. Every spawn outcome (explicit model, routed pick, failed pick) is now recorded, so a subagent never asks Jev again behind a decision made at spawn.
+- The band no longer drops what other plugins draw above the prompt: it composes with them (theirs above, the band last, right above the input), also when routing is off.
+
 ## [0.4.1] - 2026-10-10
 
 ### Fixed (documentation, corrected measurements)
@@ -64,6 +70,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Benchmarks: routing fit, cost, stability, overhead and cache stickiness over 30 tasks, plus real token usage and cost per mode against no plugin.
 - Ponytail-style README with logo, hero art and benchmark charts.
 
+[0.4.2]: https://github.com/dominicrico/jev-router/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/dominicrico/jev-router/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/dominicrico/jev-router/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/dominicrico/jev-router/compare/v0.2.0...v0.3.0

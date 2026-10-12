@@ -564,3 +564,23 @@ test('the preset option sets the starting limits', { options: { apiKey: 'k-test'
   expect(w.steps[0].model).toBe('claude-sonnet-5-5')
   expect(w.steps[0].effort).toBe('medium')
 })
+
+test('an explicit subagent model survives its first step, with no Jev call', OPTS, async ($, on) => {
+  const w = world(on, jev('haiku', 'low'))
+  on('agent.spawn', async (_$, e) => ({ model: e.model ?? '', agentId: 'agent-5' }) as any)
+  on('agent.list', async () => ({ value: [{ id: 'agent-5', description: 'find importers', type: 'Explore' }] }))
+  await $.agent.spawn({ prompt: 'List the importers', description: 'find importers', subagentType: 'Explore', model: 'opus' } as any)
+  await step($, 't1', 'agent-5')
+  expect(w.bodies.length).toBe(0)
+  expect(w.steps[0].model).toBe('claude-sonnet-5-5') // the engine's own model is left alone
+})
+
+test('a subagent whose spawn pick failed does not ask Jev again at its first step', OPTS, async ($, on) => {
+  const w = world(on, () => ({ ok: false, status: 500, text: 'boom' }))
+  on('agent.spawn', async (_$, e) => ({ model: e.model ?? '', agentId: 'agent-6' }) as any)
+  on('agent.list', async () => ({ value: [{ id: 'agent-6', description: 'find importers', type: 'Explore' }] }))
+  await $.agent.spawn({ prompt: 'List the importers', description: 'find importers', subagentType: 'Explore' } as any)
+  expect(w.bodies.length).toBe(1) // the spawn's own attempt
+  await step($, 't1', 'agent-6')
+  expect(w.bodies.length).toBe(1)
+})

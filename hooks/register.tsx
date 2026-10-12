@@ -460,6 +460,9 @@ async function record($: EngineInterface, cfg: Config, u: (StepUsage & { model: 
   await $.store.set('savings', totals)
 }
 
+// An empty Box is what "nothing drawn here" looks like, so only real content is composed with.
+const hasContent = (t: any) => !!t && (t.type !== 'Box' || (t.children?.length ?? 0) > 0)
+
 const usage = (cmd: string, list: readonly string[]) => ({ text: `Usage: /jev ${cmd} ${list.join(' | ')}` })
 const applied = (name: string, v: string) => ({ text: `Jev ${name}: ${v}. Applies from the next task.` })
 
@@ -534,23 +537,25 @@ export const register: Register = (on, options) => {
 
   // Pick the subagent's model at spawn and show it in the subagent list.
   on('agent.spawn', async ($, e, next) => {
-    if (!cfg.routeSubagents || !(await read($, enabledAtom)) || e.model) return next(e) // an explicit model on the Agent call wins
-    const pick = await routeSubagent($, cfg, `spawn ${e.subagentType}: ${e.description}`, `Subagent task (${e.subagentType}): ${e.description}\n\n${e.prompt}`, e.parentModel)
-    if (!pick) return next(e)
-    const res = await next({ ...e, model: pick.alias, description: `${e.description} · ${pick.alias}/${pick.effort}` })
+    if (!cfg.routeSubagents || !(await read($, enabledAtom))) return next(e)
+    // Every outcome is recorded for the agent's lifetime, so its steps never ask Jev again behind a decision made here:
+    // an explicit model on the Agent call wins, and a failed pick leaves the engine's own model (null = no override).
+    const pick = e.model ? null : await routeSubagent($, cfg, `spawn ${e.subagentType}: ${e.description}`, `Subagent task (${e.subagentType}): ${e.description}\n\n${e.prompt}`, e.parentModel)
+    const res = await next(pick ? { ...e, model: pick.alias, description: `${e.description} · ${pick.alias}/${pick.effort}` } : e)
     if (res.agentId) agents.set(res.agentId, Promise.resolve(pick)) // its steps reuse the pick (and its effort)
 
     return res
   })
 
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
-    if (e.props.hasSurvey) return next(e)
+    const below = await next(e) // whatever other plugins draw here stays; ours goes last, right above the prompt
+    if (e.props.hasSurvey) return below
     const { Box, Text } = $.ui.resolve(e)
     const segs: Seg[] = (await read($, enabledAtom))
       ? segments(await currentMode($, cfg), await read($, lastAtom), e.props.isWorking ? await read($, frameAtom) : null, await cacheLabel($, cfg), isPaused(await $.clock.now()), await read($, ranAtom))
       : [{ text: 'JEV ▏off▕', color: '#64748b' }, ...((await read($, ranAtom)) ? [{ text: `  ${(await read($, ranAtom))!.alias} (session model)`, color: '#475569' }] : [])]
 
-    return (
+    const row = (
       <Box>
         <Text>
           {segs.map(x => (
@@ -560,6 +565,15 @@ export const register: Register = (on, options) => {
           ))}
         </Text>
       </Box>
+    )
+
+    return hasContent(below) ? (
+      <Box flexDirection="column">
+        {below}
+        {row}
+      </Box>
+    ) : (
+      row
     )
   })
 

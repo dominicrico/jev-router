@@ -13,8 +13,9 @@ const PROPS = {
 } as any
 
 // Only what a routed turn needs: a Jev answer, the session model and the turn bottom.
-function stubs(on: On, failJev = false) {
+function stubs(on: On, failJev = false, below: unknown = { type: 'Box' }) {
   mock.clock(on)
+  on('ui.render', { component: 'AbovePrompt' } as any, async () => below as any) // what is drawn beneath the band: nothing, or another plugin's row
   on('http.fetch', async () => ({
     value: failJev ? { headers: {}, ok: false, status: 500, text: 'boom' } : {
       headers: {},
@@ -86,5 +87,28 @@ test('the band shows the session model after a Jev failure instead of waiting', 
   const band = JSON.stringify(await ui.drawn())
   expect(band).toContain('session model')
   expect(band).not.toContain('waiting for the first task')
+  await ui.unmount()
+})
+
+const other = { type: 'Text', children: ['OTHER PLUGIN ROW'] }
+
+test('another plugin AbovePrompt row survives next to the band', OPTS, async ($, on) => {
+  stubs(on, false, other)
+  const ui = await mountBand($)
+  const band = JSON.stringify(await ui.drawn())
+  expect(band).toContain('JEV')
+  expect(band).toContain('OTHER PLUGIN ROW')
+  expect(band.indexOf('OTHER PLUGIN ROW')).toBeLessThan(band.indexOf('JEV')) // the band stays last, right above the prompt
+  await ui.unmount()
+})
+
+test('the other row survives with routing off too', OPTS, async ($, on) => {
+  stubs(on, false, other)
+  mock.store(on)
+  await $.command.run({ command: 'jev', args: 'off' } as any)
+  const ui = await mountBand($)
+  const band = JSON.stringify(await ui.drawn())
+  expect(band).toContain('off')
+  expect(band).toContain('OTHER PLUGIN ROW')
   await ui.unmount()
 })
