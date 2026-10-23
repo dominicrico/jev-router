@@ -1,6 +1,6 @@
 {
   "name": "jev-router",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "description": "Asks TypeSafe Jev before each task which Claude model and effort fit best, then runs the turn on it",
   "types": "./types/index.d.ts",
   "userConfig": {
