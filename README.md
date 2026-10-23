@@ -85,6 +85,17 @@ Long warm sessions are the honest weak spot: the cache guard cuts model switches
   <img src="assets/commands.png" width="880" alt="Cheat sheet: /jev status, /jev preset, /jev ceiling, /jev cap, /jev full, /jev key, and the prompt markers !opus, !sonnet, !haiku, !full, !cheap.">
 </p>
 
+## Use another System One model
+
+TypeSafe Jev (`jev-latest` on `api.typesafe.ai`) is the default. To route with a different System One model, set two plugin options in `/plugin` → jev-router → configure (or in `settings.json` under the plugin's options):
+
+| Option | Default | Example |
+| --- | --- | --- |
+| `routerModel` | `jev-latest` | `jev-1.14` to pin a Jev version, `laya` for Laya |
+| `routerUrl` | `https://api.typesafe.ai/v1/systemone` | `http://localhost:8080/v1/systemone` for a self-hosted Laya |
+
+A self-hosted endpoint needs no key. Your TypeSafe key (from `/jev key` or `TYPESAFE_API_KEY`) is never sent to it; only the `apiKey` plugin option is, as a bearer token. The endpoint must speak the System One request format Jev uses. `/jev status` shows the active model and endpoint. Clear both options to go back to Jev.
+
 Every option, preset, command and the privacy details are in [OPTIONS.md](OPTIONS.md). Method, per-benchmark results and caveats are in [benchmarks/](benchmarks/README.md).
 
 ## FAQ

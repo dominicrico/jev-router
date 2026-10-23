@@ -61,6 +61,8 @@ When the cache wins, the band says so: `opus (kept 🔒 cache warm; wanted haiku
 
 | Option | Default | Meaning |
 | --- | --- | --- |
+| `routerModel` | `jev-latest` | The System One model that picks: TypeSafe Jev by default, a pinned `jev-1.14`, or another model like `laya` |
+| `routerUrl` | `https://api.typesafe.ai/v1/systemone` | Where `routerModel` is served. A non-TypeSafe endpoint needs no key |
 | `mode` | `balanced` | Routing mode |
 | `models` | all four | Aliases Jev may choose from |
 | `preset` | `none` | `lean`, `balanced` or `max` overrides the three options below. `none`: the options apply as set (the shipped defaults are the `lean` values) |
@@ -86,5 +88,5 @@ When the cache wins, the band says so: `opus (kept 🔒 cache warm; wanted haiku
 
 ## Privacy
 
-Sent to `api.typesafe.ai`: the prompt text (up to `maxTaskChars`), recent messages if `sendHistory` is on, and subagent descriptions. Before sending, `redact` replaces API keys, GitHub tokens, AWS keys, bearer tokens, private key blocks and `NAME_KEY=value` style lines with `[redacted]`. That is pattern matching, not a guarantee, so keep `sendHistory` off if your conversations carry things it would not catch. Your TypeSafe key is stored in the plugin store in plain text if you use `/jev key`, and the command line lands in the transcript; prefer the `TYPESAFE_API_KEY` environment variable.
+Sent to `api.typesafe.ai` (or your `routerUrl`): the prompt text (up to `maxTaskChars`), recent messages if `sendHistory` is on, and subagent descriptions. Before sending, `redact` replaces API keys, GitHub tokens, AWS keys, bearer tokens, private key blocks and `NAME_KEY=value` style lines with `[redacted]`. That is pattern matching, not a guarantee, so keep `sendHistory` off if your conversations carry things it would not catch. Your TypeSafe key is stored in the plugin store in plain text if you use `/jev key`, and the command line lands in the transcript; prefer the `TYPESAFE_API_KEY` environment variable.
 

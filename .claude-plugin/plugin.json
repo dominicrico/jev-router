@@ -4,6 +4,18 @@
   "description": "Asks TypeSafe Jev before each task which Claude model and effort fit best, then runs the turn on it",
   "types": "./types/index.d.ts",
   "userConfig": {
+    "routerModel": {
+      "type": "string",
+      "title": "System One model",
+      "description": "The System One model that picks the Claude model, e.g. jev-latest (TypeSafe Jev, the default), a pinned jev-1.14, or laya",
+      "default": "jev-latest"
+    },
+    "routerUrl": {
+      "type": "string",
+      "title": "System One endpoint",
+      "description": "Where routerModel is served. Default: TypeSafe (api.typesafe.ai). Point it at a self-hosted endpoint for local models like Laya; a non-TypeSafe endpoint needs no key",
+      "default": "https://api.typesafe.ai/v1/systemone"
+    },
     "apiKey": {
       "type": "string",
       "title": "TypeSafe API key",
@@ -72,7 +84,7 @@
     "effortCap": {
       "type": "string",
       "title": "Effort cap",
-      "description": "Highest reasoning effort the router applies. medium is the default (the lean preset). Start a prompt with !full, or run /jev full, to lift it for one promptHighest reasoning effort the router applies. medium is the default (the lean preset). Start a prompt with !full, or run /jev full, to lift it for one prompt",
+      "description": "Highest reasoning effort the router applies. medium is the default (the lean preset). Start a prompt with !full, or run /jev full, to lift it for one prompt",
       "options": [
         "low",
         "medium",
