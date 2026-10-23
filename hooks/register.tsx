@@ -484,6 +484,8 @@ async function record($: EngineInterface, cfg: Config, u: (StepUsage & { model: 
 const hasContent = (t: any) => !!t && (t.type !== 'Box' || (t.children?.length ?? 0) > 0)
 
 const COMMANDS = 'efficient | balanced | cheap | sticky <off|auto|strict> | cap <effort|none> | ceiling <model|none> | floor <model|none> | full | preset <lean|balanced|max> | stats clear | on | off | status | key <key>'
+// A gating hook that throws would fail the user's prompt or tool call, so each one logs its own errors and lets the event through.
+const oops = ($: EngineInterface, hook: string) => (err: unknown) => $.ui.log(`jev ${hook}: ${(err as Error).message}`, { to: 'debug' })
 const usage = (cmd: string, list: readonly string[]) => ({ text: `Usage: /jev ${cmd} ${list.join(' | ')}` })
 const applied = (name: string, v: string) => ({ text: `Jev ${name}: ${v}. Applies from the next task.` })
 
@@ -538,16 +540,20 @@ export const register: Register = (on, options) => {
   }
 
   on('prompt.submit', async ($, e, next) => {
-    stop()
-    let ticks = 0 // self-cancel: a prompt that never reaches turn.complete must not tick forever
-    const t = $.clock.every(120, () => (++ticks > 5000 ? t.cancel() : update($, frameAtom, n => n + 1)))
-    ticker = t
-    skipNext = e.origin?.kind === 'task-notification'
-    const m = markers(e.text, cfg.pool)
-    if (!m.pending || m.text.trim() === '') return next(e)
-    await update($, pendingAtom, () => m.pending)
+    let text = e.text
+    await (async () => {
+      stop()
+      let ticks = 0 // self-cancel: a prompt that never reaches turn.complete must not tick forever
+      const t = $.clock.every(120, () => (++ticks > 5000 ? t.cancel() : update($, frameAtom, n => n + 1)))
+      ticker = t
+      skipNext = e.origin?.kind === 'task-notification'
+      const m = markers(e.text, cfg.pool)
+      if (!m.pending || m.text.trim() === '') return
+      await update($, pendingAtom, () => m.pending)
+      text = m.text
+    })().catch(oops($, 'prompt.submit'))
 
-    return next({ ...e, text: m.text })
+    return next(text === e.text ? e : { ...e, text })
   })
 
   on('turn.complete', async ($, e, next) => {
@@ -556,16 +562,19 @@ export const register: Register = (on, options) => {
   })
 
   on('command.run', { command: 'jev' }, async ($, e, next) => {
-    stop() // a /jev command is not a task: no spinner
+    await Promise.resolve().then(stop).catch(oops($, 'command.run')) // a /jev command is not a task: no spinner
     return next(e)
   })
 
   // Pick the subagent's model at spawn and show it in the subagent list.
   on('agent.spawn', async ($, e, next) => {
-    if (!cfg.routeSubagents || !(await read($, enabledAtom))) return next(e)
+    if (!cfg.routeSubagents) return next(e)
     // Every outcome is recorded for the agent's lifetime, so its steps never ask Jev again behind a decision made here:
     // an explicit model on the Agent call wins, and a failed pick leaves the engine's own model (null = no override).
-    const pick = e.model ? null : await routeSubagent($, cfg, `spawn ${e.subagentType}: ${e.description}`, `Subagent task (${e.subagentType}): ${e.description}\n\n${e.prompt}`, e.parentModel)
+    // undefined: routing is off or the hook itself failed, so the agent is left alone and nothing is recorded.
+    const pick = await (async () =>
+      !(await read($, enabledAtom)) ? undefined : e.model ? null : routeSubagent($, cfg, `spawn ${e.subagentType}: ${e.description}`, `Subagent task (${e.subagentType}): ${e.description}\n\n${e.prompt}`, e.parentModel))().catch(oops($, 'agent.spawn'))
+    if (pick === undefined) return next(e)
     const res = await next(pick ? { ...e, model: pick.alias, description: `${e.description} · ${pick.alias}/${pick.effort}` } : e)
     if (res.agentId) agents.set(res.agentId, Promise.resolve(pick)) // its steps reuse the pick (and its effort)
 
@@ -656,16 +665,18 @@ export const register: Register = (on, options) => {
   // A task that keeps failing moves up one model for the rest of the task, whatever the cache guard says.
   on('tool.call', async ($, e, next) => {
     const res = await next(e)
-    if (e.agentId !== undefined || !cfg.escalateAfter) return res
-    strikes = 'isError' in res && res.isError ? strikes + 1 : 0
-    const last = await read($, lastAtom)
-    if (strikes >= cfg.escalateAfter && last && !last.escalated && !last.pinned) {
-      const to = RANK[Math.min(RANK.indexOf(last.alias) + 1, RANK.length - 1)]!
-      if (cfg.pool.includes(to) && to !== last.alias) {
-        await update($, lastAtom, () => ({ ...last, alias: to, model: CLAUDE[to]!.id, escalated: true }))
-        $.ui.log(`jev escalate: ${last.alias} -> ${to} after ${strikes} failed tool calls`, { to: 'debug' })
+    await (async () => {
+      if (e.agentId !== undefined || !cfg.escalateAfter) return
+      strikes = 'isError' in res && res.isError ? strikes + 1 : 0
+      const last = await read($, lastAtom)
+      if (strikes >= cfg.escalateAfter && last && !last.escalated && !last.pinned) {
+        const to = RANK[Math.min(RANK.indexOf(last.alias) + 1, RANK.length - 1)]!
+        if (cfg.pool.includes(to) && to !== last.alias) {
+          await update($, lastAtom, () => ({ ...last, alias: to, model: CLAUDE[to]!.id, escalated: true }))
+          $.ui.log(`jev escalate: ${last.alias} -> ${to} after ${strikes} failed tool calls`, { to: 'debug' })
+        }
       }
-    }
+    })().catch(oops($, 'tool.call'))
 
     return res
   })

@@ -3,6 +3,8 @@
   "version": "0.5.0",
   "description": "Asks TypeSafe Jev before each task which Claude model and effort fit best, then runs the turn on it",
   "types": "./types/index.d.ts",
+  "author": { "name": "Dominic Rico Gómez", "url": "https://github.com/dominicrico" },
+  "icon": "./.claude-plugin/icon.png",
   "userConfig": {
     "router": {
       "type": "string",
