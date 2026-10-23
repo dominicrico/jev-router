@@ -1,9 +1,34 @@
 {
   "name": "jev-router",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "description": "Asks TypeSafe Jev before each task which Claude model and effort fit best, then runs the turn on it",
   "types": "./types/index.d.ts",
+  "author": { "name": "Dominic Rico Gómez", "url": "https://github.com/dominicrico" },
+  "icon": "./.claude-plugin/icon.png",
   "userConfig": {
+    "router": {
+      "type": "string",
+      "title": "System One router",
+      "description": "jev: TypeSafe Jev (default, TYPESAFE_API_KEY). laya: self-hosted Laya on localhost:8000 (LAYA_API_KEY, optional). kev: self-hosted Kev on 127.0.0.1:8009 (KEV_API_KEY, optional)",
+      "options": [
+        "jev",
+        "laya",
+        "kev"
+      ],
+      "default": "jev"
+    },
+    "routerModel": {
+      "type": "string",
+      "title": "Router model override",
+      "description": "Empty: the router's default (jev-latest, laya, kev-latest). Set to pin a version (jev-1.14) or match your host's model id",
+      "default": ""
+    },
+    "routerUrl": {
+      "type": "string",
+      "title": "Router endpoint override",
+      "description": "Empty: the router's default endpoint. Set for a hosted Laya or Kev, or another port. TypeSafe keys are only ever sent to api.typesafe.ai",
+      "default": ""
+    },
     "apiKey": {
       "type": "string",
       "title": "TypeSafe API key",
@@ -72,7 +97,7 @@
     "effortCap": {
       "type": "string",
       "title": "Effort cap",
-      "description": "Highest reasoning effort the router applies. medium is the default (the lean preset). Start a prompt with !full, or run /jev full, to lift it for one promptHighest reasoning effort the router applies. medium is the default (the lean preset). Start a prompt with !full, or run /jev full, to lift it for one prompt",
+      "description": "Highest reasoning effort the router applies. medium is the default (the lean preset). Start a prompt with !full, or run /jev full, to lift it for one prompt",
       "options": [
         "low",
         "medium",

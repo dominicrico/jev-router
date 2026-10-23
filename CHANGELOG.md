@@ -3,6 +3,23 @@
 All notable changes to jev-router are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project uses [Semantic Versioning](https://semver.org/).
 
+## [0.5.0] - 2026-10-23
+
+### Added
+- `router` option: `jev` (TypeSafe, default), `laya` or `kev` (self-hosted), each with its own default endpoint, model id and key variable (`TYPESAFE_API_KEY`, `LAYA_API_KEY`, `KEV_API_KEY`). `routerModel` and `routerUrl` override them. `/jev status` shows the active router.
+- Configurable `routerModel` and `routerUrl` options, to route with a pinned Jev version or a hosted Laya or Kev.
+
+### Fixed
+- An invalid `effortCap` or `ceiling` value now falls back to the `lean` values (`medium`, `sonnet`). Before, it fell back to `high` and no ceiling, so a typo quietly raised cost.
+- The router timeout timer is cancelled as soon as the router answers, so no stray timer is left behind each step.
+- `/jev` lists every command in its unknown-option reply (`preset`, `ceiling`, `floor`, `stats clear` were missing).
+- The `effortCap` setting help text no longer repeats itself.
+
+### Security
+- A TypeSafe key from `/jev key` or `TYPESAFE_API_KEY` is only sent to `api.typesafe.ai`, never to a custom `routerUrl`.
+
+## [0.4.2] - 2026-10-12: `jev` (TypeSafe, default), `laya` or `kev` (self-hosted), each with its own default endpoint, model id and key variable (`TYPESAFE_API_KEY`, `LAYA_API_KEY`, `KEV_API_KEY`). `routerModel` and `routerUrl` override them. `/jev status` shows the active router.
+
 ## [0.4.2] - 2026-10-12
 
 ### Fixed
@@ -70,6 +87,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Benchmarks: routing fit, cost, stability, overhead and cache stickiness over 30 tasks, plus real token usage and cost per mode against no plugin.
 - Ponytail-style README with logo, hero art and benchmark charts.
 
+[0.5.0]: https://github.com/dominicrico/jev-router/compare/v0.4.2...v0.5.0
 [0.4.2]: https://github.com/dominicrico/jev-router/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/dominicrico/jev-router/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/dominicrico/jev-router/compare/v0.3.0...v0.4.0

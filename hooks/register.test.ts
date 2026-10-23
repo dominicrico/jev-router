@@ -12,11 +12,13 @@ const OPTS = { options: { apiKey: 'k-test', mode: 'balanced' } }
 
 type World = { messages: any[]; bodies: any[]; steps: any[]; toasts: string[]; usage: any; clock: ReturnType<typeof mock.clock> }
 
-function world(on: On, answer: () => { ok: boolean; status: number; text: string }): World {
+type Answer = { ok: boolean; status: number; text: string }
+
+function world(on: On, answer: () => Answer | Promise<Answer>): World {
   const w: World = { messages: [], bodies: [], steps: [], toasts: [], usage: null, clock: mock.clock(on) }
   on('http.fetch', async (_$, e) => {
-    w.bodies.push({ ...JSON.parse(e.init?.body ?? '{}'), auth: e.init?.headers?.authorization })
-    return { value: { headers: {}, ...answer() } }
+    w.bodies.push({ ...JSON.parse(e.init?.body ?? '{}'), auth: e.init?.headers?.authorization, url: e.url })
+    return { value: { headers: {}, ...(await answer()) } }
   })
   on('session.model', async () => ({ value: 'claude-sonnet-5-5' }))
   on('session.messages', async () => ({ value: w.messages }))
@@ -59,6 +61,68 @@ test('routes the turn to the model and effort Jev picks', OPTS, async ($, on) =>
   expect(w.bodies[0].state).toContain('Routing mode: balanced')
   expect(w.steps[0].model).toBe('claude-opus-5-5')
   expect(w.steps[0].effort).toBe('medium') // the default cap
+})
+
+test('Jev on TypeSafe is the default System One model', OPTS, async ($, on) => {
+  const w = world(on, jev('haiku', 'low'))
+  await $.turn.start({ text: 'rename foo to bar', turnId: 't1' })
+
+  expect(w.bodies[0].model).toBe('jev-latest')
+  expect(w.bodies[0].url).toBe('https://api.typesafe.ai/v1/systemone')
+  expect(w.bodies[0].auth).toBe('Bearer k-test')
+})
+
+test('another System One model on a self-hosted endpoint needs no key', { options: { routerModel: 'laya', routerUrl: 'http://localhost:8080/v1/systemone' } }, async ($, on) => {
+  mock.store(on)
+  mock.env(on, {})
+  const w = world(on, jev('haiku', 'low'))
+  await $.turn.start({ text: 'rename foo to bar', turnId: 't1' })
+  await step($, 't1')
+
+  expect(w.bodies[0].model).toBe('laya')
+  expect(w.bodies[0].url).toBe('http://localhost:8080/v1/systemone')
+  expect(w.bodies[0].auth).toBe(undefined)
+  expect(w.steps[0].model).toBe('claude-haiku-5-5')
+})
+
+test('router laya uses its self-hosted defaults and LAYA_API_KEY', { options: { router: 'laya' } }, async ($, on) => {
+  mock.store(on)
+  mock.env(on, { LAYA_API_KEY: 'laya_k', TYPESAFE_API_KEY: 'ts_env' })
+  const w = world(on, jev('haiku', 'low'))
+  await $.turn.start({ text: 'task', turnId: 't1' })
+
+  expect(w.bodies[0].url).toBe('http://localhost:8000/v1/systemone')
+  expect(w.bodies[0].model).toBe('laya')
+  expect(w.bodies[0].auth).toBe('Bearer laya_k')
+})
+
+test('router kev uses its defaults, an override wins, and TYPESAFE_API_KEY stays home', { options: { router: 'kev', routerModel: 'kev-4b' } }, async ($, on) => {
+  mock.store(on)
+  mock.env(on, { TYPESAFE_API_KEY: 'ts_env' })
+  const w = world(on, jev('sonnet', 'low'))
+  await $.turn.start({ text: 'task', turnId: 't1' })
+  await step($, 't1')
+
+  expect(w.bodies[0].url).toBe('http://127.0.0.1:8009/v1/systemone')
+  expect(w.bodies[0].model).toBe('kev-4b')
+  expect(w.bodies[0].auth).toBe(undefined)
+  expect(w.steps[0].model).toBe('claude-sonnet-5-5')
+})
+
+test('a TypeSafe key is never sent to another endpoint', { options: { routerUrl: 'http://other.example/v1/systemone' } }, async ($, on) => {
+  mock.store(on)
+  mock.env(on, { TYPESAFE_API_KEY: 'ts_env' })
+  const w = world(on, jev('haiku', 'low'))
+  await $.turn.start({ text: 'task', turnId: 't1' })
+  expect(w.bodies[0].auth).toBe(undefined)
+})
+
+test('an invalid effortCap or ceiling falls back to the lean values', { options: { apiKey: 'k-test', effortCap: 'mediun', ceiling: 'sonet', ceilingBreak: 0.95 } }, async ($, on) => {
+  const w = world(on, jev('opus', 'xhigh'))
+  await $.turn.start({ text: 'task', turnId: 't1' })
+  await step($, 't1')
+  expect(w.steps[0].model).toBe('claude-sonnet-5-5')
+  expect(w.steps[0].effort).toBe('medium')
 })
 
 test('a continuation keeps the previous decision without calling Jev', OPTS, async ($, on) => {
@@ -328,6 +392,17 @@ test('three failures pause Jev, then it recovers', OPTS, async ($, on) => {
   await w.clock.advance(61_000)
   await $.turn.start({ text: 'task 5', turnId: 't5' })
   expect(w.bodies.length).toBe(4)
+})
+
+test('a Jev call slower than timeoutMs keeps the session model', OPTS, async ($, on) => {
+  const w = world(on, () => new Promise<never>(() => {})) // never answers
+  const started = $.turn.start({ text: 'task', turnId: 't1' })
+  await w.clock.advance(4_001)
+  await started
+  await step($, 't1')
+
+  expect(w.toasts.some(t => t.includes('timed out after 4000 ms'))).toBe(true)
+  expect(w.steps[0].model).toBe('claude-sonnet-5-5')
 })
 
 test('strict plus a warm cache makes no step calls', { options: { apiKey: 'k-test', stickiness: 'strict' } }, async ($, on) => {

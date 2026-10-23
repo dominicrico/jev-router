@@ -85,6 +85,20 @@ Long warm sessions are the honest weak spot: the cache guard cuts model switches
   <img src="assets/commands.png" width="880" alt="Cheat sheet: /jev status, /jev preset, /jev ceiling, /jev cap, /jev full, /jev key, and the prompt markers !opus, !sonnet, !haiku, !full, !cheap.">
 </p>
 
+## Use another System One model
+
+TypeSafe Jev is the default. Laya and Kev, two open System One models you run yourself, work too. All three speak the same `/v1/systemone` API, so switching is one option in `/plugin` → jev-router → configure (or the plugin's options in `settings.json`):
+
+| `router` | Endpoint | Model | Key |
+| --- | --- | --- | --- |
+| `jev` (default) | `https://api.typesafe.ai/v1/systemone` | `jev-latest` | `TYPESAFE_API_KEY` or `/jev key` (required) |
+| `laya` | `http://localhost:8000/v1/systemone` ([server](https://github.com/ZulfiFazhar/system-one)) | `laya` | `LAYA_API_KEY` (optional) |
+| `kev` | `http://127.0.0.1:8009/v1/systemone` ([server](https://github.com/jaredpalmer/kev)) | `kev-latest` | `KEV_API_KEY` (optional) |
+
+`routerUrl` and `routerModel` override the endpoint and model, for a hosted Laya or Kev, another port, or a pinned version like `jev-1.14`. Your TypeSafe key is never sent anywhere but `api.typesafe.ai`; the `apiKey` plugin option is sent to whichever endpoint you set. `/jev status` shows the active router. Set `router` back to `jev` and clear the overrides to return to Jev.
+
+Laya's server rate-limits clients without a key to 10 calls a minute, and jev-router asks once per step. Set `LAYA_API_KEY`, or turn `routeSteps` off.
+
 Every option, preset, command and the privacy details are in [OPTIONS.md](OPTIONS.md). Method, per-benchmark results and caveats are in [benchmarks/](benchmarks/README.md).
 
 ## FAQ

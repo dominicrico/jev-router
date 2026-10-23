@@ -4,6 +4,15 @@ import type { EngineInterface, Register } from 'claude-code'
 import type { Cache, Decision, Effort, EffortCap, Mode, Pending, Ran, Savings, Sticky } from '../types'
 
 export const JEV_URL = 'https://api.typesafe.ai/v1/systemone'
+export const JEV_MODEL = 'jev-latest'
+
+// System One routers. All speak TypeSafe's /v1/systemone contract, so only where they live and which key they take differ.
+// laya and kev are self-hosted by default (ZulfiFazhar/system-one and jaredpalmer/kev servers); their keys are optional.
+export const ROUTERS: Record<string, { url: string; model: string; keyEnv: string }> = {
+  jev: { url: JEV_URL, model: JEV_MODEL, keyEnv: 'TYPESAFE_API_KEY' },
+  laya: { url: 'http://localhost:8000/v1/systemone', model: 'laya', keyEnv: 'LAYA_API_KEY' },
+  kev: { url: 'http://127.0.0.1:8009/v1/systemone', model: 'kev-latest', keyEnv: 'KEV_API_KEY' },
+}
 const MODES: readonly Mode[] = ['efficient', 'balanced', 'cheap']
 const STICKY: readonly Sticky[] = ['off', 'auto', 'strict']
 const EFFORTS: readonly Effort[] = ['low', 'medium', 'high', 'xhigh', 'max']
@@ -67,6 +76,9 @@ type JevReply = { answers?: { model?: JevChoice; effort?: JevChoice } }
 
 export type Config = {
   apiKey: string
+  router: string
+  routerUrl: string
+  routerModel: string
   timeoutMs: number
   pool: string[]
   defaultMode: Mode
@@ -296,6 +308,13 @@ export function composeState(text: string, mode: Mode, current: string, history:
 // the plugin's store (`/jev key <key>`) or the TYPESAFE_API_KEY variable.
 async function resolveKey($: EngineInterface, cfg: Config): Promise<{ key: string; source: string } | null> {
   if (cfg.apiKey) return { key: cfg.apiKey, source: 'plugin option' }
+  // the stored key and TYPESAFE_API_KEY are TypeSafe keys: never send them to another endpoint
+  if (cfg.routerUrl !== JEV_URL) {
+    const keyEnv = ROUTERS[cfg.router]!.keyEnv
+    // env names must be literals at the call site, so each router's variable is spelled out
+    const env = cfg.router === 'laya' ? await $.env.get('LAYA_API_KEY') : cfg.router === 'kev' ? await $.env.get('KEV_API_KEY') : undefined
+    return env ? { key: env, source: keyEnv } : { key: '', source: 'none' }
+  }
   const stored = await $.store.get('apiKey')
   if (typeof stored === 'string' && stored) return { key: stored, source: '/jev key' }
   const env = await $.env.get('TYPESAFE_API_KEY')
@@ -303,9 +322,9 @@ async function resolveKey($: EngineInterface, cfg: Config): Promise<{ key: strin
   return null
 }
 
-export function jevBody(pool: string[], state: string, mode: Mode) {
+export function jevBody(pool: string[], state: string, mode: Mode, router = JEV_MODEL) {
   return {
-    model: 'jev-latest',
+    model: router,
     state,
     questions: {
       model: {
@@ -323,16 +342,17 @@ export function jevBody(pool: string[], state: string, mode: Mode) {
 }
 
 async function askJev($: EngineInterface, cfg: Config, key: string, state: string, mode: Mode) {
-  const body = jevBody(cfg.pool, state, mode)
-  const call = $.http.fetch(JEV_URL, {
+  const body = jevBody(cfg.pool, state, mode, cfg.routerModel)
+  const call = $.http.fetch(cfg.routerUrl, {
     method: 'POST',
-    headers: { 'content-type': 'application/json', authorization: `Bearer ${key}` },
+    headers: { 'content-type': 'application/json', ...(key ? { authorization: `Bearer ${key}` } : {}) },
     body: JSON.stringify(body),
   })
-  const timeout = $.clock.sleep(cfg.timeoutMs).then(() => {
-    throw new Error(`timed out after ${cfg.timeoutMs} ms`)
+  let timer: { cancel: () => void } | undefined
+  const timeout = new Promise<never>((_, reject) => {
+    timer = $.clock.after(cfg.timeoutMs, () => reject(new Error(`timed out after ${cfg.timeoutMs} ms`)))
   })
-  const res = await Promise.race([call, timeout])
+  const res = await Promise.race([call, timeout]).finally(() => timer?.cancel())
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   const reply = JSON.parse(res.text) as JevReply
   const alias = reply.answers?.model?.choice
@@ -463,6 +483,9 @@ async function record($: EngineInterface, cfg: Config, u: (StepUsage & { model: 
 // An empty Box is what "nothing drawn here" looks like, so only real content is composed with.
 const hasContent = (t: any) => !!t && (t.type !== 'Box' || (t.children?.length ?? 0) > 0)
 
+const COMMANDS = 'efficient | balanced | cheap | sticky <off|auto|strict> | cap <effort|none> | ceiling <model|none> | floor <model|none> | full | preset <lean|balanced|max> | stats clear | on | off | status | key <key>'
+// A gating hook that throws would fail the user's prompt or tool call, so each one logs its own errors and lets the event through.
+const oops = ($: EngineInterface, hook: string) => (err: unknown) => $.ui.log(`jev ${hook}: ${(err as Error).message}`, { to: 'debug' })
 const usage = (cmd: string, list: readonly string[]) => ({ text: `Usage: /jev ${cmd} ${list.join(' | ')}` })
 const applied = (name: string, v: string) => ({ text: `Jev ${name}: ${v}. Applies from the next task.` })
 
@@ -476,13 +499,17 @@ export const register: Register = (on, options) => {
 
   const defaultSticky: Sticky = STICKY.includes(options.stickiness as Sticky) ? (options.stickiness as Sticky) : 'auto'
   const preset = PRESETS[String(options.preset)]
-  const defaultCap: EffortCap = preset?.cap ?? (CAPS.includes(options.effortCap as EffortCap) ? (options.effortCap as EffortCap) : 'high')
-  const alias = (v: unknown) => (String(v) in CLAUDE ? String(v) : 'none')
+  const defaultCap: EffortCap = preset?.cap ?? (CAPS.includes(options.effortCap as EffortCap) ? (options.effortCap as EffortCap) : PRESETS.lean!.cap)
+  const alias = (v: unknown, d = 'none') => (String(v) in CLAUDE || String(v) === 'none' ? String(v) : d)
   const flag = (v: unknown, d: boolean) => (v === undefined || v === '' ? d : String(v) !== 'false')
   const num = (v: unknown, d: number) => (v !== undefined && v !== '' && Number.isFinite(Number(v)) ? Number(v) : d)
 
+  const router = String(options.router ?? '').toLowerCase() in ROUTERS ? String(options.router).toLowerCase() : 'jev'
   const cfg: Config = {
     apiKey,
+    router,
+    routerUrl: String(options.routerUrl || ROUTERS[router]!.url),
+    routerModel: String(options.routerModel || ROUTERS[router]!.model),
     timeoutMs,
     pool: allowed.length > 0 ? allowed : Object.keys(CLAUDE),
     defaultMode,
@@ -492,7 +519,7 @@ export const register: Register = (on, options) => {
     routeSteps: flag(options.routeSteps, true),
     routeSubagents: flag(options.routeSubagents, true),
     escalateAfter: num(options.escalateAfter, 3),
-    ceiling: PRESETS[String(options.preset)]?.ceiling ?? alias(options.ceiling),
+    ceiling: PRESETS[String(options.preset)]?.ceiling ?? alias(options.ceiling, PRESETS.lean!.ceiling),
     floor: alias(options.floor),
     ceilingBreak: num(options.ceilingBreak, 0.9),
     sendHistory: flag(options.sendHistory, true),
@@ -513,16 +540,20 @@ export const register: Register = (on, options) => {
   }
 
   on('prompt.submit', async ($, e, next) => {
-    stop()
-    let ticks = 0 // self-cancel: a prompt that never reaches turn.complete must not tick forever
-    const t = $.clock.every(120, () => (++ticks > 5000 ? t.cancel() : update($, frameAtom, n => n + 1)))
-    ticker = t
-    skipNext = e.origin?.kind === 'task-notification'
-    const m = markers(e.text, cfg.pool)
-    if (!m.pending || m.text.trim() === '') return next(e)
-    await update($, pendingAtom, () => m.pending)
+    let text = e.text
+    await (async () => {
+      stop()
+      let ticks = 0 // self-cancel: a prompt that never reaches turn.complete must not tick forever
+      const t = $.clock.every(120, () => (++ticks > 5000 ? t.cancel() : update($, frameAtom, n => n + 1)))
+      ticker = t
+      skipNext = e.origin?.kind === 'task-notification'
+      const m = markers(e.text, cfg.pool)
+      if (!m.pending || m.text.trim() === '') return
+      await update($, pendingAtom, () => m.pending)
+      text = m.text
+    })().catch(oops($, 'prompt.submit'))
 
-    return next({ ...e, text: m.text })
+    return next(text === e.text ? e : { ...e, text })
   })
 
   on('turn.complete', async ($, e, next) => {
@@ -531,16 +562,19 @@ export const register: Register = (on, options) => {
   })
 
   on('command.run', { command: 'jev' }, async ($, e, next) => {
-    stop() // a /jev command is not a task: no spinner
+    await Promise.resolve().then(stop).catch(oops($, 'command.run')) // a /jev command is not a task: no spinner
     return next(e)
   })
 
   // Pick the subagent's model at spawn and show it in the subagent list.
   on('agent.spawn', async ($, e, next) => {
-    if (!cfg.routeSubagents || !(await read($, enabledAtom))) return next(e)
+    if (!cfg.routeSubagents) return next(e)
     // Every outcome is recorded for the agent's lifetime, so its steps never ask Jev again behind a decision made here:
     // an explicit model on the Agent call wins, and a failed pick leaves the engine's own model (null = no override).
-    const pick = e.model ? null : await routeSubagent($, cfg, `spawn ${e.subagentType}: ${e.description}`, `Subagent task (${e.subagentType}): ${e.description}\n\n${e.prompt}`, e.parentModel)
+    // undefined: routing is off or the hook itself failed, so the agent is left alone and nothing is recorded.
+    const pick = await (async () =>
+      !(await read($, enabledAtom)) ? undefined : e.model ? null : routeSubagent($, cfg, `spawn ${e.subagentType}: ${e.description}`, `Subagent task (${e.subagentType}): ${e.description}\n\n${e.prompt}`, e.parentModel))().catch(oops($, 'agent.spawn'))
+    if (pick === undefined) return next(e)
     const res = await next(pick ? { ...e, model: pick.alias, description: `${e.description} · ${pick.alias}/${pick.effort}` } : e)
     if (res.agentId) agents.set(res.agentId, Promise.resolve(pick)) // its steps reuse the pick (and its effort)
 
@@ -582,7 +616,7 @@ export const register: Register = (on, options) => {
     totals = await tally($, cfg)
     await $.command.register({
       name: 'jev',
-      description: 'Jev model routing (prompt markers: !full !haiku !sonnet !opus !fable !cheap !efficient): efficient | balanced | cheap | sticky <off|auto|strict> | cap <effort|none> | ceiling <model|none> | floor <model|none> | full | preset <lean|balanced|max> | on | off | status | key <key>',
+      description: `Jev model routing (prompt markers: !full !haiku !sonnet !opus !fable !cheap !efficient): ${COMMANDS}`,
     })
 
     return next(e)
@@ -631,16 +665,18 @@ export const register: Register = (on, options) => {
   // A task that keeps failing moves up one model for the rest of the task, whatever the cache guard says.
   on('tool.call', async ($, e, next) => {
     const res = await next(e)
-    if (e.agentId !== undefined || !cfg.escalateAfter) return res
-    strikes = 'isError' in res && res.isError ? strikes + 1 : 0
-    const last = await read($, lastAtom)
-    if (strikes >= cfg.escalateAfter && last && !last.escalated && !last.pinned) {
-      const to = RANK[Math.min(RANK.indexOf(last.alias) + 1, RANK.length - 1)]!
-      if (cfg.pool.includes(to) && to !== last.alias) {
-        await update($, lastAtom, () => ({ ...last, alias: to, model: CLAUDE[to]!.id, escalated: true }))
-        $.ui.log(`jev escalate: ${last.alias} -> ${to} after ${strikes} failed tool calls`, { to: 'debug' })
+    await (async () => {
+      if (e.agentId !== undefined || !cfg.escalateAfter) return
+      strikes = 'isError' in res && res.isError ? strikes + 1 : 0
+      const last = await read($, lastAtom)
+      if (strikes >= cfg.escalateAfter && last && !last.escalated && !last.pinned) {
+        const to = RANK[Math.min(RANK.indexOf(last.alias) + 1, RANK.length - 1)]!
+        if (cfg.pool.includes(to) && to !== last.alias) {
+          await update($, lastAtom, () => ({ ...last, alias: to, model: CLAUDE[to]!.id, escalated: true }))
+          $.ui.log(`jev escalate: ${last.alias} -> ${to} after ${strikes} failed tool calls`, { to: 'debug' })
+        }
       }
-    }
+    })().catch(oops($, 'tool.call'))
 
     return res
   })
@@ -763,11 +799,12 @@ export const register: Register = (on, options) => {
           ['last', last ? `${last.alias} / ${last.effort}  ${gauge(last.confidence)} ${last.confidence.toFixed(2)}${last.kept ? `  kept (wanted ${last.kept})` : ''}${last.capped ? `  capped from ${last.capped}` : ''}${last.clamped ? `  clamped from ${last.clamped}` : ''}` : 'none yet'],
           ...usageRows(totals?.models ?? {}, cfg.pool),
           ['saved', savingsLine(totals ?? (await tally($, cfg)))],
+          ['router', `${cfg.router}  ${cfg.routerModel}${cfg.routerUrl === JEV_URL ? '' : `  @ ${cfg.routerUrl}`}`],
           ['jev', isPaused(await $.clock.now()) ? `⚠ paused ${Math.ceil((pausedUntil - (await $.clock.now())) / 1000)} s` : '● ok'],
-          ['key', auth ? `…${auth.key.slice(-4)}  (${auth.source})` : 'none: /jev key <key>'],
+          ['key', auth ? `${auth.key ? `…${auth.key.slice(-4)}` : '—'}  (${auth.source})` : 'none: /jev key <key>'],
         ]),
       }
     }
-    return { text: `Unknown option "${arg}". Use: /jev efficient | balanced | cheap | sticky <mode> | cap <effort|none> | full | on | off | status | key <key>` }
+    return { text: `Unknown option "${arg}". Use: /jev ${COMMANDS}` }
   })
 }

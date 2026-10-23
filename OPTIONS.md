@@ -61,6 +61,9 @@ When the cache wins, the band says so: `opus (kept 🔒 cache warm; wanted haiku
 
 | Option | Default | Meaning |
 | --- | --- | --- |
+| `router` | `jev` | The System One model that picks: `jev` (TypeSafe), `laya` or `kev` (self-hosted). See the [README](README.md#use-another-system-one-model) |
+| `routerModel` | empty | Override the router's model id (`jev-latest`, `laya`, `kev-latest`), e.g. `jev-1.14` |
+| `routerUrl` | empty | Override the router's endpoint. TypeSafe keys are only sent to `api.typesafe.ai` |
 | `mode` | `balanced` | Routing mode |
 | `models` | all four | Aliases Jev may choose from |
 | `preset` | `none` | `lean`, `balanced` or `max` overrides the three options below. `none`: the options apply as set (the shipped defaults are the `lean` values) |
@@ -86,5 +89,5 @@ When the cache wins, the band says so: `opus (kept 🔒 cache warm; wanted haiku
 
 ## Privacy
 
-Sent to `api.typesafe.ai`: the prompt text (up to `maxTaskChars`), recent messages if `sendHistory` is on, and subagent descriptions. Before sending, `redact` replaces API keys, GitHub tokens, AWS keys, bearer tokens, private key blocks and `NAME_KEY=value` style lines with `[redacted]`. That is pattern matching, not a guarantee, so keep `sendHistory` off if your conversations carry things it would not catch. Your TypeSafe key is stored in the plugin store in plain text if you use `/jev key`, and the command line lands in the transcript; prefer the `TYPESAFE_API_KEY` environment variable.
+Sent to `api.typesafe.ai` (or your `routerUrl`): the prompt text (up to `maxTaskChars`), recent messages if `sendHistory` is on, and subagent descriptions. Before sending, `redact` replaces API keys, GitHub tokens, AWS keys, bearer tokens, private key blocks and `NAME_KEY=value` style lines with `[redacted]`. That is pattern matching, not a guarantee, so keep `sendHistory` off if your conversations carry things it would not catch. Your TypeSafe key is stored in the plugin store in plain text if you use `/jev key`, and the command line lands in the transcript; prefer the `TYPESAFE_API_KEY` environment variable.
 
