@@ -4,17 +4,28 @@
   "description": "Asks TypeSafe Jev before each task which Claude model and effort fit best, then runs the turn on it",
   "types": "./types/index.d.ts",
   "userConfig": {
+    "router": {
+      "type": "string",
+      "title": "System One router",
+      "description": "jev: TypeSafe Jev (default, TYPESAFE_API_KEY). laya: self-hosted Laya on localhost:8000 (LAYA_API_KEY, optional). kev: self-hosted Kev on 127.0.0.1:8009 (KEV_API_KEY, optional)",
+      "options": [
+        "jev",
+        "laya",
+        "kev"
+      ],
+      "default": "jev"
+    },
     "routerModel": {
       "type": "string",
-      "title": "System One model",
-      "description": "The System One model that picks the Claude model, e.g. jev-latest (TypeSafe Jev, the default), a pinned jev-1.14, or laya",
-      "default": "jev-latest"
+      "title": "Router model override",
+      "description": "Empty: the router's default (jev-latest, laya, kev-latest). Set to pin a version (jev-1.14) or match your host's model id",
+      "default": ""
     },
     "routerUrl": {
       "type": "string",
-      "title": "System One endpoint",
-      "description": "Where routerModel is served. Default: TypeSafe (api.typesafe.ai). Point it at a self-hosted endpoint for local models like Laya; a non-TypeSafe endpoint needs no key",
-      "default": "https://api.typesafe.ai/v1/systemone"
+      "title": "Router endpoint override",
+      "description": "Empty: the router's default endpoint. Set for a hosted Laya or Kev, or another port. TypeSafe keys are only ever sent to api.typesafe.ai",
+      "default": ""
     },
     "apiKey": {
       "type": "string",

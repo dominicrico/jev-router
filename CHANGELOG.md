@@ -6,7 +6,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 ### Added
-- `routerModel` and `routerUrl` options: route with any System One model, such as a pinned Jev version or a self-hosted Laya. TypeSafe Jev (`jev-latest`) stays the default. A non-TypeSafe endpoint needs no key. `/jev status` shows the active router.
+- `router` option: `jev` (TypeSafe, default), `laya` or `kev` (self-hosted), each with its own default endpoint, model id and key variable (`TYPESAFE_API_KEY`, `LAYA_API_KEY`, `KEV_API_KEY`). `routerModel` and `routerUrl` override them. `/jev status` shows the active router.
 
 ## [0.4.2] - 2026-10-12
 

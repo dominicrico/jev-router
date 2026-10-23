@@ -85,6 +85,30 @@ test('another System One model on a self-hosted endpoint needs no key', { option
   expect(w.steps[0].model).toBe('claude-haiku-5-5')
 })
 
+test('router laya uses its self-hosted defaults and LAYA_API_KEY', { options: { router: 'laya' } }, async ($, on) => {
+  mock.store(on)
+  mock.env(on, { LAYA_API_KEY: 'laya_k', TYPESAFE_API_KEY: 'ts_env' })
+  const w = world(on, jev('haiku', 'low'))
+  await $.turn.start({ text: 'task', turnId: 't1' })
+
+  expect(w.bodies[0].url).toBe('http://localhost:8000/v1/systemone')
+  expect(w.bodies[0].model).toBe('laya')
+  expect(w.bodies[0].auth).toBe('Bearer laya_k')
+})
+
+test('router kev uses its defaults, an override wins, and TYPESAFE_API_KEY stays home', { options: { router: 'kev', routerModel: 'kev-4b' } }, async ($, on) => {
+  mock.store(on)
+  mock.env(on, { TYPESAFE_API_KEY: 'ts_env' })
+  const w = world(on, jev('sonnet', 'low'))
+  await $.turn.start({ text: 'task', turnId: 't1' })
+  await step($, 't1')
+
+  expect(w.bodies[0].url).toBe('http://127.0.0.1:8009/v1/systemone')
+  expect(w.bodies[0].model).toBe('kev-4b')
+  expect(w.bodies[0].auth).toBe(undefined)
+  expect(w.steps[0].model).toBe('claude-sonnet-5-5')
+})
+
 test('a TypeSafe key is never sent to another endpoint', { options: { routerUrl: 'http://other.example/v1/systemone' } }, async ($, on) => {
   mock.store(on)
   mock.env(on, { TYPESAFE_API_KEY: 'ts_env' })

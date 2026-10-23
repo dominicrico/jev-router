@@ -5,6 +5,14 @@ import type { Cache, Decision, Effort, EffortCap, Mode, Pending, Ran, Savings, S
 
 export const JEV_URL = 'https://api.typesafe.ai/v1/systemone'
 export const JEV_MODEL = 'jev-latest'
+
+// System One routers. All speak TypeSafe's /v1/systemone contract, so only where they live and which key they take differ.
+// laya and kev are self-hosted by default (ZulfiFazhar/system-one and jaredpalmer/kev servers); their keys are optional.
+export const ROUTERS: Record<string, { url: string; model: string; keyEnv: string }> = {
+  jev: { url: JEV_URL, model: JEV_MODEL, keyEnv: 'TYPESAFE_API_KEY' },
+  laya: { url: 'http://localhost:8000/v1/systemone', model: 'laya', keyEnv: 'LAYA_API_KEY' },
+  kev: { url: 'http://127.0.0.1:8009/v1/systemone', model: 'kev-latest', keyEnv: 'KEV_API_KEY' },
+}
 const MODES: readonly Mode[] = ['efficient', 'balanced', 'cheap']
 const STICKY: readonly Sticky[] = ['off', 'auto', 'strict']
 const EFFORTS: readonly Effort[] = ['low', 'medium', 'high', 'xhigh', 'max']
@@ -68,6 +76,7 @@ type JevReply = { answers?: { model?: JevChoice; effort?: JevChoice } }
 
 export type Config = {
   apiKey: string
+  router: string
   routerUrl: string
   routerModel: string
   timeoutMs: number
@@ -299,8 +308,13 @@ export function composeState(text: string, mode: Mode, current: string, history:
 // the plugin's store (`/jev key <key>`) or the TYPESAFE_API_KEY variable.
 async function resolveKey($: EngineInterface, cfg: Config): Promise<{ key: string; source: string } | null> {
   if (cfg.apiKey) return { key: cfg.apiKey, source: 'plugin option' }
-  // the stored and env keys are TypeSafe keys: never send them to another endpoint
-  if (cfg.routerUrl !== JEV_URL) return { key: '', source: 'none' }
+  // the stored key and TYPESAFE_API_KEY are TypeSafe keys: never send them to another endpoint
+  if (cfg.routerUrl !== JEV_URL) {
+    const keyEnv = ROUTERS[cfg.router]!.keyEnv
+    // env names must be literals at the call site, so each router's variable is spelled out
+    const env = cfg.router === 'laya' ? await $.env.get('LAYA_API_KEY') : cfg.router === 'kev' ? await $.env.get('KEV_API_KEY') : undefined
+    return env ? { key: env, source: keyEnv } : { key: '', source: 'none' }
+  }
   const stored = await $.store.get('apiKey')
   if (typeof stored === 'string' && stored) return { key: stored, source: '/jev key' }
   const env = await $.env.get('TYPESAFE_API_KEY')
@@ -488,10 +502,12 @@ export const register: Register = (on, options) => {
   const flag = (v: unknown, d: boolean) => (v === undefined || v === '' ? d : String(v) !== 'false')
   const num = (v: unknown, d: number) => (v !== undefined && v !== '' && Number.isFinite(Number(v)) ? Number(v) : d)
 
+  const router = String(options.router ?? '').toLowerCase() in ROUTERS ? String(options.router).toLowerCase() : 'jev'
   const cfg: Config = {
     apiKey,
-    routerUrl: String(options.routerUrl || JEV_URL),
-    routerModel: String(options.routerModel || JEV_MODEL),
+    router,
+    routerUrl: String(options.routerUrl || ROUTERS[router]!.url),
+    routerModel: String(options.routerModel || ROUTERS[router]!.model),
     timeoutMs,
     pool: allowed.length > 0 ? allowed : Object.keys(CLAUDE),
     defaultMode,
@@ -772,7 +788,7 @@ export const register: Register = (on, options) => {
           ['last', last ? `${last.alias} / ${last.effort}  ${gauge(last.confidence)} ${last.confidence.toFixed(2)}${last.kept ? `  kept (wanted ${last.kept})` : ''}${last.capped ? `  capped from ${last.capped}` : ''}${last.clamped ? `  clamped from ${last.clamped}` : ''}` : 'none yet'],
           ...usageRows(totals?.models ?? {}, cfg.pool),
           ['saved', savingsLine(totals ?? (await tally($, cfg)))],
-          ['router', `${cfg.routerModel}${cfg.routerUrl === JEV_URL ? '' : `  @ ${cfg.routerUrl}`}`],
+          ['router', `${cfg.router}  ${cfg.routerModel}${cfg.routerUrl === JEV_URL ? '' : `  @ ${cfg.routerUrl}`}`],
           ['jev', isPaused(await $.clock.now()) ? `⚠ paused ${Math.ceil((pausedUntil - (await $.clock.now())) / 1000)} s` : '● ok'],
           ['key', auth ? `${auth.key ? `…${auth.key.slice(-4)}` : '—'}  (${auth.source})` : 'none: /jev key <key>'],
         ]),

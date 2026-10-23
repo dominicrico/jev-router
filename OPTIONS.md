@@ -61,8 +61,9 @@ When the cache wins, the band says so: `opus (kept 🔒 cache warm; wanted haiku
 
 | Option | Default | Meaning |
 | --- | --- | --- |
-| `routerModel` | `jev-latest` | The System One model that picks: TypeSafe Jev by default, a pinned `jev-1.14`, or another model like `laya` |
-| `routerUrl` | `https://api.typesafe.ai/v1/systemone` | Where `routerModel` is served. A non-TypeSafe endpoint needs no key |
+| `router` | `jev` | The System One model that picks: `jev` (TypeSafe), `laya` or `kev` (self-hosted). See the [README](README.md#use-another-system-one-model) |
+| `routerModel` | empty | Override the router's model id (`jev-latest`, `laya`, `kev-latest`), e.g. `jev-1.14` |
+| `routerUrl` | empty | Override the router's endpoint. TypeSafe keys are only sent to `api.typesafe.ai` |
 | `mode` | `balanced` | Routing mode |
 | `models` | all four | Aliases Jev may choose from |
 | `preset` | `none` | `lean`, `balanced` or `max` overrides the three options below. `none`: the options apply as set (the shipped defaults are the `lean` values) |
